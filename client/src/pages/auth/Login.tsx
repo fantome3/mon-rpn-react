@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import {
   Card,
   CardContent,
@@ -20,111 +21,170 @@ import {
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/PasswordInput'
 import { Button } from '@/components/ui/button'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Checkbox } from '@/components/ui/checkbox'
-
-const formSchema = z.object({
-  email: z.string().email({ message: 'Email invalide' }),
-  password: z.string(),
-  rememberUser: z.boolean(),
-})
+import Header from '@/components/Header'
+import Footer from '@/components/Footer'
+import { useLoginMutation } from '@/hooks/userHooks'
+import { useContext, useEffect } from 'react'
+import { Store } from '@/lib/Store'
+import { toast } from '@/components/ui/use-toast'
+import Loading from '@/components/Loading'
 
 const Login = () => {
+  const { mutateAsync: login, isPending } = useLoginMutation()
+  const { t } = useTranslation(['common'])
   const navigate = useNavigate()
+  const { search } = useLocation()
+  const redirectInUrl = new URLSearchParams(search).get('redirect')
+  const redirect = redirectInUrl ? redirectInUrl : '/profil'
+  const { state, dispatch: ctxDispatch } = useContext(Store)
+  const { userInfo } = state
+
+  const formSchema = z.object({
+    email: z.string().email({ message: `${t('connexion.emailError')}` }),
+    password: z.string().min(6, { message: `${t('connexion.passwordError')}` }),
+    rememberMe: z.boolean(),
+    cpdLng: z.string(),
+  })
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: '',
       password: '',
-      rememberUser: false,
+      rememberMe: false,
+      cpdLng: localStorage.getItem('i18nextLng')!,
     },
   })
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    console.log(values)
+    try {
+      const data = await login(values)
+      ctxDispatch({ type: 'USER_LOGIN', payload: data })
+      toast({
+        variant: 'default',
+        title: 'Connexion',
+        description: 'Connexion réussie',
+      })
+      localStorage.setItem('userInfo', JSON.stringify(data))
+      navigate(redirect)
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Opps!',
+        description: 'Email ou Mot de passe incorrect.',
+      })
+    }
   }
 
+  useEffect(() => {
+    const ac = new AbortController()
+    if (userInfo) navigate(redirect)
+    return () => ac.abort()
+  }, [redirect, userInfo, navigate])
+
   return (
-    <div className='auth'>
-      <Card className='auth-card'>
-        <CardHeader className='text-center mb-5'>
-          <CardTitle className='font-bold text-4xl text-primary'>
-            Se Connecter
-          </CardTitle>
-          <CardDescription className=' text-sm'>
-            Ensemble nous sommes plus fort
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
-              <FormField
-                control={form.control}
-                name='email'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className='text-sm'>Adresse courriel</FormLabel>
-                    <FormControl>
-                      <Input placeholder='john@doe.com' {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+    <>
+      <Header />
+      <div className='auth form'>
+        <Card className='auth-card'>
+          <CardHeader className='text-center mb-5'>
+            <CardTitle className='font-bold text-4xl text-primary'>
+              {t('connexion.titre')}
+            </CardTitle>
+            <CardDescription className=' text-sm'>
+              {t('connexion.slogan')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className='space-y-8'
+              >
+                <FormField
+                  control={form.control}
+                  name='email'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className='text-sm'>
+                        {t('connexion.emailLabel')}
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder={t('connexion.emailInput')}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name='password'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className='text-sm'>Mot de passe</FormLabel>
-                    <FormControl>
-                      <PasswordInput placeholder='Mot de passe' {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name='password'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className='text-sm'>
+                        {t('connexion.passwordLabel')}
+                      </FormLabel>
+                      <FormControl>
+                        <PasswordInput
+                          placeholder={t('connexion.passwordInput')}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name='rememberUser'
-                render={({ field }) => (
-                  <FormItem className='flex flex-row items-start space-x-3 space-y-0 py-4'>
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormLabel className='text-sm'>
-                      Memoriser le nom d'utilisateur
-                    </FormLabel>
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name='rememberMe'
+                  render={({ field }) => (
+                    <FormItem className='flex flex-row items-start space-x-3 space-y-0 py-4'>
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel className='text-sm'>
+                        {t('connexion.rememberMe')}
+                      </FormLabel>
+                    </FormItem>
+                  )}
+                />
 
-              <Button className='w-full ' type='submit'>
-                Me Connecter
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-        <CardFooter className='text-muted-forground flex flex-col gap-y-8 items-start text-sm'>
-          <div className='text-primary cursor-pointer'>
-            Mot de passe oublié?
-          </div>
-          <Button
-            onClick={() => navigate('/register')}
-            variant='outline'
-            className='w-full  text-primary border-primary hover:text-primary hover:bg-secondary'
-          >
-            Créer un compte
-          </Button>
-        </CardFooter>
-      </Card>
-    </div>
+                {isPending ? (
+                  <Loading />
+                ) : (
+                  <Button className='w-full ' type='submit'>
+                    {t('connexion.submit')}
+                  </Button>
+                )}
+              </form>
+            </Form>
+          </CardContent>
+          <CardFooter className='text-muted-forground flex flex-col gap-y-8 items-start text-sm'>
+            <div className='text-primary cursor-pointer'>
+              {t('connexion.oublier')}
+            </div>
+            <Button
+              onClick={() => navigate('/register')}
+              variant='outline'
+              className='w-full  text-primary border-primary hover:text-primary hover:bg-secondary'
+            >
+              {t('connexion.createAccount')}
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+      <Footer />
+    </>
   )
 }
 

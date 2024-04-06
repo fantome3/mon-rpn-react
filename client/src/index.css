@@ -27,7 +27,7 @@ body {
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 214.12 100% 50%;
+    --primary: 215.06 100% 32.35%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 210 40% 96.1%;
@@ -89,12 +89,30 @@ body {
   }
 }
 
+.rdp-vhidden {
+  @apply hidden;
+}
+
 /*Authentication*/
 
 .auth {
-  @apply flex  items-center justify-center h-[100vh] bg-[url('./assets/bg_image.png')] bg-cover;
+  @apply bg-[url('./assets/bg_image.png')] bg-cover;
+}
+
+.form {
+  @apply flex  items-center justify-center h-[100vh];
 }
 
 .auth-card {
   @apply w-[500px] m-3;
+}
+
+.checkout-steps > div {
+  border-bottom: 0.2rem solid #a0a0a0;
+  color: #a0a0a0;
+}
+
+.checkout-steps > div.active {
+  border-bottom: 0.2rem solid #003ea5;
+  color: #003ea5;
 }

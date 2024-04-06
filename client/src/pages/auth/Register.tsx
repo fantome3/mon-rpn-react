@@ -1,100 +1,91 @@
+import CheckoutSteps from '@/components/CheckoutSteps'
+import { PasswordInput } from '@/components/PasswordInput'
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
 import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { cn } from '@/lib/utils'
+import { Store } from '@/lib/Store'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { format } from 'date-fns'
-import { CalendarIcon } from 'lucide-react'
+import clsx from 'clsx'
+import { useContext, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
+import { Link, useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 
 const formSchema = z.object({
-  firstName: z.string(),
-  lastName: z.string(),
-  birthDate: z.date({
-    required_error: 'A date of birth is required.',
-  }),
-  NativeCountry: z.string(),
-  ResidenceCountry: z.string(),
-  postalCode: z.string(),
-  address: z.string(),
-  hasInsurance: z.boolean(),
-  sex: z.string(),
-  email: z.string().email(),
-  password: z.string(),
-  confirmPassword: z.string(),
+  email: z.string().email({ message: `Email invalid` }),
+  password: z.string().min(6, { message: `Au moins 6 mots` }),
+  confirmPassword: z.string().min(6, { message: `Au moins 6 mots` }),
   conditions: z.boolean(),
+  cpdLng: z.string(),
 })
 
 const Register = () => {
+  const { state, dispatch: ctxDispatch } = useContext(Store)
+  const { userInfo } = state
+  const [conditionsError, setConditionsError] = useState(false)
+  const navigate = useNavigate()
+  const { t } = useTranslation(['common'])
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      firstName: '',
-      lastName: '',
-      NativeCountry: '',
-      ResidenceCountry: '',
-      postalCode: '',
-      address: '',
-      hasInsurance: false,
-      sex: '',
       email: '',
       password: '',
       confirmPassword: '',
       conditions: false,
+      cpdLng: localStorage.getItem('i18nextLng')!,
     },
   })
 
+  const {
+    formState: { errors },
+  } = form
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    console.log(values)
+    if (values.conditions === false) {
+      setConditionsError(true)
+    } else {
+      ctxDispatch({ type: 'USER_REGISTER', payload: values })
+      localStorage.setItem(
+        'userInfo',
+        JSON.stringify({ ...userInfo, register: values })
+      )
+      setConditionsError(false)
+      navigate('/origines')
+    }
   }
 
   return (
-    <div className='auth'>
-      <Tabs defaultValue='membre' className='w-[500px]'>
-        <TabsList className='grid w-full grid-cols-2'>
-          <TabsTrigger value='member'>Membre</TabsTrigger>
-          <TabsTrigger value='add_family'>
-            Ajouter membre de famille
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value='member'>
-          <Card>
+    <>
+      <Header />
+      <div className='auth'>
+        <CheckoutSteps step1 />
+        <div className='flex  items-center justify-center h-[100vh]'>
+          <Card className='auth-card'>
             <CardHeader className='text-center mb-5'>
               <CardTitle className='font-bold text-4xl text-primary'>
-                Devenir Membre
+                {t('enregistrement.titre')}
               </CardTitle>
               <CardDescription className=' text-sm'>
-                Ensemble nous sommes plus fort
+                {t('connexion.slogan')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -105,25 +96,17 @@ const Register = () => {
                 >
                   <FormField
                     control={form.control}
-                    name='firstName'
+                    name='email'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className='text-sm'>Prénoms</FormLabel>
+                        <FormLabel className='text-sm'>
+                          {t('connexion.emailLabel')}
+                        </FormLabel>
                         <FormControl>
-                          <Input placeholder='John' {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name='lastName'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className='text-sm'>Nom</FormLabel>
-                        <FormControl>
-                          <Input placeholder='Doe' {...field} />
+                          <Input
+                            placeholder={t('connexion.emailInput')}
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -132,116 +115,87 @@ const Register = () => {
 
                   <FormField
                     control={form.control}
-                    name='birthDate'
+                    name='password'
                     render={({ field }) => (
-                      <FormItem className='flex flex-col'>
-                        <FormLabel className='mb-2'>
-                          Date de naissance
+                      <FormItem>
+                        <FormLabel className='text-sm'>
+                          {t('connexion.passwordLabel')}
                         </FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant={'outline'}
-                                className={cn(
-                                  'w-[240px] pl-3 text-left font-normal',
-                                  !field.value && 'text-muted-foreground'
-                                )}
-                              >
-                                {field.value ? (
-                                  format(field.value, 'PPP')
-                                ) : (
-                                  <span>Choisir une date</span>
-                                )}
-                                <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className='w-auto p-0' align='start'>
-                            <Calendar
-                              mode='single'
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              disabled={(date) =>
-                                date > new Date() ||
-                                date < new Date('1900-01-01')
-                              }
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name='sex'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Sexe</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder='Choisir sexe' />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value='M'>Masculin</SelectItem>
-                            <SelectItem value='F'>Féminin</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name='sex'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Sexe</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder='Choisir sexe' />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value='M'>Masculin</SelectItem>
-                            <SelectItem value='F'>Féminin</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name='postalCode'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className='text-sm'>Code postal</FormLabel>
                         <FormControl>
-                          <Input placeholder='9999' {...field} />
+                          <PasswordInput
+                            placeholder={t('connexion.passwordInput')}
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+
+                  <FormField
+                    control={form.control}
+                    name='confirmPassword'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className='text-sm'>
+                          {t('enregistrement.confirmPasswordLabel')}
+                        </FormLabel>
+                        <FormControl>
+                          <PasswordInput
+                            placeholder={t('enregistrement.confirmPassword')}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name='conditions'
+                    render={({ field }) => (
+                      <FormItem className='flex flex-row items-start space-x-3 space-y-0 py-4'>
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormLabel
+                          className={clsx('text-sm', {
+                            'text-destructive':
+                              conditionsError === true ||
+                              errors.email ||
+                              errors.password ||
+                              errors.confirmPassword,
+                          })}
+                        >
+                          {t('enregistrement.conditions')}
+                        </FormLabel>
+                      </FormItem>
+                    )}
+                  />
+
+                  <Button className='w-full ' type='submit'>
+                    {t('enregistrement.suivant')}
+                  </Button>
                 </form>
               </Form>
             </CardContent>
+            <CardFooter className='text-muted-forground flex flex-col gap-y-8 items-center text-sm'>
+              <p>
+                Déjà un compte?{' '}
+                <span className='text-primary hover:text-primary/60'>
+                  <Link to='/login'>Connectez-vous!</Link>
+                </span>
+              </p>
+            </CardFooter>
           </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+        </div>
+      </div>
+      <Footer />
+    </>
   )
 }
 
