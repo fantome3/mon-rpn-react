@@ -35,5 +35,5 @@ app.use('/api/users', userRouter)
 const PORT: number = parseInt(process.env.PORT! as string, 10)
 
 app.listen(PORT, () => {
-  console.log(`Server started at htpp://localhost:${PORT}`)
+  console.log(`Server started at http://localhost:${PORT}`)
 })
