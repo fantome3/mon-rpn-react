@@ -2,9 +2,101 @@ import express, { Request, Response } from 'express'
 import expressAsyncHandler from 'express-async-handler'
 import { UserModel } from '../models/userModel'
 import bcrypt from 'bcryptjs'
-import { isAdmin, isAuth, generateToken } from '../utils'
+import { isAdmin, isAuth, generateToken, generatePasswordToken } from '../utils'
+import nodemailer from 'nodemailer'
+import jwt from 'jsonwebtoken'
 
 export const userRouter = express.Router()
+
+function updateUserPassword(id: string, newPassword: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    bcrypt
+      .hash(newPassword, 10)
+      .then((hash) => {
+        UserModel.findByIdAndUpdate(id, { 'register.password': hash })
+          .then(() => resolve('Success'))
+          .catch((err) => reject(err))
+      })
+      .catch((err) => reject(err))
+  })
+}
+
+userRouter.post(
+  '/reset-password/:id/:token',
+  expressAsyncHandler(async (req: Request, res: Response) => {
+    const { id, token } = req.params
+    const { password, confirmPassword } = req.body
+    jwt.verify(token, process.env.JWT_SECRET!, (error, decoded) => {
+      if (error) {
+        res.send({
+          message: 'Error with token',
+        })
+      } else {
+        if (password !== confirmPassword) {
+          res.send({
+            message: 'Password Do Not Match',
+          })
+        }
+        updateUserPassword(id, password)
+          .then((status) => res.send({ Status: status }))
+          .catch((error) => res.send({ Status: error }))
+      }
+    })
+  })
+)
+
+userRouter.post(
+  '/forgot-password',
+  expressAsyncHandler(async (req: Request, res: Response) => {
+    try {
+      const { email } = req.body
+      const user = await UserModel.findOne({ 'register.email': email })
+      if (user) {
+        const token = generatePasswordToken(email, user._id)
+        const transporter = nodemailer.createTransport({
+          service: process.env.NODEMAILER_SERVICE,
+          host: process.env.NODEMAILER_HOST,
+          port: 587,
+          secure: false,
+          auth: {
+            user: process.env.NODEMAILER_AUTH_USER,
+            pass: process.env.NODEMAILER_AUTH_PASS,
+          },
+        })
+
+        const mailOptions = {
+          from: process.env.NODEMAILER_AUTH_USER,
+          to: email,
+          subject: 'Réinitialisation de mot de passe',
+          text: `Cliquez sur le lien suivant pour réinitialiser votre mot de passe: http://localhost:5173/reset-password/${user._id}/${token}`,
+        }
+
+        transporter.sendMail(mailOptions, (error, info) => {
+          if (error) {
+            console.log(error)
+            res.status(500).send(`Erreur lors de l'envoi du mail`)
+          } else {
+            console.log(`Email envoyé: ${info.response}`)
+            res
+              .status(200)
+              .send(
+                'Consultez votre email pour obtenir des informations sur la réinitialisation de votre mot de passe.'
+              )
+          }
+        })
+
+        res.send({
+          email,
+          token: token,
+        })
+      } else {
+        res.status(404).send('Email Introuvable')
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  })
+)
 
 userRouter.post(
   '/login',

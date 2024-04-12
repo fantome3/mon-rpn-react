@@ -21,7 +21,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/PasswordInput'
 import { Button } from '@/components/ui/button'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Checkbox } from '@/components/ui/checkbox'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
@@ -170,9 +170,12 @@ const Login = () => {
             </Form>
           </CardContent>
           <CardFooter className='text-muted-forground flex flex-col gap-y-8 items-start text-sm'>
-            <div className='text-primary cursor-pointer'>
+            <Link
+              to='/forgot-password'
+              className='text-primary hover:text-primary/80'
+            >
               {t('connexion.oublier')}
-            </div>
+            </Link>
             <Button
               onClick={() => navigate('/register')}
               variant='outline'

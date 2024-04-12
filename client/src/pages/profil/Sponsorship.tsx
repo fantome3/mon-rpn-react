@@ -1,6 +1,4 @@
 import AddMemberSection from '@/components/AddMemberSection'
-import ProfilInfoConnexion from '@/components/ProfilInfoConnexion'
-import ProfilPersonnalInfo from '@/components/ProfilPersonnalInfo'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
@@ -8,7 +6,7 @@ import { Store } from '@/lib/Store'
 import clsx from 'clsx'
 import { useContext } from 'react'
 import { Link } from 'react-router-dom'
-const Profil = () => {
+const Sponsorship = () => {
   const { state } = useContext(Store)
   const { userInfo } = state
   const pathname = location.pathname
@@ -21,7 +19,6 @@ const Profil = () => {
         <p className='text-center text-xl font-light mb-10'>
           Ensemble, nous sommes plus forts.
         </p>
-
         <AddMemberSection />
         <div className='mt-10'>
           <div className='flex justify-between'>
@@ -35,7 +32,7 @@ const Profil = () => {
             </Link>
             <Link
               className={clsx('text-sm', {
-                'text-primary font-semibold': pathname === '/dependent',
+                'text-primary font-semibold': pathname === '/dependents',
               })}
               to='/dependents'
             >
@@ -54,8 +51,7 @@ const Profil = () => {
           <Card className='bg-[#e9f5eb] min-h-[70vh]'>
             <CardContent className='p-5'>
               <div className='flex justify-between gap-4 md:flex-row flex-col'>
-                <ProfilPersonnalInfo />
-                <ProfilInfoConnexion />
+                Sponsorship
               </div>
             </CardContent>
           </Card>
@@ -65,4 +61,4 @@ const Profil = () => {
   )
 }
 
-export default Profil
+export default Sponsorship

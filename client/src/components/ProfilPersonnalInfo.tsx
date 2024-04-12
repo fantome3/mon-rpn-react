@@ -44,7 +44,7 @@ const formSchema = z.object({
   sex: z.string(),
 })
 
-const ProfilPersonnalInfo = () => {
+const UserOriginInfo = () => {
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { userInfo } = state
   const {
@@ -186,7 +186,7 @@ const ProfilPersonnalInfo = () => {
           </Button>
         </CardFooter>
       </Card>
-      <Card className='border-primary min-h-[22.5vh]'>
+      <Card className='border-primary min-h-[21.5vh]'>
         <CardHeader className='text-xl font-medium'>
           Code de Parrainage
         </CardHeader>
@@ -214,7 +214,11 @@ const ProfilPersonnalInfo = () => {
           description='Modifier vos origines'
         >
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
+            <form
+              id='origines'
+              onSubmit={form.handleSubmit(onSubmit)}
+              className='space-y-8'
+            >
               <FormField
                 control={form.control}
                 name='firstName'
@@ -376,4 +380,4 @@ const ProfilPersonnalInfo = () => {
   )
 }
 
-export default ProfilPersonnalInfo
+export default UserOriginInfo

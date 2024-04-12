@@ -2,6 +2,31 @@ import { useQuery, useMutation } from '@tanstack/react-query'
 import apiClient from '@/apiClient'
 import { User } from '@/types/User'
 
+export const useForgotPasswordMutation = () =>
+  useMutation({
+    mutationFn: async ({ email }: { email: string }) =>
+      (await apiClient.post(`api/users/forgot-password`, { email })).data,
+  })
+
+export const useResetPasswordMutation = () =>
+  useMutation({
+    mutationFn: async ({
+      password,
+      confirmPassword,
+      userId,
+      token,
+    }: {
+      password: string
+      confirmPassword: string
+      userId: string
+      token: string
+    }) =>
+      await apiClient.post(`api/users/reset-password/${userId}/${token}`, {
+        password,
+        confirmPassword,
+      }),
+  })
+
 export const useLoginMutation = () =>
   useMutation({
     mutationFn: async ({

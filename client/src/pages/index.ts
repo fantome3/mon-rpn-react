@@ -4,5 +4,24 @@ import HomePage from './home/HomePage'
 import Origines from './auth/Origines'
 import Infos from './auth/Infos'
 import Profil from './profil/Profil'
+import ForgotPassword from './auth/ForgotPassword'
+import ResetPassword from './auth/ResetPassword'
+import Contact from './contact/Contact'
+import About from './about/About'
+import Dependents from './profil/Dependents'
+import Sponsorship from './profil/Sponsorship'
 
-export { Login, Register, HomePage, Origines, Infos, Profil }
+export {
+  Login,
+  Register,
+  HomePage,
+  Origines,
+  Infos,
+  Profil,
+  ForgotPassword,
+  ResetPassword,
+  Contact,
+  About,
+  Dependents,
+  Sponsorship,
+}

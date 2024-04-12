@@ -44,6 +44,9 @@ class Register {
   @prop({ required: true })
   public confirmPassword!: string
 
+  @prop()
+  public newPassword?: string
+
   @prop({ required: true, default: false })
   public conditions!: boolean
 }

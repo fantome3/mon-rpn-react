@@ -2,6 +2,10 @@ import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
 import { User } from './models/userModel'
 
+export const generatePasswordToken = (email: string, _id: string) => {
+  return jwt.sign({ email, _id }, process.env.JWT_SECRET!, { expiresIn: '1h' })
+}
+
 export const generateToken = (user: User) => {
   const expiresIn = user.rememberMe ? '30d' : '30m'
   return jwt.sign(
@@ -12,6 +16,7 @@ export const generateToken = (user: User) => {
         password: user.register.password,
         confirmPassword: user.register.confirmPassword,
         conditions: user.register.conditions,
+        newPassword: user.register.newPassword,
       },
       origines: {
         firstName: user.origines.firstName,
@@ -50,6 +55,7 @@ export const isAuth = (req: Request, res: Response, next: NextFunction) => {
         email: string
         password: string
         confirmPassword: string
+        newPassword: string
         conditions: boolean
       }
       origines: {

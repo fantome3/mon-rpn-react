@@ -17,22 +17,38 @@ import {
   Register,
   Infos,
   Profil,
+  ForgotPassword,
+  ResetPassword,
+  About,
+  Contact,
+  Dependents,
+  Sponsorship,
 } from './pages/index.ts'
 import './lib/i18n'
 import { StoreProvider } from './lib/Store.tsx'
 import { Toaster } from './components/ui/toaster.tsx'
+import ProtectedRoute from './components/ProtectedRoute.tsx'
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <>
       <Route path='/login' element={<Login />} />
+      <Route path='/forgot-password' element={<ForgotPassword />} />
+      <Route path='/reset-password/:id/:token' element={<ResetPassword />} />
       <Route path='/register' element={<Register />} />
       <Route path='/origines' element={<Origines />} />
       <Route path='/infos' element={<Infos />} />
+      <Route path='/about' element={<About />} />
+      <Route path='/contact-us' element={<Contact />} />
 
       <Route path='/' element={<App />}>
         <Route path='/' index={true} element={<HomePage />} />
-        <Route path='/profil' element={<Profil />} />
+        {/**Auth Users */}
+        <Route path='' element={<ProtectedRoute />}>
+          <Route path='/profil' element={<Profil />} />
+          <Route path='/dependents' element={<Dependents />} />
+          <Route path='/sponsorship' element={<Sponsorship />} />
+        </Route>
       </Route>
     </>
   )

@@ -6,6 +6,7 @@ declare namespace Express {
         email: string
         password: string
         confirmPassword: string
+        newPassword: string
         conditions: boolean
       }
       origines: {
