@@ -1,7 +1,6 @@
 import AddMemberSection from '@/components/AddMemberSection'
 import ProfilInfoConnexion from '@/components/ProfilInfoConnexion'
 import ProfilPersonnalInfo from '@/components/ProfilPersonnalInfo'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Store } from '@/lib/Store'

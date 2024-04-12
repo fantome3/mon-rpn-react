@@ -58,7 +58,6 @@ const UserOriginInfo = () => {
   } = userInfo!
 
   const [addEditModalVisibility, setAddEditModalVisibility] = useState(false)
-  const [editing, setEditing] = useState<any>(null)
   const { mutateAsync: editRegister, isPending } = useUpdateUserMutation()
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -98,7 +97,6 @@ const UserOriginInfo = () => {
         cpdLng: cpdLng,
       }
       await editRegister(updatedData)
-      setEditing(null)
       setAddEditModalVisibility(false)
       ctxDispatch({ type: 'USER_LOGIN', payload: updatedData })
       localStorage.setItem('userInfo', JSON.stringify(updatedData))
@@ -207,7 +205,6 @@ const UserOriginInfo = () => {
         <CustomModal
           setOpen={() => {
             setAddEditModalVisibility(false)
-            setEditing(null)
           }}
           open={addEditModalVisibility}
           title='Modifications'

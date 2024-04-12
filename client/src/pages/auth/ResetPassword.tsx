@@ -27,6 +27,7 @@ import { toast } from '@/components/ui/use-toast'
 import { useContext, useState } from 'react'
 import clsx from 'clsx'
 import { Store } from '@/lib/Store'
+import Loading from '@/components/Loading'
 
 const formSchema = z.object({
   password: z.string().min(6, { message: `Au moins 6 mots` }),
@@ -148,10 +149,13 @@ const ResetPassword = () => {
                       </FormItem>
                     )}
                   />
-
-                  <Button className='w-full ' type='submit'>
-                    Valider
-                  </Button>
+                  {isPending ? (
+                    <Loading />
+                  ) : (
+                    <Button className='w-full ' type='submit'>
+                      Valider
+                    </Button>
+                  )}
                 </form>
               </Form>
             </CardContent>
