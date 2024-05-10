@@ -10,6 +10,7 @@ import Contact from './contact/Contact'
 import About from './about/About'
 import Dependents from './profil/Dependents'
 import Sponsorship from './profil/Sponsorship'
+import Page404 from './page404/Page404'
 
 export {
   Login,
@@ -24,4 +25,5 @@ export {
   About,
   Dependents,
   Sponsorship,
+  Page404,
 }

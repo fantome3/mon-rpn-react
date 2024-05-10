@@ -205,9 +205,35 @@ export const countries = [
   { value: 'Zimbabwe', label: 'Zimbabwe' },
 ]
 
-export const menuItems = [
+export const menuItemsDisconnected = [
   { name: 'Accueil', link: '/' },
-  { name: 'Profile', link: '/login?redirect=/profil' },
+  { name: 'À Propos', link: '/about' },
+  { name: 'Nous contacter', link: '/contact-us' },
+  { name: 'Connexion', link: '/login' },
+  { name: "S'incrire", link: '/register' },
+]
+
+export const menuItemsConnected = [
+  { name: 'Accueil', link: '/' },
+  { name: 'Sommaire', link: '/summary' },
+  { name: 'Profile', link: '/profil' },
   { name: 'À Propos', link: '/about' },
   { name: 'Nous contacter', link: '/contact-us' },
 ]
+
+export const relations = [
+  { name: 'wife' },
+  { name: 'son' },
+  { name: 'father' },
+  { name: 'mother' },
+]
+
+export const status = [{ name: 'active' }, { name: 'inactive' }]
+
+// Expression régulière pour valider l'e-mail
+export const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+
+//Expression régulière pour valider le tel
+export const telRegex = /^(?:\+1)?(\d{10})$/
+
+export const postalCodeRegex = /^\S{3}\s?\S{3}$/

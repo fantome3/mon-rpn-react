@@ -1,10 +1,20 @@
 import { X } from 'lucide-react'
 import { Button } from './ui/button'
-import { useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import clsx from 'clsx'
+import { Store } from '@/lib/Store'
 
 const Announcement = () => {
+  const { state } = useContext(Store)
+  const { userInfo } = state
   const [show, setShow] = useState(true)
+
+  useEffect(() => {
+    if (userInfo?.familyMembers && userInfo?.familyMembers.length > 0) {
+      setShow(false)
+    }
+  }, [userInfo?.familyMembers])
+
   return (
     <div
       className={clsx(

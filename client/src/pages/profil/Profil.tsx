@@ -10,12 +10,13 @@ import { Link } from 'react-router-dom'
 const Profil = () => {
   const { state } = useContext(Store)
   const { userInfo } = state
+
   const pathname = location.pathname
   return (
     <>
       <div className='container mb-10'>
         <h1 className='text-center pt-10 mb-2 text-3xl font-semibold'>
-          Bienvenue {userInfo?.origines.firstName}
+          Bienvenue {userInfo?.origines?.firstName}
         </h1>
         <p className='text-center text-xl font-light mb-10'>
           Ensemble, nous sommes plus forts.

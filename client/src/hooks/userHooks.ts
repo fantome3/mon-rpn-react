@@ -53,6 +53,14 @@ export const useRegisterMutation = () =>
       (await apiClient.post<User>(`api/users/register`, user)).data,
   })
 
+export const useGetUserByReferralId = (referredBy?: string) =>
+  useQuery({
+    queryKey: ['users', referredBy],
+    queryFn: async () =>
+      (await apiClient.get(`api/users/${referredBy}/referral`)).data,
+    enabled: !!referredBy,
+  })
+
 export const useGetUsersQuery = () =>
   useQuery({
     queryKey: ['users'],

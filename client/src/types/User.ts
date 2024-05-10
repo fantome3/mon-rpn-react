@@ -21,6 +21,18 @@ export type Infos = {
   hasInsurance: boolean
 }
 
+export type FamilyMember = {
+  firstName: string
+  lastName: string
+  relationship: string
+  status: string
+}
+
+export type Subscription = {
+  startDate: Date
+  status: string
+}
+
 export type User = {
   _id?: string
   register: Register
@@ -29,4 +41,9 @@ export type User = {
   rememberMe: boolean
   isAdmin: boolean
   cpdLng: string
+  primaryMember: boolean
+  familyMembers: FamilyMember[] | []
+  subscription?: Subscription
+  referralCode?: string
+  referredBy?: string
 }

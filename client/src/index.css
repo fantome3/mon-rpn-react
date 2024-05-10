@@ -100,11 +100,11 @@ body {
 }
 
 .form {
-  @apply flex  items-center justify-center h-[100vh];
+  @apply flex  items-center justify-center h-screen;
 }
 
 .auth-card {
-  @apply w-[500px] m-3;
+  @apply w-96 m-3;
 }
 
 .checkout-steps > div {

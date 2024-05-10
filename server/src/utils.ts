@@ -1,87 +1,101 @@
 import { Request, Response, NextFunction } from 'express'
-import jwt from 'jsonwebtoken'
-import { User } from './models/userModel'
+import jwt, { JwtPayload } from 'jsonwebtoken'
+import { User, UserModel } from './models/userModel'
+import { caching } from 'cache-manager'
+import { GenerateTokenType } from './types/GenerateTokenType'
+
+interface DecodedUser extends JwtPayload {
+  _id: string
+  register: {
+    email: string
+    conditions: boolean
+  }
+  rememberMe: boolean
+  isAdmin: boolean
+  cpdLng: string
+  token: string
+}
 
 export const generatePasswordToken = (email: string, _id: string) => {
-  return jwt.sign({ email, _id }, process.env.JWT_SECRET!, { expiresIn: '1h' })
+  if (!email || !_id) {
+    throw new Error('Invalid input data')
+  }
+  const expiresIn = '1h'
+  const secret = process.env.JWT_SECRET
+
+  if (!secret) {
+    throw new Error('JWT secret not found')
+  }
+  return jwt.sign({ email, _id }, secret, { expiresIn })
 }
 
-export const generateToken = (user: User) => {
+export const generateToken = (user: GenerateTokenType) => {
   const expiresIn = user.rememberMe ? '30d' : '30m'
-  return jwt.sign(
-    {
-      _id: user._id,
-      register: {
-        email: user.register.email,
-        password: user.register.password,
-        confirmPassword: user.register.confirmPassword,
-        conditions: user.register.conditions,
-        newPassword: user.register.newPassword,
-      },
-      origines: {
-        firstName: user.origines.firstName,
-        lastName: user.origines.lastName,
-        birthDate: user.origines.birthDate,
-        nativeCountry: user.origines.nativeCountry,
-        sex: user.origines.sex,
-      },
-      infos: {
-        residenceCountry: user.infos.residenceCountry,
-        postalCode: user.infos.postalCode,
-        address: user.infos.address,
-        tel: user.infos.tel,
-        hasInsurance: user.infos.hasInsurance,
-      },
-      rememberMe: user.rememberMe,
-      isAdmin: user.isAdmin,
-      cpdLng: user.cpdLng,
+
+  const payload = {
+    _id: user._id,
+    register: {
+      email: user.register.email,
+      conditions: user.register.conditions,
     },
-    process.env.JWT_SECRET!,
-    {
-      expiresIn: expiresIn,
-    }
-  )
+    rememberMe: user.rememberMe,
+    isAdmin: user.isAdmin,
+    cpdLng: user.cpdLng,
+  }
+  return jwt.sign(payload, process.env.JWT_SECRET!, {
+    expiresIn: expiresIn,
+  })
 }
 
-export const isAuth = (req: Request, res: Response, next: NextFunction) => {
-  const { authorization } = req.headers
-  if (authorization) {
-    const token = authorization.slice(7, authorization.length)
-    const decode = jwt.verify(token, process.env.JWT_SECRET!)
+export const isAuth = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const cache = await caching('memory', {
+    max: 100,
+    ttl: 2592000,
+  })
 
-    req.user = decode as {
-      _id: string
-      register: {
-        email: string
-        password: string
-        confirmPassword: string
-        newPassword: string
-        conditions: boolean
+  const { authorization } = req.headers
+  if (!authorization) {
+    res.status(401).json({ message: 'No Token' })
+  }
+
+  const token = authorization?.slice(7, authorization.length)
+
+  try {
+    const cachedToken: any = await cache.get(token!)
+    if (cachedToken) {
+      const expiresIn = cachedToken.rememberMe ? '30d' : '30m'
+      const exp =
+        Math.floor(Date.now() / 1000) +
+        (expiresIn === '30d' ? 30 * 24 * 60 * 60 : 30 * 60)
+      if (Date.now() < exp * 1000) {
+        req.user = cachedToken
+        next()
       }
-      origines: {
-        firstName: string
-        lastName: string
-        birthDate: Date
-        nativeCountry: string
-        sex: string
-      }
-      infos: {
-        residenceCountry: string
-        postalCode: string
-        address: string
-        tel: string
-        hasInsurance: boolean
-      }
-      rememberMe: boolean
-      isAdmin: boolean
-      cpdLng: string
-      token: string
     }
+
+    const decode = jwt.verify(token!, process.env.JWT_SECRET!) as DecodedUser
+
+    const user = await UserModel.findById(decode._id)
+    if (!user) {
+      res.status(401).json({ message: 'User not found' })
+    }
+
+    req.user = decode
+    const ttl = 2592000
+    await cache.set(token!, decode, ttl)
     next()
-  } else {
-    res.status(401).json({
-      message: 'No Token',
-    })
+  } catch (error: any) {
+    if (error.name === 'TokenExpiredError') {
+      res.status(401).json({ message: 'Token Expired' })
+    } else if (error.name === 'JsonWebTokenError') {
+      res.status(401).json({ message: 'Invalid Token' })
+    } else {
+      res.status(500).json({ message: 'Unexpected Error' })
+    }
   }
 }
 

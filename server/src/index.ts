@@ -1,13 +1,16 @@
 import * as dotenv from 'dotenv'
-import express from 'express'
+import express, { Request, Response } from 'express'
 import mongoose from 'mongoose'
 import cors from 'cors'
 import { userRouter } from './routers/userRouter'
+import path from 'path'
 
 dotenv.config()
 mongoose.set('strictQuery', true)
 
-const MONGODB_URI = process.env.MONGODB_URI
+const MONGODB_URI =
+  process.env.MONGODB_URI ||
+  'mongodb+srv://mory:mory@cluster0.hpxrt.mongodb.net/monrpn'
 
 mongoose
   .connect(MONGODB_URI!)
@@ -32,7 +35,12 @@ app.use(express.urlencoded({ extended: true }))
 
 app.use('/api/users', userRouter)
 
-const PORT: number = parseInt(process.env.PORT! as string, 10)
+app.use(express.static(path.join(__dirname, '../dist')))
+app.get('*', (req: Request, res: Response) =>
+  res.sendFile(path.join(__dirname, '../dist/index.html'))
+)
+
+const PORT: number = parseInt((process.env.PORT || '5010') as string, 10)
 
 app.listen(PORT, () => {
   console.log(`Server started at http://localhost:${PORT}`)

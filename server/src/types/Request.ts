@@ -4,27 +4,11 @@ declare namespace Express {
       _id: string
       register: {
         email: string
-        password: string
-        confirmPassword: string
-        newPassword: string
         conditions: boolean
-      }
-      origines: {
-        firstName: string
-        lastName: string
-        birthDate: Date
-        nativeCountry: string
-        sex: string
-      }
-      infos: {
-        residenceCountry: string
-        postalCode: string
-        address: string
-        tel: string
-        hasInsurance: boolean
       }
       rememberMe: boolean
       isAdmin: boolean
+      cpdLng: string
     }
   }
 }

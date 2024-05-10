@@ -27,22 +27,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { countries } from '@/lib/constant'
+import { countries, postalCodeRegex, telRegex } from '@/lib/constant'
 import { useTranslation } from 'react-i18next'
 import { Checkbox } from '@/components/ui/checkbox'
-import { useContext, useState } from 'react'
+import { useContext, useEffect } from 'react'
 import { Store } from '@/lib/Store'
 import clsx from 'clsx'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { useRegisterMutation } from '@/hooks/userHooks'
 import Loading from '@/components/Loading'
+import { checkPostalCode, checkTel } from '@/lib/utils'
+import { User } from '@/types/User'
+import { toast } from '@/components/ui/use-toast'
 
 const formSchema = z.object({
-  residenceCountry: z.string(),
-  postalCode: z.string(),
-  address: z.string(),
-  tel: z.string(),
+  residenceCountry: z.string().min(4, { message: 'Champ Obligatoire' }),
+  postalCode: z
+    .string()
+    .regex(postalCodeRegex, { message: 'Champ Obligatoire' }),
+  address: z.string().min(3, { message: 'Champ Obligatoire' }),
+  tel: z.string().regex(telRegex, { message: `Entrer numéro correct` }),
   hasInsurance: z.boolean(),
 })
 
@@ -50,8 +55,7 @@ const Infos = () => {
   const { mutateAsync: registerfunc, isPending } = useRegisterMutation()
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { userInfo } = state
-
-  const [conditionsError, setConditionsError] = useState(false)
+  const { infos } = userInfo!
   const navigate = useNavigate()
   const { search } = useLocation()
   const redirectInUrl = new URLSearchParams(search).get('redirect')
@@ -60,42 +64,54 @@ const Infos = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      residenceCountry: '',
-      postalCode: '',
-      address: '',
-      tel: '',
-      hasInsurance: false,
+      residenceCountry: infos ? infos.residenceCountry : '',
+      postalCode: infos ? infos.postalCode : '',
+      address: infos ? infos.address : '',
+      tel: infos ? infos.tel : '',
+      hasInsurance: infos ? infos.hasInsurance : false,
     },
   })
 
+  useEffect(() => {
+    if (infos) {
+      form.reset({
+        residenceCountry: infos?.residenceCountry,
+        postalCode: infos?.postalCode,
+        address: infos?.address,
+        tel: infos?.tel,
+        hasInsurance: infos?.hasInsurance,
+      })
+    }
+  }, [infos])
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    const { postalCode, tel, address, residenceCountry } = values
     try {
-      if (
-        postalCode === '' ||
-        tel === '' ||
-        address === '' ||
-        residenceCountry === ''
-      ) {
-        setConditionsError(true)
-      } else {
-        ctxDispatch({
-          type: 'USER_INFOS',
-          payload: values,
-        })
-        localStorage.setItem(
-          'userInfo',
-          JSON.stringify({ ...userInfo, infos: values })
-        )
-        registerfunc({
-          ...userInfo!,
-          infos: values,
-          isAdmin: false,
-          rememberMe: false,
-        })
-        navigate(redirect)
-        setConditionsError(false)
+      const userData: User = {
+        ...userInfo!,
+        infos: {
+          ...values,
+          tel: checkTel(values.tel),
+          postalCode: checkPostalCode(values.postalCode),
+        },
+        isAdmin: false,
+        rememberMe: false,
+        primaryMember: true,
+        familyMembers: [],
+        cpdLng: localStorage.getItem('i18nextLng')!,
+        referredBy: localStorage.getItem('referralId')!,
       }
+      const registerData = await registerfunc(userData)
+      ctxDispatch({
+        type: 'USER_SIGNUP',
+        payload: registerData,
+      })
+      toast({
+        variant: 'default',
+        title: 'Inscription',
+        description: 'Inscription réussie',
+      })
+      localStorage.setItem('userInfo', JSON.stringify(registerData))
+      navigate(redirect)
     } catch (error) {
       console.log(error)
     }
@@ -127,13 +143,7 @@ const Infos = () => {
                     name='tel'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel
-                          className={clsx('text-sm', {
-                            'text-destructive': conditionsError === true,
-                          })}
-                        >
-                          Tél
-                        </FormLabel>
+                        <FormLabel className={clsx('text-sm')}>Tél</FormLabel>
                         <FormControl>
                           <Input placeholder='Votre numéro' {...field} />
                         </FormControl>
@@ -147,11 +157,7 @@ const Infos = () => {
                     name='address'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel
-                          className={clsx('text-sm', {
-                            'text-destructive': conditionsError === true,
-                          })}
-                        >
+                        <FormLabel className={clsx('text-sm')}>
                           Adresse
                         </FormLabel>
                         <FormControl>
@@ -167,11 +173,7 @@ const Infos = () => {
                     name='residenceCountry'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel
-                          className={clsx('text-sm', {
-                            'text-destructive': conditionsError === true,
-                          })}
-                        >
+                        <FormLabel className={clsx('text-sm')}>
                           Pays de résidence
                         </FormLabel>
                         <Select
@@ -179,7 +181,7 @@ const Infos = () => {
                           defaultValue={field.value}
                         >
                           <FormControl>
-                            <SelectTrigger>
+                            <SelectTrigger className='w-[50%]'>
                               <SelectValue placeholder='Select residence country' />
                             </SelectTrigger>
                           </FormControl>
@@ -204,14 +206,10 @@ const Infos = () => {
                     name='postalCode'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel
-                          className={clsx('text-sm', {
-                            'text-destructive': conditionsError === true,
-                          })}
-                        >
+                        <FormLabel className={clsx('text-sm')}>
                           Code postal
                         </FormLabel>
-                        <FormControl>
+                        <FormControl className='w-[50%]'>
                           <Input placeholder='Votre code postal' {...field} />
                         </FormControl>
                         <FormMessage />
@@ -230,11 +228,7 @@ const Infos = () => {
                             onCheckedChange={field.onChange}
                           />
                         </FormControl>
-                        <FormLabel
-                          className={clsx('text-sm', {
-                            'text-destructive': conditionsError === true,
-                          })}
-                        >
+                        <FormLabel className='text-sm'>
                           Êtes-vous assurés?
                         </FormLabel>
                       </FormItem>
@@ -243,9 +237,18 @@ const Infos = () => {
                   {isPending ? (
                     <Loading />
                   ) : (
-                    <Button className='w-full ' type='submit'>
-                      {t('enregistrement.suivant')}
-                    </Button>
+                    <div>
+                      <Button className='mr-4' type='submit'>
+                        {t('enregistrement.suivant')}
+                      </Button>
+                      <Button
+                        onClick={() => navigate(-1)}
+                        className='bg-white text-primary border-2 hover:bg-slate-100 hover:text-primary/80 border-primary'
+                        type='reset'
+                      >
+                        Annuler
+                      </Button>
+                    </div>
                   )}
                 </form>
               </Form>

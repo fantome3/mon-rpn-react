@@ -97,9 +97,7 @@ const ForgotPassword = () => {
                 {isPending ? (
                   <Loading />
                 ) : (
-                  <Button className='w-full ' type='submit'>
-                    Valider
-                  </Button>
+                  <Button type='submit'>Valider</Button>
                 )}
               </form>
             </Form>

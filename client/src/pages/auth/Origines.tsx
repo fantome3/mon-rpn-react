@@ -38,58 +38,72 @@ import {
 } from '@/components/ui/select'
 import { countries } from '@/lib/constant'
 import { useTranslation } from 'react-i18next'
-import { useContext, useState } from 'react'
+import { useContext, useEffect } from 'react'
 import { Store } from '@/lib/Store'
 import clsx from 'clsx'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import { toast } from '@/components/ui/use-toast'
 
 const formSchema = z.object({
-  firstName: z.string(),
-  lastName: z.string(),
+  firstName: z.string().min(3, { message: 'Champ Obligatoire' }),
+  lastName: z.string().min(3, { message: 'Champ Obligatoire' }),
   birthDate: z.date({
     required_error: 'A date of birth is required.',
   }),
-  nativeCountry: z.string(),
-  sex: z.string(),
+  nativeCountry: z.string().min(3, { message: 'Champ Obligatoire' }),
+  sex: z.string().min(1, { message: 'Champ Obligatoire' }),
 })
 
 const Origines = () => {
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { userInfo } = state
-  const [conditionsError, setConditionsError] = useState(false)
+  const { origines } = userInfo!
+
   const navigate = useNavigate()
   const { t } = useTranslation(['common'])
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      firstName: '',
-      lastName: '',
-      birthDate: new Date('1990-01-01'),
-      nativeCountry: '',
-      sex: '',
+      firstName: origines ? origines.firstName : '',
+      lastName: origines ? origines.lastName : '',
+      birthDate: origines ? origines.birthDate : new Date('1990-01-01'),
+      nativeCountry: origines ? origines.nativeCountry : '',
+      sex: origines ? origines.sex : '',
     },
   })
 
+  useEffect(() => {
+    if (origines) {
+      form.reset({
+        firstName: origines.firstName,
+        lastName: origines.lastName,
+        birthDate: new Date(origines.birthDate),
+        nativeCountry: origines.nativeCountry,
+        sex: origines.sex,
+      })
+    }
+  }, [origines])
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    const { firstName, lastName, nativeCountry, sex } = values
     try {
-      if (
-        firstName === '' ||
-        lastName === '' ||
-        nativeCountry === '' ||
-        sex === ''
-      ) {
-        setConditionsError(true)
-      } else {
-        ctxDispatch({ type: 'USER_ORIGINES', payload: values })
-        localStorage.setItem(
-          'userInfo',
-          JSON.stringify({ ...userInfo, origines: values })
-        )
-        navigate('/infos')
-        setConditionsError(false)
+      const currentYear = new Date().getFullYear()
+      const birthDateYear = values.birthDate.getFullYear()
+      if (currentYear - birthDateYear < 18) {
+        toast({
+          variant: 'destructive',
+          title: 'Age incorrect',
+          description: 'Vous devez avoir au moins 18 ans',
+        })
+        return
       }
+
+      ctxDispatch({ type: 'USER_ORIGINES', payload: values })
+      localStorage.setItem(
+        'userInfo',
+        JSON.stringify({ ...userInfo, origines: values })
+      )
+      navigate('/infos')
     } catch (error) {
       console.log(error)
     }
@@ -121,11 +135,7 @@ const Origines = () => {
                     name='firstName'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel
-                          className={clsx('text-sm', {
-                            'text-destructive': conditionsError === true,
-                          })}
-                        >
+                        <FormLabel className={clsx('text-sm')}>
                           {t('infoPerso.prenom')}
                         </FormLabel>
                         <FormControl>
@@ -144,11 +154,7 @@ const Origines = () => {
                     name='lastName'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel
-                          className={clsx('text-sm', {
-                            'text-destructive': conditionsError === true,
-                          })}
-                        >
+                        <FormLabel className={clsx('text-sm')}>
                           {t('infoPerso.nom')}
                         </FormLabel>
                         <FormControl>
@@ -167,11 +173,7 @@ const Origines = () => {
                     name='birthDate'
                     render={({ field }) => (
                       <FormItem className='flex flex-col'>
-                        <FormLabel
-                          className={clsx('mb-0.5 text-sm', {
-                            'text-destructive': conditionsError === true,
-                          })}
-                        >
+                        <FormLabel className={clsx('mb-0.5 text-sm')}>
                           {t('infoPerso.dateNaissance')}
                         </FormLabel>
                         <Popover>
@@ -180,7 +182,7 @@ const Origines = () => {
                               <Button
                                 variant={'outline'}
                                 className={cn(
-                                  ' pl-3 text-left text-sm',
+                                  'w-[50%] pl-3 text-left text-sm',
                                   !field.value && 'text-muted-foreground'
                                 )}
                               >
@@ -219,11 +221,7 @@ const Origines = () => {
                     name='sex'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel
-                          className={clsx('mb-0.5 text-sm', {
-                            'text-destructive': conditionsError === true,
-                          })}
-                        >
+                        <FormLabel className={clsx('mb-0.5 text-sm')}>
                           {t('infoPerso.sexe')}
                         </FormLabel>
                         <Select
@@ -231,7 +229,7 @@ const Origines = () => {
                           defaultValue={field.value}
                         >
                           <FormControl>
-                            <SelectTrigger>
+                            <SelectTrigger className='w-[50%]'>
                               <SelectValue
                                 placeholder={t('infoPerso.sexeInput')}
                               />
@@ -256,11 +254,7 @@ const Origines = () => {
                     name='nativeCountry'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel
-                          className={clsx('mb-0.5 text-sm', {
-                            'text-destructive': conditionsError === true,
-                          })}
-                        >
+                        <FormLabel className={clsx('mb-0.5 text-sm')}>
                           {t('infoPerso.paysOrigine')}
                         </FormLabel>
                         <Select
@@ -268,7 +262,7 @@ const Origines = () => {
                           defaultValue={field.value}
                         >
                           <FormControl>
-                            <SelectTrigger>
+                            <SelectTrigger className='w-[50%]'>
                               <SelectValue placeholder='Select native country' />
                             </SelectTrigger>
                           </FormControl>
@@ -287,10 +281,18 @@ const Origines = () => {
                       </FormItem>
                     )}
                   />
-
-                  <Button className='w-full ' type='submit'>
-                    {t('enregistrement.suivant')}
-                  </Button>
+                  <div>
+                    <Button className='mr-4' type='submit'>
+                      {t('enregistrement.suivant')}
+                    </Button>
+                    <Button
+                      onClick={() => navigate(-1)}
+                      className='bg-white text-primary border-2 hover:bg-slate-100 hover:text-primary/80 border-primary'
+                      type='reset'
+                    >
+                      Annuler
+                    </Button>
+                  </div>
                 </form>
               </Form>
             </CardContent>

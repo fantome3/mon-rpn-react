@@ -1,5 +1,11 @@
-import { prop, getModelForClass, modelOptions } from '@typegoose/typegoose'
-
+import {
+  prop,
+  getModelForClass,
+  modelOptions,
+  Ref,
+  Severity,
+} from '@typegoose/typegoose'
+import { v4 as uuidv4 } from 'uuid'
 class Infos {
   @prop({ required: true })
   public residenceCountry!: string
@@ -51,8 +57,34 @@ class Register {
   public conditions!: boolean
 }
 
+class FamilyMember {
+  @prop({ required: true })
+  public firstName!: string
+
+  @prop({ required: true })
+  public lastName!: string
+
+  @prop({ required: true })
+  public relationship!: string
+
+  @prop({ required: true, default: 'active' })
+  public status!: string //Active, Deleted,
+}
+
+class Subscription {
+  @prop({ required: true, default: Date.now })
+  public startDate!: Date
+
+  @prop({ required: true, default: 'registered' })
+  public status!: string //Active, Inactive, Current, Registered
+}
+
 @modelOptions({
   schemaOptions: { timestamps: true },
+  options: {
+    allowMixed: Severity.ALLOW,
+    customName: 'users',
+  },
 })
 export class User {
   public _id?: string
@@ -74,6 +106,21 @@ export class User {
 
   @prop({ required: true })
   public cpdLng!: string
+
+  @prop({ required: true, default: true })
+  public primaryMember!: boolean
+
+  @prop({ required: true, default: [] })
+  public familyMembers!: FamilyMember[]
+
+  @prop({ required: true, default: new Subscription() })
+  public subscription!: Subscription
+
+  @prop({ default: () => uuidv4() }) // Generate unique UUID
+  public referralCode?: string
+
+  @prop({ ref: User, required: false }) // Reference to another User document
+  public referredBy?: Ref<User>
 }
 
 export const UserModel = getModelForClass(User)

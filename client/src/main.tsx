@@ -23,19 +23,24 @@ import {
   Contact,
   Dependents,
   Sponsorship,
+  Page404,
 } from './pages/index.ts'
 import './lib/i18n'
 import { StoreProvider } from './lib/Store.tsx'
 import { Toaster } from './components/ui/toaster.tsx'
 import ProtectedRoute from './components/ProtectedRoute.tsx'
+import UserHomPage from './components/UserHomePage.tsx'
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <>
+      <Route path='*' element={<Page404 />} />
       <Route path='/login' element={<Login />} />
       <Route path='/forgot-password' element={<ForgotPassword />} />
       <Route path='/reset-password/:id/:token' element={<ResetPassword />} />
       <Route path='/register' element={<Register />} />
+      <Route path='/register' element={<Register />} />
+      <Route path='/register/:id/:ref' element={<Register />} />
       <Route path='/origines' element={<Origines />} />
       <Route path='/infos' element={<Infos />} />
       <Route path='/about' element={<About />} />
@@ -46,6 +51,7 @@ const router = createBrowserRouter(
         {/**Auth Users */}
         <Route path='' element={<ProtectedRoute />}>
           <Route path='/profil' element={<Profil />} />
+          <Route path='/summary' element={<UserHomPage />} />
           <Route path='/dependents' element={<Dependents />} />
           <Route path='/sponsorship' element={<Sponsorship />} />
         </Route>

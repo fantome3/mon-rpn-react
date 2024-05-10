@@ -8,10 +8,14 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import clsx from 'clsx'
+import { Store } from '@/lib/Store'
 
 export function ModeToggle() {
+  const { state } = useContext(Store)
+  const { userInfo } = state
   const { i18n } = useTranslation()
   const [lang, setLang] = useState(localStorage.getItem('i18nextLng')!)
 
@@ -24,7 +28,13 @@ export function ModeToggle() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant='outline' size='icon'>
-          <Languages className='h-[1.2rem] w-[1.2rem] text-primary' />
+          <Languages
+            className={
+              userInfo
+                ? 'h-[1.2rem] w-[1.2rem] text-primary'
+                : 'h-[1.2rem] w-[1.2rem] text-black'
+            }
+          />
           <span className='sr-only'>Toggle language</span>
         </Button>
       </DropdownMenuTrigger>

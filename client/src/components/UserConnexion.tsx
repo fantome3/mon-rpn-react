@@ -16,10 +16,14 @@ import {
   FormMessage,
 } from './ui/form'
 import { Input } from './ui/input'
-import { useUpdateUserMutation } from '@/hooks/userHooks'
+import {
+  useGetUserDetailsQuery,
+  useUpdateUserMutation,
+} from '@/hooks/userHooks'
 import Loading from './Loading'
 import { toast } from './ui/use-toast'
 import { Link } from 'react-router-dom'
+import { User } from '@/types/User'
 
 const UserConnexion = () => {
   const { t } = useTranslation(['common'])
@@ -30,10 +34,23 @@ const UserConnexion = () => {
 
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { userInfo } = state
-  const { register, origines, infos, rememberMe, isAdmin, _id, cpdLng } =
-    userInfo!
+  const {
+    register,
+    origines,
+    infos,
+    rememberMe,
+    isAdmin,
+    _id,
+    cpdLng,
+    primaryMember,
+    familyMembers,
+    subscription,
+    referralCode,
+    referredBy,
+  } = userInfo!
   const [addEditModalVisibility, setAddEditModalVisibility] = useState(false)
 
+  const { data: user } = useGetUserDetailsQuery(_id!)
   const { mutateAsync: editMail, isPending: emaiPending } =
     useUpdateUserMutation()
 
@@ -55,23 +72,34 @@ const UserConnexion = () => {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       const { email } = values
-      const updatedData = {
-        _id: _id,
+      const updatedData: User = {
+        _id: _id!,
         origines: origines,
         infos: infos,
         rememberMe: rememberMe,
         cpdLng: cpdLng,
         isAdmin: isAdmin,
-        register: { ...register, email: email },
+        register: {
+          ...register,
+          email: email,
+          password: user?.register.password!,
+          confirmPassword: user?.register.confirmPassword!,
+        },
+        primaryMember: primaryMember,
+        familyMembers: familyMembers,
+        subscription: subscription,
+        referralCode: referralCode,
+        referredBy: referredBy,
       }
       if (email !== register.email) {
-        await editMail(updatedData)
+        const updated = await editMail(updatedData)
         toast({
           title: 'Modification',
           description: 'Email modifié',
         })
         setAddEditModalVisibility(false)
-        ctxDispatch({ type: 'USER_LOGIN', payload: updatedData })
+        ctxDispatch({ type: 'USER_LOGIN', payload: updated.user })
+        localStorage.setItem('userInfo', JSON.stringify(updated.user))
       }
     } catch (error) {
       console.log(error)
@@ -83,10 +111,21 @@ const UserConnexion = () => {
       <Card className=' border-primary'>
         <CardHeader className='text-xl font-medium'>Inscription</CardHeader>
         <CardContent>
-          <div className='mb-4 grid items-start pb-4 last:mb-0 last:pb-0'>
+          <div className='mb-4 flex justify-between items-center pb-4 last:mb-0 last:pb-0'>
             <div className='space-y-1'>
               <p className='text-sm font-medium leading-none'>Courriel</p>
               <p className='text-sm text-muted-foreground'>{register.email}</p>
+            </div>
+            <div className='items-end'>
+              <Button
+                variant='outline'
+                className='border-primary text-primary'
+                onClick={() => {
+                  setAddEditModalVisibility(true)
+                }}
+              >
+                Modifier
+              </Button>
             </div>
           </div>
           <div className='mb-4 grid items-start pb-4 last:mb-0 last:pb-0'>
@@ -100,17 +139,6 @@ const UserConnexion = () => {
             </div>
           </div>
         </CardContent>
-        <CardFooter className='flex justify-end'>
-          <Button
-            variant='outline'
-            className='border-primary text-primary'
-            onClick={() => {
-              setAddEditModalVisibility(true)
-            }}
-          >
-            Modifier
-          </Button>
-        </CardFooter>
       </Card>
       {addEditModalVisibility ? (
         <CustomModal
@@ -143,9 +171,7 @@ const UserConnexion = () => {
               {emaiPending ? (
                 <Loading />
               ) : (
-                <Button className='w-full ' type='submit'>
-                  Valider
-                </Button>
+                <Button type='submit'>Valider</Button>
               )}
             </form>
           </Form>

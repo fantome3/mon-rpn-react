@@ -1,6 +1,4 @@
 import { useContext } from 'react'
-import Footer from './Footer'
-import Header from './Header'
 import { Store } from '@/lib/Store'
 import { BarChart4 } from 'lucide-react'
 import AddMemberSection from './AddMemberSection'
@@ -11,7 +9,6 @@ const UserHomPage = () => {
   const { userInfo } = state
   return (
     <>
-      <Header />
       <div className='container mb-10'>
         <h1 className='text-center pt-10 mb-2 text-3xl font-semibold'>
           Bienvenue {userInfo?.origines.firstName}
@@ -37,7 +34,6 @@ const UserHomPage = () => {
         <AddMemberSection />
         <GraphSection />
       </div>
-      <Footer />
     </>
   )
 }

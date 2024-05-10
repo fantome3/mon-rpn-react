@@ -88,7 +88,7 @@ const ResetPassword = () => {
     <>
       <Header />
       <div className='auth'>
-        <div className='flex  items-center justify-center h-[100vh]'>
+        <div className='flex items-center justify-center h-screen'>
           <Card className='auth-card'>
             <CardHeader className='text-center mb-5'>
               <CardTitle className='font-bold text-4xl text-primary'>
@@ -152,9 +152,7 @@ const ResetPassword = () => {
                   {isPending ? (
                     <Loading />
                   ) : (
-                    <Button className='w-full ' type='submit'>
-                      Valider
-                    </Button>
+                    <Button type='submit'>Valider</Button>
                   )}
                 </form>
               </Form>

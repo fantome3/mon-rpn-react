@@ -24,18 +24,18 @@ import { Input } from '@/components/ui/input'
 import { Store } from '@/lib/Store'
 import { zodResolver } from '@hookform/resolvers/zod'
 import clsx from 'clsx'
-import { useContext, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { z } from 'zod'
+import { toast } from '@/components/ui/use-toast'
 
 const formSchema = z.object({
   email: z.string().email({ message: `Email invalid` }),
   password: z.string().min(6, { message: `Au moins 6 mots` }),
   confirmPassword: z.string().min(6, { message: `Au moins 6 mots` }),
   conditions: z.boolean(),
-  cpdLng: z.string(),
 })
 
 const Register = () => {
@@ -43,23 +43,40 @@ const Register = () => {
   const { userInfo } = state
   const [conditionsError, setConditionsError] = useState(false)
   const navigate = useNavigate()
+  const params = useParams()
   const { t } = useTranslation(['common'])
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: '',
-      password: '',
-      confirmPassword: '',
-      conditions: false,
-      cpdLng: localStorage.getItem('i18nextLng')!,
+      email: userInfo?.register.email || '',
+      password: userInfo?.register.password || '',
+      confirmPassword: userInfo?.register.confirmPassword || '',
+      conditions: userInfo?.register.conditions || false,
     },
   })
 
-  const {
-    formState: { errors },
-  } = form
+  useEffect(() => {
+    if (userInfo) {
+      form.reset({
+        email: userInfo?.register.email,
+        password: userInfo?.register.password,
+        confirmPassword: userInfo?.register.confirmPassword,
+        conditions: userInfo?.register.conditions,
+      })
+    }
+  }, [userInfo])
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (values.password !== values.confirmPassword) {
+      toast({
+        variant: 'destructive',
+        title: 'Mots de passe incorrects!',
+        description: 'Vos mots de passe sont différents.',
+      })
+      setConditionsError(true)
+      return
+    }
     if (values.conditions === false) {
       setConditionsError(true)
     } else {
@@ -68,6 +85,10 @@ const Register = () => {
         'userInfo',
         JSON.stringify({ ...userInfo, register: values })
       )
+      if (params && Object.keys(params).length > 0) {
+        localStorage.setItem('referralId', params.id!)
+        localStorage.setItem('referralCode', params.ref!)
+      }
       setConditionsError(false)
       navigate('/origines')
     }
@@ -78,7 +99,7 @@ const Register = () => {
       <Header />
       <div className='auth'>
         <CheckoutSteps step1 />
-        <div className='flex  items-center justify-center h-[100vh]'>
+        <div className='flex  items-center justify-center h-screen'>
           <Card className='auth-card'>
             <CardHeader className='text-center mb-5'>
               <CardTitle className='font-bold text-4xl text-primary'>
@@ -118,7 +139,11 @@ const Register = () => {
                     name='password'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className='text-sm'>
+                        <FormLabel
+                          className={clsx('text-sm', {
+                            'text-destructive': conditionsError === true,
+                          })}
+                        >
                           {t('connexion.passwordLabel')}
                         </FormLabel>
                         <FormControl>
@@ -137,7 +162,11 @@ const Register = () => {
                     name='confirmPassword'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className='text-sm'>
+                        <FormLabel
+                          className={clsx('text-sm', {
+                            'text-destructive': conditionsError === true,
+                          })}
+                        >
                           {t('enregistrement.confirmPasswordLabel')}
                         </FormLabel>
                         <FormControl>
@@ -165,10 +194,7 @@ const Register = () => {
                         <FormLabel
                           className={clsx('text-sm', {
                             'text-destructive':
-                              conditionsError === true ||
-                              errors.email ||
-                              errors.password ||
-                              errors.confirmPassword,
+                              conditionsError === true && field.value === false,
                           })}
                         >
                           {t('enregistrement.conditions')}
@@ -177,9 +203,7 @@ const Register = () => {
                     )}
                   />
 
-                  <Button className='w-full ' type='submit'>
-                    {t('enregistrement.suivant')}
-                  </Button>
+                  <Button type='submit'>{t('enregistrement.suivant')}</Button>
                 </form>
               </Form>
             </CardContent>

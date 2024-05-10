@@ -108,6 +108,10 @@ userRouter.post(
         res.send({
           ...user.toObject(),
           rememberMe: rememberMe,
+          register: {
+            email: user.register.email,
+            conditions: user.register.conditions,
+          },
           token: generateToken(user),
         })
       } else {
@@ -123,8 +127,15 @@ userRouter.post(
   '/register',
   expressAsyncHandler(async (req: Request, res: Response) => {
     try {
-      const { register, origines, infos, rememberMe, isAdmin, cpdLng } =
-        req.body
+      const {
+        register,
+        origines,
+        infos,
+        rememberMe,
+        isAdmin,
+        cpdLng,
+        referredBy,
+      } = req.body
       const newUser = new UserModel({
         register: {
           ...register,
@@ -136,9 +147,17 @@ userRouter.post(
         rememberMe,
         isAdmin,
         cpdLng,
+        referredBy,
       })
       const user = await newUser.save()
-      res.send({ ...user.toObject(), token: generateToken(user) })
+      res.send({
+        ...user.toObject(),
+        register: {
+          email: user.register.email,
+          conditions: user.register.conditions,
+        },
+        token: generateToken(user),
+      })
     } catch (error) {
       res.status(400).json(error)
     }
@@ -156,13 +175,37 @@ userRouter.put(
         const updatedUser = await user.save()
         res.send({
           message: 'User Updated',
-          user: updatedUser.toObject(),
+          user: {
+            ...updatedUser.toObject(),
+            register: {
+              email: updatedUser.register.email,
+              conditions: updatedUser.register.conditions,
+            },
+            token: generateToken(updatedUser),
+          },
         })
       } else {
         res.status(404).send({
           message: 'User Not Found',
         })
       }
+    } catch (error) {
+      res.status(400).json(error)
+    }
+  })
+)
+
+userRouter.get(
+  '/:referredBy/referral',
+  isAuth,
+  expressAsyncHandler(async (req: Request, res: Response) => {
+    try {
+      const users = await UserModel.find({
+        referredBy: req.params.referredBy,
+      })
+        .populate('referredBy', '_id origines.firstName origines.lastName')
+        .sort({ createdAt: -1 })
+      res.send(users)
     } catch (error) {
       res.status(400).json(error)
     }
