@@ -16,11 +16,6 @@ export const functionReverse = (str: string) => {
   return str.split('-').reverse().join('-')
 }
 
-export const functionSponsorship = (str: string) => {
-  if (!str) return
-  return str.substring(17, 24)
-}
-
 export const checkTel = (tel: string) => {
   const telTable = tel.split('')
   if (telTable.slice(0, 2).join('') === '+1') {

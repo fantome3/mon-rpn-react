@@ -2,8 +2,6 @@ import { useContext } from 'react'
 import { Card, CardContent, CardHeader } from './ui/card'
 import { Store } from '@/lib/Store'
 
-import { functionSponsorship } from '@/lib/utils'
-
 const UserAddress = () => {
   const { state } = useContext(Store)
   const { userInfo } = state
@@ -21,7 +19,7 @@ const UserAddress = () => {
                 Code de parrainge
               </p>
               <p className='text-sm text-muted-foreground'>
-                {functionSponsorship(userInfo?._id!)}
+                {userInfo?.referralCode!}
               </p>
             </div>
           </div>

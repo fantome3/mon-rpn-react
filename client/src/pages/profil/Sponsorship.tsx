@@ -94,7 +94,7 @@ const Sponsorship = () => {
         <div className='mt-10'>
           <div className='flex justify-between'>
             <Link
-              className={clsx('text-sm', {
+              className={clsx('lg:text-sm text-[.80rem]', {
                 'text-primary font-semibold': pathname === '/profil',
               })}
               to='/profil'
@@ -102,7 +102,7 @@ const Sponsorship = () => {
               Mon profile
             </Link>
             <Link
-              className={clsx('text-sm', {
+              className={clsx('lg:text-sm text-[.80rem]', {
                 'text-primary font-semibold': pathname === '/dependents',
               })}
               to='/dependents'
@@ -110,7 +110,7 @@ const Sponsorship = () => {
               Personnes à charge
             </Link>
             <Link
-              className={clsx('text-sm', {
+              className={clsx('lg:text-sm text-[.80rem]', {
                 'text-primary font-semibold': pathname === '/sponsorship',
               })}
               to='/sponsorship'

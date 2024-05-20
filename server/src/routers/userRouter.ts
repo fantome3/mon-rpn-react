@@ -26,22 +26,26 @@ userRouter.post(
   expressAsyncHandler(async (req: Request, res: Response) => {
     const { id, token } = req.params
     const { password, confirmPassword } = req.body
-    jwt.verify(token, process.env.JWT_SECRET!, (error, decoded) => {
-      if (error) {
-        res.send({
-          message: 'Error with token',
-        })
-      } else {
-        if (password !== confirmPassword) {
+    jwt.verify(
+      token,
+      process.env.JWT_SECRET || 'ddlfjssdmsmdkskm',
+      (error, decoded) => {
+        if (error) {
           res.send({
-            message: 'Password Do Not Match',
+            message: 'Error with token',
           })
+        } else {
+          if (password !== confirmPassword) {
+            res.send({
+              message: 'Password Do Not Match',
+            })
+          }
+          updateUserPassword(id, password)
+            .then((status) => res.send({ Status: status }))
+            .catch((error) => res.send({ Status: error }))
         }
-        updateUserPassword(id, password)
-          .then((status) => res.send({ Status: status }))
-          .catch((error) => res.send({ Status: error }))
       }
-    })
+    )
   })
 )
 
@@ -54,13 +58,13 @@ userRouter.post(
       if (user) {
         const token = generatePasswordToken(email, user._id)
         const transporter = nodemailer.createTransport({
-          service: process.env.NODEMAILER_SERVICE,
-          host: process.env.NODEMAILER_HOST,
+          service: process.env.NODEMAILER_SERVICE || 'gmail',
+          host: process.env.NODEMAILER_HOST || 'smtp.gmail.com',
           port: 587,
           secure: false,
           auth: {
-            user: process.env.NODEMAILER_AUTH_USER,
-            pass: process.env.NODEMAILER_AUTH_PASS,
+            user: process.env.NODEMAILER_AUTH_USER || 'konemory019@gmail.com',
+            pass: process.env.NODEMAILER_AUTH_PASS || 'uxtw beeo uowj nmrx',
           },
         })
 

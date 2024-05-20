@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from 'react'
-import { Card, CardContent, CardFooter, CardHeader } from './ui/card'
+import { Card, CardContent, CardHeader } from './ui/card'
 import { Button } from './ui/button'
 import { Store } from '@/lib/Store'
 import CustomModal from './CustomModal'
@@ -111,12 +111,12 @@ const UserConnexion = () => {
       <Card className=' border-primary'>
         <CardHeader className='text-xl font-medium'>Inscription</CardHeader>
         <CardContent>
-          <div className='mb-4 flex justify-between items-center pb-4 last:mb-0 last:pb-0'>
+          <div className='mb-4 flex flex-col lg:flex-row justify-between pb-4 last:mb-0 last:pb-0'>
             <div className='space-y-1'>
               <p className='text-sm font-medium leading-none'>Courriel</p>
               <p className='text-sm text-muted-foreground'>{register.email}</p>
             </div>
-            <div className='items-end'>
+            <div className='mt-4 flex justify-end'>
               <Button
                 variant='outline'
                 className='border-primary text-primary'

@@ -31,7 +31,6 @@ import {
 import { toast } from './ui/use-toast'
 import Loading from './Loading'
 import { Checkbox } from './ui/checkbox'
-import { User } from '@/types/User'
 
 const formSchema = z.object({
   residenceCountry: z.string(),

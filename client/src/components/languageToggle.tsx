@@ -10,7 +10,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useContext, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import clsx from 'clsx'
 import { Store } from '@/lib/Store'
 
 export function ModeToggle() {
