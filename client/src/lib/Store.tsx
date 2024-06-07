@@ -1,13 +1,18 @@
 import React from 'react'
 import { Infos, Origines, Register, User } from '@/types/User'
+import { Account } from '@/types/Account'
 
 type AppState = {
   userInfo?: User
+  accountInfo?: Account
 }
 
 const initialState: AppState = {
   userInfo: localStorage.getItem('userInfo')
     ? JSON.parse(localStorage.getItem('userInfo')!)
+    : null,
+  accountInfo: localStorage.getItem('accountInfo')
+    ? JSON.parse(localStorage.getItem('accountInfo')!)
     : null,
 }
 
@@ -18,6 +23,19 @@ type Action =
   | { type: 'USER_ORIGINES'; payload: Origines }
   | { type: 'USER_INFOS'; payload: Infos }
   | { type: 'USER_SIGNOUT' }
+  | { type: 'ACCOUNT_INFOS'; payload: Account }
+  | { type: 'CLEAR_ACCOUNT' }
+
+function accountInfoReducer(state: Account, action: Action) {
+  switch (action.type) {
+    case 'ACCOUNT_INFOS':
+      return action.payload
+    case 'CLEAR_ACCOUNT':
+      return undefined
+    default:
+      return state
+  }
+}
 
 function userInfoReducer(state: User, action: Action) {
   switch (action.type) {
@@ -54,6 +72,7 @@ function userInfoReducer(state: User, action: Action) {
 function rootReducer(state: AppState, action: Action) {
   return {
     userInfo: userInfoReducer(state.userInfo!, action),
+    accountInfoReducer: accountInfoReducer(state.accountInfo!, action),
   }
 }
 

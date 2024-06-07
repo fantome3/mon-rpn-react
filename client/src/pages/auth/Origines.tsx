@@ -46,8 +46,8 @@ import Footer from '@/components/Footer'
 import { toast } from '@/components/ui/use-toast'
 
 const formSchema = z.object({
-  firstName: z.string().min(3, { message: 'Champ Obligatoire' }),
-  lastName: z.string().min(3, { message: 'Champ Obligatoire' }),
+  firstName: z.string().min(3, { message: 'Au moins 3 caractères' }),
+  lastName: z.string().min(3, { message: 'Au moins 3 caractères' }),
   birthDate: z.date({
     required_error: 'A date of birth is required.',
   }),
@@ -68,7 +68,7 @@ const Origines = () => {
       firstName: origines ? origines.firstName : '',
       lastName: origines ? origines.lastName : '',
       birthDate: origines ? origines.birthDate : new Date('1990-01-01'),
-      nativeCountry: origines ? origines.nativeCountry : '',
+      nativeCountry: origines ? origines.nativeCountry : 'Cameroun',
       sex: origines ? origines.sex : '',
     },
   })
@@ -112,193 +112,191 @@ const Origines = () => {
   return (
     <>
       <Header />
-      <div className='auth'>
-        <CheckoutSteps step2 />
-        <div className='flex  items-center justify-center h-[100vh] '>
-          <Card className='auth-card '>
-            <CardHeader className='text-center mb-5'>
-              <CardTitle className='font-bold text-4xl text-primary'>
-                Vos Origines
-              </CardTitle>
-              <CardDescription className=' text-sm'>
-                {t('connexion.slogan')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className='space-y-8'
-                >
-                  <FormField
-                    control={form.control}
-                    name='firstName'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className={clsx('text-sm')}>
-                          {t('infoPerso.prenom')}
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder={t('infoPerso.prenomInput')}
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+      <div className='auth form'>
+        <Card className='auth-card '>
+          <CardHeader className='text-center mb-5'>
+            <CheckoutSteps step2 />
+            <CardTitle className='font-bold text-4xl text-primary'>
+              Vos Origines
+            </CardTitle>
+            <CardDescription className=' text-sm'>
+              {t('connexion.slogan')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className='space-y-8'
+              >
+                <FormField
+                  control={form.control}
+                  name='firstName'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className={clsx('text-sm')}>
+                        {t('infoPerso.prenom')}
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder={t('infoPerso.prenomInput')}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                  <FormField
-                    control={form.control}
-                    name='lastName'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className={clsx('text-sm')}>
-                          {t('infoPerso.nom')}
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder={t('infoPerso.nomInput')}
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                <FormField
+                  control={form.control}
+                  name='lastName'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className={clsx('text-sm')}>
+                        {t('infoPerso.nom')}
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder={t('infoPerso.nomInput')}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                  <FormField
-                    control={form.control}
-                    name='birthDate'
-                    render={({ field }) => (
-                      <FormItem className='flex flex-col'>
-                        <FormLabel className={clsx('mb-0.5 text-sm')}>
-                          {t('infoPerso.dateNaissance')}
-                        </FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant={'outline'}
-                                className={cn(
-                                  'w-[50%] pl-3 text-left text-sm',
-                                  !field.value && 'text-muted-foreground'
-                                )}
-                              >
-                                {field.value ? (
-                                  format(field.value, 'PPP')
-                                ) : (
-                                  <span>Pick a date</span>
-                                )}
-                                <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className='w-auto p-0' align='start'>
-                            <Calendar
-                              mode='single'
-                              captionLayout='dropdown-buttons'
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              disabled={(date) =>
-                                date > new Date() ||
-                                date < new Date('1960-01-01')
-                              }
-                              initialFocus
-                              fromYear={1960}
-                              toYear={2030}
+                <FormField
+                  control={form.control}
+                  name='birthDate'
+                  render={({ field }) => (
+                    <FormItem className='flex flex-col'>
+                      <FormLabel className={clsx('mb-0.5 text-sm')}>
+                        {t('infoPerso.dateNaissance')}
+                      </FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={'outline'}
+                              className={cn(
+                                'w-[50%] pl-3 text-left text-sm',
+                                !field.value && 'text-muted-foreground'
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, 'PPP')
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                              <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className='w-auto p-0' align='start'>
+                          <Calendar
+                            mode='single'
+                            captionLayout='dropdown-buttons'
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={(date) =>
+                              date > new Date() || date < new Date('1960-01-01')
+                            }
+                            initialFocus
+                            fromYear={1960}
+                            toYear={2030}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='sex'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className={clsx('mb-0.5 text-sm')}>
+                        {t('infoPerso.sexe')}
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className='w-[50%]'>
+                            <SelectValue
+                              placeholder={t('infoPerso.sexeInput')}
                             />
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value='M'>
+                            {t('infoPerso.homme')}
+                          </SelectItem>
+                          <SelectItem value='F'>
+                            {t('infoPerso.femme')}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                  <FormField
-                    control={form.control}
-                    name='sex'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className={clsx('mb-0.5 text-sm')}>
-                          {t('infoPerso.sexe')}
-                        </FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger className='w-[50%]'>
-                              <SelectValue
-                                placeholder={t('infoPerso.sexeInput')}
-                              />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value='M'>
-                              {t('infoPerso.homme')}
+                <FormField
+                  control={form.control}
+                  name='nativeCountry'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className={clsx('mb-0.5 text-sm')}>
+                        {t('infoPerso.paysOrigine')}
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value || 'Cameroun'}
+                      >
+                        <FormControl>
+                          <SelectTrigger className='w-[50%]'>
+                            <SelectValue placeholder='Select native country' />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {countries.map((country) => (
+                            <SelectItem
+                              key={country.value}
+                              value={country.value}
+                            >
+                              {country.label}
                             </SelectItem>
-                            <SelectItem value='F'>
-                              {t('infoPerso.femme')}
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name='nativeCountry'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className={clsx('mb-0.5 text-sm')}>
-                          {t('infoPerso.paysOrigine')}
-                        </FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger className='w-[50%]'>
-                              <SelectValue placeholder='Select native country' />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {countries.map((country) => (
-                              <SelectItem
-                                key={country.value}
-                                value={country.value}
-                              >
-                                {country.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div>
-                    <Button className='mr-4' type='submit'>
-                      {t('enregistrement.suivant')}
-                    </Button>
-                    <Button
-                      onClick={() => navigate(-1)}
-                      className='bg-white text-primary border-2 hover:bg-slate-100 hover:text-primary/80 border-primary'
-                      type='reset'
-                    >
-                      Annuler
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-        </div>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div>
+                  <Button className='mr-4' type='submit'>
+                    {t('enregistrement.suivant')}
+                  </Button>
+                  <Button
+                    onClick={() => navigate(-1)}
+                    className='bg-white text-primary border-2 hover:bg-slate-100 hover:text-primary/80 border-primary'
+                    type='reset'
+                  >
+                    Annuler
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
       </div>
+
       <Footer />
     </>
   )

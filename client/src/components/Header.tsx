@@ -6,6 +6,7 @@ import { useContext } from 'react'
 import { Store } from '@/lib/Store'
 import { Button } from './ui/button'
 import clsx from 'clsx'
+import AdminMenu from './AdminMenu'
 
 const Navbar = () => {
   const { state, dispatch: ctxDispatch } = useContext(Store)
@@ -13,9 +14,14 @@ const Navbar = () => {
   const navigate = useNavigate()
   const logoutHandler = () => {
     ctxDispatch({ type: 'USER_SIGNOUT' })
+    ctxDispatch({ type: 'CLEAR_ACCOUNT' })
     localStorage.removeItem('userInfo')
+    localStorage.removeItem('accountInfo')
     navigate('/login')
   }
+
+  const pathname = location.pathname
+
   return (
     <div
       className={
@@ -32,21 +38,30 @@ const Navbar = () => {
       <nav className='hidden lg:block absolute left-[15%]'>
         <ul className='flex items-center justify-center gap-8'>
           {menuItemsConnected.map((item) => (
-            <Link key={item.name} to={item.link}>
+            <Link
+              className={clsx('', {
+                'font-bold text-lg': pathname === item.link,
+              })}
+              key={item.name}
+              to={item.link}
+            >
               {item.name}
             </Link>
           ))}
         </ul>
       </nav>
       <aside className=' items-center flex lg:flex gap-2'>
+        {userInfo && userInfo.isAdmin ? <AdminMenu /> : ''}
         {userInfo ? (
-          <Button
-            className='text-destructive hover:text-destructive/90 hidden lg:flex'
-            variant='outline'
-            onClick={() => logoutHandler()}
-          >
-            Déconnexion
-          </Button>
+          <>
+            <Button
+              className='text-destructive hover:text-destructive/90 hidden lg:flex'
+              variant='outline'
+              onClick={() => logoutHandler()}
+            >
+              Déconnexion
+            </Button>
+          </>
         ) : (
           <>
             <Link

@@ -1,3 +1,75 @@
+import banner1 from '../assets/banner_1.png'
+import banner2 from '../assets/banner_2.png'
+import banner3 from '../assets/banner_3.png'
+import { Handshake, Lightbulb, Leaf } from 'lucide-react'
+
+export const carousel_images = [banner1, banner2, banner3]
+
+export const cardContent = [
+  {
+    id: '1',
+    headerIcon: Handshake,
+    title: 'La valeur du conseiller',
+    desc: `Qu'est-ce qu'un conseiller en sécurité financière peut faire pour vous? Il vous aidera à choisir des produits d'épargne et d'assurance qui correspondent à votre réalité et vos besoins.`,
+    footerText: 'Voir les autres avantages',
+  },
+  {
+    id: '2',
+    headerIcon: Lightbulb,
+    title: 'La valeur du conseiller',
+    desc: `Qu'est-ce qu'un conseiller en sécurité financière peut faire pour vous? Il vous aidera à choisir des produits d'épargne et d'assurance qui correspondent à votre réalité et vos besoins.`,
+    footerText: 'Voir les autres avantages',
+  },
+  {
+    id: '3',
+    headerIcon: Leaf,
+    title: 'Durabilité',
+    desc: 'Voyez comment nous contribuons à une croissance durable et au bien-être de nos clients, de nos employés, de nos partenaires, de nos investisseurs et des communautés.',
+    footerText: 'Découvrir nos actions',
+  },
+]
+
+export const rejoins = [
+  {
+    id: '1',
+    title: 'Inscrivez-vous',
+    desc: 'Devenez membre de notre mouvement en vous inscrivant.',
+  },
+  {
+    id: '2',
+    title: 'Agissez avec compassion',
+    desc: 'Soyez prêt à soutenir vos pairs en cas de besoin.  ',
+  },
+  {
+    id: '3',
+    title: 'Pensez à vos connaissances',
+    desc: 'Encourager les à nous rejoindre en partageant le lien. ',
+  },
+]
+
+export const engagements = [
+  {
+    id: '1',
+    title: 'Solidarité avant tout',
+    desc: 'Le mouvement Unis pour le Rapatriement Digne (URD) collectera les fonds auprès des différents membres afin de t’accompagner dans cette épreuve. ',
+  },
+  {
+    id: '2',
+    title: 'Stress administratif',
+    desc: 'Tu n’es pas seul dans ce fleuve d’informations et de stress pour faire partir le corps vers sa terre natale. ',
+  },
+  {
+    id: '3',
+    title: 'Protéger les personnes que tu aimes',
+    desc: `Nous aidons nos familles vulnérables d'Afrique à ne pas s’endetter de plus pour avoir à enterrer un des leurs. `,
+  },
+  {
+    id: '4',
+    title: 'Frais de contribution',
+    desc: 'Cela se calcule aux nombres des membres et plus nous serons nombreux, moins la contribution individuelle sera lourde. ',
+  },
+]
+
 export const countries = [
   { value: 'Afghanistan', label: 'Afghanistan' },
   { value: 'Albanie', label: 'Albanie' },
@@ -207,8 +279,8 @@ export const countries = [
 
 export const menuItemsDisconnected = [
   { name: 'Accueil', link: '/' },
-  { name: 'À Propos', link: '/about' },
-  { name: 'Nous contacter', link: '/contact-us' },
+  //{ name: 'À Propos', link: '/about' },
+  //{ name: 'Nous contacter', link: '/contact-us' },
   { name: 'Connexion', link: '/login' },
   { name: "S'incrire", link: '/register' },
 ]
@@ -217,8 +289,13 @@ export const menuItemsConnected = [
   { name: 'Accueil', link: '/' },
   { name: 'Sommaire', link: '/summary' },
   { name: 'Profile', link: '/profil' },
-  { name: 'À Propos', link: '/about' },
-  { name: 'Nous contacter', link: '/contact-us' },
+  // { name: 'À Propos', link: '/about' },
+  // { name: 'Nous contacter', link: '/contact-us' },
+]
+
+export const adminMenuItems = [
+  { name: 'Comptes', link: '/admin/accounts' },
+  { name: 'Annonces', link: '/admin/announcements' },
 ]
 
 export const relations = [
@@ -234,6 +311,8 @@ export const status = [{ name: 'active' }, { name: 'inactive' }]
 export const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
 
 //Expression régulière pour valider le tel
-export const telRegex = /^(?:\+1)?(\d{10})$/
+export const telRegex = /^(?:\+1\s*)?((?:\d\s*){10})$/ // /^(?:\+1)?(\d{10})$/
 
 export const postalCodeRegex = /^\S{3}\s?\S{3}$/
+
+export const expiryDateRegex = /^(0[1-9]|1[0-2])[0-9]{2}$/

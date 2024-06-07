@@ -3,10 +3,17 @@ import { Store } from '@/lib/Store'
 import { BarChart4 } from 'lucide-react'
 import AddMemberSection from './AddMemberSection'
 import GraphSection from './GraphSection'
+import UserAccountInfo from './UserAccountInfo'
+import CurrentMonthStat from './CurrentMonthStat'
+import TotalDeath from './TotalDeath'
+import { useGetSummaryQuery } from '@/hooks/deathAnnouncementHook'
+import LastAnnouncements from './LastAnnouncements'
 
 const UserHomPage = () => {
   const { state } = useContext(Store)
   const { userInfo } = state
+  const { data: summary } = useGetSummaryQuery()
+
   return (
     <>
       <div className='container mb-10'>
@@ -27,12 +34,24 @@ const UserHomPage = () => {
               Ensemble allégeons le fardeau de nos familles
             </p>
           </div>
+
           <div>
             <BarChart4 size={200} />
           </div>
         </div>
         <AddMemberSection />
-        <GraphSection />
+        <div className='grid sm:grid-cols-3 gap-4'>
+          <UserAccountInfo />
+          <CurrentMonthStat
+            data={
+              summary ? summary.currentMonthPrevieww[0].month[0].totalDeaths : 0
+            }
+          />
+          <TotalDeath data={summary ? summary.deaths[0].numDeaths : 0} />
+        </div>
+
+        <GraphSection data={summary ? summary.totalMonthly : []} />
+        <LastAnnouncements />
       </div>
     </>
   )

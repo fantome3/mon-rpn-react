@@ -24,7 +24,7 @@ function CustomModal({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className='sm:max-w-md'>
-        <DialogHeader className='mx-12 mb-3 '>
+        <DialogHeader className='mx-12 mb-3'>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>

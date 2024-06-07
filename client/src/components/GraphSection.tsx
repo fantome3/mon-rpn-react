@@ -1,5 +1,5 @@
 import Loading from './Loading'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import {
   Select,
   SelectContent,
@@ -11,7 +11,7 @@ import {
 } from './ui/select'
 import Chart from 'react-google-charts'
 
-const GraphSection = () => {
+const GraphSection = ({ data }: any) => {
   /**Ignore google charts warning */
   const originalWarn = console.warn
   console.warn = function (...args) {
@@ -38,19 +38,12 @@ const GraphSection = () => {
   ]
 
   const date = 'date'
-  const count = 'quantité'
+  const count = 'décès'
 
-  const month = new Date().getMonth() + 1
-  const data = [
-    { x: 1, y: 100, color: month === 1 ? '#003ea5' : '#808080' },
-    { x: 2, y: 120, color: month === 2 ? '#003ea5' : '#808080' },
-    { x: 3, y: 40, color: month === 3 ? '#003ea5' : '#808080' },
-    { x: 4, y: 69, color: month === 4 ? '#003ea5' : '#808080' },
-    { x: 5, y: 98, color: month === 5 ? '#003ea5' : '#808080' },
-  ]
+  //const month = new Date().getMonth() + 1
 
   return (
-    <Card className='mt-10'>
+    <Card className='mt-4'>
       <CardHeader className='flex flex-row justify-between items-center'>
         <CardTitle>Graphique annuel</CardTitle>
         <div>
@@ -78,14 +71,14 @@ const GraphSection = () => {
           chartType='Bar'
           loader={<Loading />}
           data={[
-            [date, count, { role: 'style' }],
-            ...data.map(({ x, y, color }) => [monthStrings[x - 1], y, color]),
+            [date, count],
+            ...data.map(({ x, y }: { x: number; y: number }) => [
+              monthStrings[x - 1],
+              y,
+            ]),
           ]}
         />
       </CardContent>
-      <CardFooter>
-        <p>Card Footer</p>
-      </CardFooter>
     </Card>
   )
 }

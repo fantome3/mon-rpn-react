@@ -1,6 +1,6 @@
 import { Button } from './ui/button'
 import { Menu } from 'lucide-react'
-import { Sheet, SheetContent, SheetTrigger } from './ui/sheet'
+import { Sheet, SheetClose, SheetContent, SheetTrigger } from './ui/sheet'
 import { Link } from 'react-router-dom'
 import { Separator } from './ui/separator'
 import { menuItemsConnected, menuItemsDisconnected } from '@/lib/constant'
@@ -11,6 +11,8 @@ import { Store } from '@/lib/Store'
 const MobileMenu = ({ logoutHandler }: { logoutHandler: () => void }) => {
   const { state } = useContext(Store)
   const { userInfo } = state
+
+  const pathname = location.pathname
 
   return (
     <Sheet>
@@ -31,31 +33,51 @@ const MobileMenu = ({ logoutHandler }: { logoutHandler: () => void }) => {
           <ul className='flex flex-col gap-y-7'>
             {userInfo
               ? menuItemsConnected.map((item) => (
-                  <div key={item.name}>
+                  <div
+                    className={clsx('', {
+                      ' text-primary font-bold text-lg': pathname === item.link,
+                    })}
+                    key={item.name}
+                  >
                     <div className='mb-4'>
-                      <Link to={item.link}>{item.name}</Link>
+                      <SheetClose asChild>
+                        <Link to={item.link}>{item.name}</Link>
+                      </SheetClose>
                     </div>
 
                     <Separator />
                   </div>
                 ))
               : menuItemsDisconnected.map((item) => (
-                  <div key={item.name}>
-                    <div className='mb-4'>
-                      <Link to={item.link}>{item.name}</Link>
-                    </div>
+                  <div
+                    className={clsx('', {
+                      ' text-primary font-bold text-lg': pathname === item.link,
+                    })}
+                    key={item.name}
+                  >
+                    <SheetClose asChild>
+                      <div className='mb-4'>
+                        <Link to={item.link}>{item.name}</Link>
+                      </div>
+                    </SheetClose>
 
                     <Separator />
                   </div>
                 ))}
           </ul>
         </div>
-        <div
-          onClick={() => logoutHandler()}
-          className='text-destructive cursor-pointer'
-        >
-          Déconnexion
-        </div>
+        {!userInfo ? (
+          ''
+        ) : (
+          <SheetClose asChild>
+            <div
+              onClick={() => logoutHandler()}
+              className='text-destructive cursor-pointer'
+            >
+              Déconnexion
+            </div>
+          </SheetClose>
+        )}
       </SheetContent>
     </Sheet>
   )

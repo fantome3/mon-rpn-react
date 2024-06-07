@@ -1,16 +1,15 @@
-import { Store } from '@/lib/Store'
 import { useContext } from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
+import { Store } from '@/lib/Store'
+import Announcement from './Announcement'
 import Header from './Header'
 import Footer from './Footer'
-import Announcement from './Announcement'
 
-const ProtectedRoute = () => {
+const AdminRoute = () => {
   const {
     state: { userInfo },
   } = useContext(Store)
-
-  if (userInfo) {
+  if (userInfo && userInfo.isAdmin) {
     return (
       <>
         <Announcement />
@@ -24,4 +23,4 @@ const ProtectedRoute = () => {
   }
 }
 
-export default ProtectedRoute
+export default AdminRoute

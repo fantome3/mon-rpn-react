@@ -11,6 +11,9 @@ import About from './about/About'
 import Dependents from './profil/Dependents'
 import Sponsorship from './profil/Sponsorship'
 import Page404 from './page404/Page404'
+import PaymentMethod from './account/PaymentMethod'
+import Accounts from './admin/accounts/Accounts'
+import Announcements from './admin/announcements/Announcements'
 
 export {
   Login,
@@ -26,4 +29,7 @@ export {
   Dependents,
   Sponsorship,
   Page404,
+  PaymentMethod,
+  Accounts,
+  Announcements,
 }

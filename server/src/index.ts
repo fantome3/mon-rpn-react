@@ -2,8 +2,10 @@ import * as dotenv from 'dotenv'
 import express, { Request, Response } from 'express'
 import mongoose from 'mongoose'
 import cors from 'cors'
-import { userRouter } from './routers/userRouter'
 import path from 'path'
+import { userRouter } from './routers/userRouter'
+import { accountRouter } from './routers/accountRouter'
+import { deathAnnouncementRouter } from './routers/deathAnnoucementRouter'
 
 dotenv.config()
 mongoose.set('strictQuery', true)
@@ -34,6 +36,8 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 app.use('/api/users', userRouter)
+app.use('/api/accounts', accountRouter)
+app.use('/api/announcements', deathAnnouncementRouter)
 
 app.use(express.static(path.join(__dirname, '../dist')))
 app.get('*', (req: Request, res: Response) =>

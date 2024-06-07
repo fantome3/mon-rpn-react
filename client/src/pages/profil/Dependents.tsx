@@ -333,7 +333,7 @@ const Dependents = () => {
           }}
           open={modalVisibility}
           title='Modifier membre'
-          description={`Modifier les informations dun membre de votre famille `}
+          description={`Modifier les informations d'un membre de votre famille `}
         >
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>

@@ -19,7 +19,10 @@ export const functionReverse = (str: string) => {
 export const checkTel = (tel: string) => {
   const telTable = tel.split('')
   if (telTable.slice(0, 2).join('') === '+1') {
-    return telTable.slice(2).join('')
+    return telTable
+      .slice(2)
+      .filter((itm) => itm !== ' ')
+      .join('')
   }
   return telTable.join('')
 }
@@ -53,4 +56,42 @@ export const functionTranslate = (str: string) => {
   if (str === 'nativeCountry') {
     return `Pays d'origine`
   }
+}
+
+export const formatCreditCardNumber = (value: string): string => {
+  // Remove all spaces
+  let formattedValue = value.replace(/\s+/g, '')
+
+  // Add spaces after every 4 characters
+  return formattedValue.match(/.{1,4}/g)?.join(' ') || formattedValue
+}
+
+export function isDateInFuture(dateStr: string): boolean {
+  // La regex pour valider le format MMYY
+  const regex = /^(0[1-9]|1[0-2])[0-9]{2}$/
+
+  if (!regex.test(dateStr)) {
+    return false
+  }
+
+  const month = parseInt(dateStr.slice(0, 2), 10)
+  const year = parseInt(dateStr.slice(2, 4), 10)
+
+  const currentDate = new Date()
+  const currentMonth = currentDate.getMonth() + 1
+  const currentYear = currentDate.getFullYear() % 100
+
+  if (year > currentYear || (year === currentYear && month > currentMonth)) {
+    return true
+  } else {
+    return false
+  }
+}
+
+export const ToLocaleStringFunc = (num: number) => {
+  if (Number.isNaN(num)) {
+    return 0
+  }
+
+  return Number(num).toLocaleString('fr-FR')
 }

@@ -68,12 +68,18 @@ export const isAuth = async (
     const cachedToken: any = await cache.get(token!)
     if (cachedToken) {
       const expiresIn = cachedToken.rememberMe ? '30d' : '30m'
-      const exp =
-        Math.floor(Date.now() / 1000) +
-        (expiresIn === '30d' ? 30 * 24 * 60 * 60 : 30 * 60)
-      if (Date.now() < exp * 1000) {
-        req.user = cachedToken
-        next()
+      if (expiresIn === '30d') {
+        const exp = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60
+        if (Date.now() < exp * 1000) {
+          req.user = cachedToken
+          next()
+        }
+      } else if (expiresIn === '30m') {
+        const exp = Math.floor(Date.now() / 1000) + 30 * 60
+        if (Date.now() < exp * 1000) {
+          req.user = cachedToken
+          next()
+        }
       }
     }
 

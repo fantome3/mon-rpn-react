@@ -10,8 +10,8 @@ import { Link } from 'react-router-dom'
 const Profil = () => {
   const { state } = useContext(Store)
   const { userInfo } = state
-
   const pathname = location.pathname
+
   return (
     <>
       <div className='container mb-10'>

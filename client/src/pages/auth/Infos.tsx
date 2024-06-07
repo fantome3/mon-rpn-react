@@ -59,12 +59,12 @@ const Infos = () => {
   const navigate = useNavigate()
   const { search } = useLocation()
   const redirectInUrl = new URLSearchParams(search).get('redirect')
-  const redirect = redirectInUrl ? redirectInUrl : '/profil'
+  const redirect = redirectInUrl ? redirectInUrl : '/payment-method'
   const { t } = useTranslation(['common'])
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      residenceCountry: infos ? infos.residenceCountry : '',
+      residenceCountry: infos ? infos.residenceCountry : 'Canada',
       postalCode: infos ? infos.postalCode : '',
       address: infos ? infos.address : '',
       tel: infos ? infos.tel : '',
@@ -105,157 +105,159 @@ const Infos = () => {
         type: 'USER_SIGNUP',
         payload: registerData,
       })
+      localStorage.setItem('userInfo', JSON.stringify(registerData))
       toast({
         variant: 'default',
         title: 'Inscription',
         description: 'Inscription réussie',
       })
-      localStorage.setItem('userInfo', JSON.stringify(registerData))
+
       navigate(redirect)
     } catch (error) {
-      console.log(error)
+      toast({
+        variant: 'destructive',
+        title: 'Opps!',
+        description: 'Quelque chose ne va pas.',
+      })
     }
   }
 
   return (
     <>
       <Header />
-      <div className='auth'>
-        <CheckoutSteps step3 />
-        <div className='flex  items-center justify-center h-[100vh] '>
-          <Card className='auth-card '>
-            <CardHeader className='text-center mb-5'>
-              <CardTitle className='font-bold text-4xl text-primary'>
-                Vos informations
-              </CardTitle>
-              <CardDescription className=' text-sm'>
-                {t('connexion.slogan')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className='space-y-8'
-                >
-                  <FormField
-                    control={form.control}
-                    name='tel'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className={clsx('text-sm')}>Tél</FormLabel>
-                        <FormControl>
-                          <Input placeholder='Votre numéro' {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name='address'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className={clsx('text-sm')}>
-                          Adresse
-                        </FormLabel>
-                        <FormControl>
-                          <Input placeholder='Votre adresse' {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name='residenceCountry'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className={clsx('text-sm')}>
-                          Pays de résidence
-                        </FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger className='w-[50%]'>
-                              <SelectValue placeholder='Select residence country' />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {countries.map((country) => (
-                              <SelectItem
-                                key={country.value}
-                                value={country.value}
-                              >
-                                {country.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name='postalCode'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className={clsx('text-sm')}>
-                          Code postal
-                        </FormLabel>
-                        <FormControl className='w-[50%]'>
-                          <Input placeholder='Votre code postal' {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name='hasInsurance'
-                    render={({ field }) => (
-                      <FormItem className='flex flex-row items-start space-x-3 space-y-0 py-4'>
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <FormLabel className='text-sm'>
-                          Êtes-vous assurés?
-                        </FormLabel>
-                      </FormItem>
-                    )}
-                  />
-                  {isPending ? (
-                    <Loading />
-                  ) : (
-                    <div>
-                      <Button className='mr-4' type='submit'>
-                        {t('enregistrement.suivant')}
-                      </Button>
-                      <Button
-                        onClick={() => navigate(-1)}
-                        className='bg-white text-primary border-2 hover:bg-slate-100 hover:text-primary/80 border-primary'
-                        type='reset'
-                      >
-                        Annuler
-                      </Button>
-                    </div>
+      <div className='auth form'>
+        <Card className='auth-card '>
+          <CardHeader className='text-center mb-5'>
+            <CheckoutSteps step3 />
+            <CardTitle className='font-bold text-4xl text-primary'>
+              Vos informations
+            </CardTitle>
+            <CardDescription className=' text-sm'>
+              {t('connexion.slogan')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className='space-y-8'
+              >
+                <FormField
+                  control={form.control}
+                  name='tel'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className={clsx('text-sm')}>Tél</FormLabel>
+                      <FormControl>
+                        <Input placeholder='Votre numéro' {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-        </div>
+                />
+
+                <FormField
+                  control={form.control}
+                  name='address'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className={clsx('text-sm')}>Adresse</FormLabel>
+                      <FormControl>
+                        <Input placeholder='Votre adresse' {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='residenceCountry'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className={clsx('text-sm')}>
+                        Pays de résidence
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className='w-[50%]'>
+                            <SelectValue placeholder='Select residence country' />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {countries.map((country) => (
+                            <SelectItem
+                              key={country.value}
+                              value={country.value}
+                            >
+                              {country.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='postalCode'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className={clsx('text-sm')}>
+                        Code postal
+                      </FormLabel>
+                      <FormControl className='w-[50%]'>
+                        <Input placeholder='Votre code postal' {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='hasInsurance'
+                  render={({ field }) => (
+                    <FormItem className='flex flex-row items-start space-x-3 space-y-0 py-4'>
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel className='text-sm'>
+                        Êtes-vous assurés?
+                      </FormLabel>
+                    </FormItem>
+                  )}
+                />
+                {isPending ? (
+                  <Loading />
+                ) : (
+                  <div>
+                    <Button className='mr-4' type='submit'>
+                      {t('enregistrement.suivant')}
+                    </Button>
+                    <Button
+                      onClick={() => navigate(-1)}
+                      className='bg-white text-primary border-2 hover:bg-slate-100 hover:text-primary/80 border-primary'
+                      type='reset'
+                    >
+                      Annuler
+                    </Button>
+                  </div>
+                )}
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
       </div>
+
       <Footer />
     </>
   )
