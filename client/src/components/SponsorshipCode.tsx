@@ -2,7 +2,7 @@ import { useContext } from 'react'
 import { Card, CardContent, CardHeader } from './ui/card'
 import { Store } from '@/lib/Store'
 
-const UserAddress = () => {
+const SponsorshipCode = () => {
   const { state } = useContext(Store)
   const { userInfo } = state
 
@@ -29,4 +29,4 @@ const UserAddress = () => {
   )
 }
 
-export default UserAddress
+export default SponsorshipCode

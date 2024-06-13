@@ -4,8 +4,6 @@ import {
   MenubarContent,
   MenubarItem,
   MenubarMenu,
-  MenubarSeparator,
-  MenubarShortcut,
   MenubarTrigger,
 } from './ui/menubar'
 import { Link } from 'react-router-dom'

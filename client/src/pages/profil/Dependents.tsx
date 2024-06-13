@@ -296,7 +296,10 @@ const Dependents = () => {
                 <Loading />
               ) : (
                 <>
-                  <DataTable columns={columns} data={user?.familyMembers!} />
+                  <DataTable
+                    columns={columns}
+                    data={user ? user?.familyMembers! : []}
+                  />
                 </>
               )}
             </CardContent>

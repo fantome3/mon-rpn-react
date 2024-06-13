@@ -5,7 +5,6 @@ import {
   TableBody,
   TableCaption,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -13,7 +12,7 @@ import {
 import { functionReverse } from '@/lib/utils'
 
 const LastAnnouncements = () => {
-  const { data: announcements, error, isPending } = useGetAnnouncementsQuery()
+  const { data: announcements } = useGetAnnouncementsQuery()
 
   return (
     <Card className='mt-4'>

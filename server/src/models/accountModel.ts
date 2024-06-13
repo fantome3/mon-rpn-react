@@ -1,6 +1,14 @@
 import { prop, getModelForClass, modelOptions, Ref } from '@typegoose/typegoose'
 import { User } from './userModel'
 
+class Interac {
+  @prop({ required: true })
+  public emailInterac!: string
+
+  @prop({ required: true })
+  public passwordInterac!: string
+}
+
 class Card {
   @prop({ required: true })
   public network!: string
@@ -32,6 +40,9 @@ export class Account {
 
   @prop({})
   public card?: Card
+
+  @prop({})
+  public interac?: Interac
 
   @prop({ required: true })
   public firstName!: string

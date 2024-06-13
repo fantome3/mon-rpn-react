@@ -14,6 +14,7 @@ import Page404 from './page404/Page404'
 import PaymentMethod from './account/PaymentMethod'
 import Accounts from './admin/accounts/Accounts'
 import Announcements from './admin/announcements/Announcements'
+import UpdateMethod from './account/UpdateMethod'
 
 export {
   Login,
@@ -32,4 +33,5 @@ export {
   PaymentMethod,
   Accounts,
   Announcements,
+  UpdateMethod,
 }

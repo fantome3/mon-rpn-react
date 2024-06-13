@@ -88,12 +88,12 @@ const Login = () => {
     <>
       <Header />
       <div className='auth form'>
-        <Card className='auth-card'>
+        <Card className='auth-card '>
           <CardHeader className='text-center mb-5'>
-            <CardTitle className='font-bold text-4xl text-primary'>
+            <CardTitle className='font-bold text-3xl text-primary'>
               {t('connexion.titre')}
             </CardTitle>
-            <CardDescription className=' text-sm'>
+            <CardDescription className='text-sm'>
               {t('connexion.slogan')}
             </CardDescription>
           </CardHeader>

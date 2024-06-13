@@ -129,7 +129,7 @@ const Sponsorship = () => {
               {isPending ? (
                 <Loading />
               ) : (
-                <DataTable columns={columns} data={userData} />
+                <DataTable columns={columns} data={userData ? userData : []} />
               )}
             </CardContent>
           </Card>

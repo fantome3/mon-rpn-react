@@ -25,12 +25,7 @@ const RejoinsSection = () => {
 
         <CustomButton />
       </div>
-      <motion.div
-        whileHover={{ scale: 1.2 }}
-        onHoverStart={(e) => {}}
-        onHoverEnd={(e) => {}}
-        className=' w-full'
-      >
+      <motion.div whileHover={{ scale: 1.2 }} className=' w-full'>
         <Card>
           <CardContent className='flex aspect-square items-center justify-center p-6'>
             <img

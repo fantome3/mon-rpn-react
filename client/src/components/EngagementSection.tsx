@@ -8,12 +8,7 @@ import { motion } from 'framer-motion'
 const EngagementSection = () => {
   return (
     <motion.div className='container md:pt-16  pt-8 flex justify-between items-center md:flex-row flex-col gap-4'>
-      <motion.div
-        whileHover={{ scale: 1.2 }}
-        onHoverStart={(e) => {}}
-        onHoverEnd={(e) => {}}
-        className=' w-full'
-      >
+      <motion.div whileHover={{ scale: 1.2 }} className=' w-full'>
         <Card>
           <CardContent className='flex aspect-square items-center justify-center p-6'>
             <img

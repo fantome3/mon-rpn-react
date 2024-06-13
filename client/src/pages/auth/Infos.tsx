@@ -248,7 +248,7 @@ const Infos = () => {
                       className='bg-white text-primary border-2 hover:bg-slate-100 hover:text-primary/80 border-primary'
                       type='reset'
                     >
-                      Annuler
+                      Précédent
                     </Button>
                   </div>
                 )}
