@@ -3,10 +3,10 @@ import { User } from './userModel'
 
 class Interac {
   @prop({ required: true })
-  public emailInterac!: string
+  public amountInterac!: number
 
   @prop({ required: true })
-  public passwordInterac!: string
+  public refInterac!: string
 }
 
 class Card {

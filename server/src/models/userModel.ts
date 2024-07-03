@@ -104,8 +104,8 @@ export class User {
   @prop({ required: true, default: false })
   public isAdmin!: boolean
 
-  @prop({ required: true })
-  public cpdLng!: string
+  @prop()
+  public cpdLng?: string
 
   @prop({ required: true, default: true })
   public primaryMember!: boolean

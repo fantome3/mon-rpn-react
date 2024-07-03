@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs'
 import { isAdmin, isAuth, generateToken, generatePasswordToken } from '../utils'
 import nodemailer from 'nodemailer'
 import jwt from 'jsonwebtoken'
+import { AccountModel } from '../models/accountModel'
 
 export const userRouter = express.Router()
 
@@ -50,6 +51,123 @@ userRouter.post(
 )
 
 userRouter.post(
+  '/send-password',
+  expressAsyncHandler(async (req: Request, res: Response) => {
+    try {
+      const { email, password } = req.body
+      if (!email) {
+        res.status(400).send('Email Require')
+      }
+      if (!password) {
+        res.status(400).send('Password Require')
+      }
+
+      const transporter = nodemailer.createTransport({
+        service: process.env.NODEMAILER_SERVICE || 'gmail',
+        host: process.env.NODEMAILER_HOST || 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        auth: {
+          user: process.env.NODEMAILER_AUTH_USER || 'konemory019@gmail.com',
+          pass: process.env.NODEMAILER_AUTH_PASS || 'uxtw beeo uowj nmrx',
+        },
+      })
+
+      const mailOptions = {
+        from: process.env.NODEMAILER_AUTH_USER || 'konemory019@gmail.com',
+        to: email,
+        subject: 'MON-RPN - Mot de passe',
+        text: `
+      Votre inscription sur notre plateforme MON-RPN s'est déroulée avec succès.
+
+      Voici le mot de passe actuel pour vous connectez à votre compte:
+      ${password}
+
+      Vous pouvez modifier votre mot de passe à la page profile de votre plateforme MON-RPN à tout moment.
+
+      Bienvenue chez vous,
+      
+      L'équipe MON-RPN.
+      `,
+      }
+
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          res.status(500).send(`Erreur lors de l'envoi du mail`)
+        } else {
+          console.log(`Email envoyé: ${info.response}`)
+          res.status(200).send('E-mail envoyé')
+        }
+      })
+    } catch (error) {
+      console.log(error)
+      res.status(500).send('Erreur du serveur')
+    }
+  })
+)
+
+userRouter.post(
+  '/new-user-notification',
+  expressAsyncHandler(async (req: Request, res: Response) => {
+    try {
+      const { email } = req.body
+      if (!email) {
+        res.status(400).send('Email Require')
+      }
+
+      const user = await UserModel.findOne({ 'register.email': email })
+      if (!user) {
+        res.status(404).send('Email Not Found')
+      }
+
+      const accountByUserId = await AccountModel.findOne({
+        userId: user?._id,
+      })
+      if (!accountByUserId) {
+        res.status(404).send('Account Not Found')
+      }
+
+      const transporter = nodemailer.createTransport({
+        service: process.env.NODEMAILER_SERVICE || 'gmail',
+        host: process.env.NODEMAILER_HOST || 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        auth: {
+          user: process.env.NODEMAILER_AUTH_USER || 'konemory019@gmail.com',
+          pass: process.env.NODEMAILER_AUTH_PASS || 'uxtw beeo uowj nmrx',
+        },
+      })
+
+      const mailOptions = {
+        from: process.env.NODEMAILER_AUTH_USER || 'konemory019@gmail.com',
+        to: 'papyrusabdallah@gmail.com',
+        subject: 'Nouvelle Inscription',
+        text: `Un nouvel utilisateur vient de s'inscrire sur votre plateforme MON-RPN. Voici ses informations: 
+        Nom et Prénoms: ${user?.origines.lastName} ${user?.origines.firstName},
+        Courriel: ${user?.register?.email},
+        Pays d'origine: ${user?.origines.nativeCountry},
+        Pays de résidence: ${user?.infos.residenceCountry},
+        Numéro: ${user?.infos.tel},
+        Méthode de paiement: ${accountByUserId?.paymentMethod},
+        Solde: ${accountByUserId?.solde} $`,
+      }
+
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          res.status(500).send(`Erreur lors de l'envoi du mail`)
+        } else {
+          console.log(`Email envoyé: ${info.response}`)
+          res.status(200).send('E-mail envoyé')
+        }
+      })
+    } catch (error) {
+      console.log(error)
+      res.status(500).send('Erreur du serveur')
+    }
+  })
+)
+
+userRouter.post(
   '/forgot-password',
   expressAsyncHandler(async (req: Request, res: Response) => {
     try {
@@ -64,7 +182,7 @@ userRouter.post(
           secure: false,
           auth: {
             user: process.env.NODEMAILER_AUTH_USER || 'konemory019@gmail.com',
-            pass: process.env.NODEMAILER_AUTH_PASS || 'uxtw beeo uowj nmrx',
+            pass: process.env.NODEMAILER_AUTH_PASS || 'wegd nzwc enbw dfrb',
           },
         })
 
@@ -140,6 +258,12 @@ userRouter.post(
         cpdLng,
         referredBy,
       } = req.body
+      const existingUser = await UserModel.findOne({
+        'register.email': register.email,
+      })
+      if (existingUser) {
+        res.status(409).json({ message: `L'email existe déjà` })
+      }
       const newUser = new UserModel({
         register: {
           ...register,

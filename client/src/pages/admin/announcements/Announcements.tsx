@@ -36,7 +36,6 @@ import { z } from 'zod'
 
 const formSchema = z.object({
   firstName: z.string(),
-  deathCause: z.string(),
   deathPlace: z.string(),
   deathDate: z.date(),
 })
@@ -61,7 +60,6 @@ const Announcements = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       firstName: editingAnnouncement ? editingAnnouncement.firstName : '',
-      deathCause: editingAnnouncement ? editingAnnouncement.deathCause : '',
       deathPlace: editingAnnouncement
         ? editingAnnouncement.deathPlace
         : 'Canada',
@@ -89,20 +87,6 @@ const Announcements = () => {
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
             Nom
-            <ArrowUpDown className='ml-2 h-4 w-4' />
-          </Button>
-        )
-      },
-    },
-    {
-      accessorKey: 'deathCause',
-      header: ({ column }) => {
-        return (
-          <Button
-            variant='ghost'
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            Cause du décès
             <ArrowUpDown className='ml-2 h-4 w-4' />
           </Button>
         )
@@ -157,14 +141,12 @@ const Announcements = () => {
     if (editingAnnouncement) {
       form.reset({
         firstName: editingAnnouncement?.firstName,
-        deathCause: editingAnnouncement?.deathCause,
         deathPlace: editingAnnouncement?.deathPlace,
         deathDate: new Date(editingAnnouncement?.deathDate),
       })
     } else {
       form.reset({
         firstName: '',
-        deathCause: '',
         deathPlace: 'Canada',
         deathDate: new Date(),
       })
@@ -261,20 +243,6 @@ const Announcements = () => {
 
               <FormField
                 control={form.control}
-                name='deathCause'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cause du décès</FormLabel>
-                    <FormControl>
-                      <Input placeholder='Cause' {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
                 name='deathPlace'
                 render={({ field }) => (
                   <FormItem>
@@ -306,7 +274,7 @@ const Announcements = () => {
                             )}
                           >
                             {field.value ? (
-                              format(field.value, 'PPP')
+                              format(field.value, 'dd/MM/yyyy')
                             ) : (
                               <span>Pick a date</span>
                             )}

@@ -26,10 +26,18 @@ import {
 } from './ui/form'
 import { Input } from './ui/input'
 import { PasswordInput } from './PasswordInput'
+import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card'
 
 const formSchema = z.object({
-  emailInterac: z.string().email({ message: `Email invalid` }),
-  passwordInterac: z.string(),
+  amountInterac: z
+    .number({
+      required_error: 'Le montant ne peut-être inférieur à 25$',
+      invalid_type_error: 'Le montant doit être un nombre.',
+    })
+    .gte(25),
+  refInterac: z
+    .string()
+    .min(8, { message: 'Doit avoir au moins 8 charactères.' }),
 })
 
 const UpdateInteracPayment = () => {
@@ -47,8 +55,8 @@ const UpdateInteracPayment = () => {
     mode: 'onChange',
     resolver: zodResolver(formSchema),
     defaultValues: {
-      emailInterac: '',
-      passwordInterac: '',
+      amountInterac: 0,
+      refInterac: '',
     },
   })
 
@@ -88,6 +96,8 @@ const UpdateInteracPayment = () => {
     }
   }
 
+  const { register } = form
+
   return (
     <>
       <motion.div whileHover={{ scale: 1.2 }}>
@@ -117,12 +127,17 @@ const UpdateInteracPayment = () => {
             <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
               <FormField
                 control={form.control}
-                name='emailInterac'
+                name='amountInterac'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email Interac</FormLabel>
+                    <FormLabel>Montant Envoyé</FormLabel>
                     <FormControl>
-                      <Input placeholder='Email Interac' {...field} />
+                      <Input
+                        type='number'
+                        placeholder='25'
+                        {...field}
+                        {...register('amountInterac', { valueAsNumber: true })}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -131,14 +146,35 @@ const UpdateInteracPayment = () => {
 
               <FormField
                 control={form.control}
-                name='passwordInterac'
+                name='refInterac'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className='text-sm'>
-                      Mot de passe Interac
+                      Numéro de référence du transfert Interac
+                      <HoverCard>
+                        <HoverCardTrigger className='cursor-pointer'>
+                          (i)
+                        </HoverCardTrigger>
+                        <HoverCardContent className='font-light text-justify'>
+                          Interac vous envoie automatiquement un courriel de
+                          confirmation pour chaque virement réussi. Ce courriel
+                          contient votre &nbsp;
+                          <span className='text-destructive'>
+                            numéro de référence Interac
+                          </span>
+                          , qui commence généralement par CA. <br />
+                          Vous pouvez également trouver votre &nbsp;
+                          <span className='text-destructive'>
+                            numéro de référence Interac
+                          </span>
+                          &nbsp; sur votre confirmation de virement Interac ou
+                          sur la description de la transaction selon votre
+                          institution financière.
+                        </HoverCardContent>
+                      </HoverCard>
                     </FormLabel>
                     <FormControl>
-                      <PasswordInput placeholder='Mot de passe' {...field} />
+                      <Input placeholder='CAcM8D7L' {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

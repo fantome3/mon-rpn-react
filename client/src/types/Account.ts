@@ -7,8 +7,8 @@ type Card = {
 }
 
 type Interac = {
-  emailInterac: string
-  passwordInterac: string
+  amountInterac: number
+  refInterac: string
 }
 
 export type Account = {

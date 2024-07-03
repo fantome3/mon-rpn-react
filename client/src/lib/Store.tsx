@@ -81,6 +81,7 @@ const defaultDispatch: React.Dispatch<Action> = () => initialState
 const Store = React.createContext({
   state: initialState,
   dispatch: defaultDispatch,
+  logoutHandler: () => {},
 })
 
 function useAppState() {
@@ -88,7 +89,15 @@ function useAppState() {
     rootReducer,
     initialState
   )
-  return { state, dispatch }
+
+  const logoutHandler = () => {
+    dispatch({ type: 'USER_SIGNOUT' })
+    dispatch({ type: 'CLEAR_ACCOUNT' })
+    localStorage.removeItem('userInfo')
+    localStorage.removeItem('accountInfo')
+  }
+
+  return { state, dispatch, logoutHandler }
 }
 
 function StoreProvider(props: React.PropsWithChildren<{}>) {

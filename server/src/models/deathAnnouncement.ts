@@ -10,9 +10,6 @@ export class DeathAnnouncement {
   public firstName!: string
 
   @prop({ required: true })
-  public deathCause!: string
-
-  @prop({ required: true })
   public deathPlace!: string
 
   @prop({ required: true })

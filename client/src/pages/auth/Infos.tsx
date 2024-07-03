@@ -37,7 +37,7 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { useRegisterMutation } from '@/hooks/userHooks'
 import Loading from '@/components/Loading'
-import { checkPostalCode, checkTel } from '@/lib/utils'
+import { checkPostalCode, checkTel, refresh } from '@/lib/utils'
 import { User } from '@/types/User'
 import { toast } from '@/components/ui/use-toast'
 
@@ -111,14 +111,22 @@ const Infos = () => {
         title: 'Inscription',
         description: 'Inscription réussie',
       })
-
       navigate(redirect)
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Opps!',
-        description: 'Quelque chose ne va pas.',
-      })
+      refresh()
+    } catch (error: any) {
+      if (error.response && error.response.status === 409) {
+        toast({
+          variant: 'destructive',
+          title: "Changer l'adresse courriel",
+          description: "L'adresse courriel que vous avez entrer existe déjà",
+        })
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Opps!',
+          description: 'Quelque chose ne va pas.',
+        })
+      }
     }
   }
 

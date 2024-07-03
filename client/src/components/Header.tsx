@@ -1,5 +1,4 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { ModeToggle } from './languageToggle'
 import MobileMenu from './MobileMenu'
 import { menuItemsConnected } from '@/lib/constant'
 import { useContext } from 'react'
@@ -9,17 +8,9 @@ import clsx from 'clsx'
 import AdminMenu from './AdminMenu'
 
 const Navbar = () => {
-  const { state, dispatch: ctxDispatch } = useContext(Store)
+  const { state, logoutHandler } = useContext(Store)
   const { userInfo } = state
   const navigate = useNavigate()
-  const logoutHandler = () => {
-    ctxDispatch({ type: 'USER_SIGNOUT' })
-    ctxDispatch({ type: 'CLEAR_ACCOUNT' })
-    localStorage.removeItem('userInfo')
-    localStorage.removeItem('accountInfo')
-    navigate('/login')
-  }
-
   const pathname = location.pathname
 
   return (
@@ -32,7 +23,7 @@ const Navbar = () => {
     >
       <aside className='flex items-center gap-2'>
         <Link to='/'>
-          <span className='text-xl font-bold'>MONRPN</span>
+          <span className='text-xl font-bold'>MON-RPN</span>
         </Link>
       </aside>
       <nav className='hidden lg:block absolute left-[15%]'>
@@ -57,7 +48,10 @@ const Navbar = () => {
             <Button
               className='text-destructive hover:text-destructive/90 hidden lg:flex'
               variant='outline'
-              onClick={() => logoutHandler()}
+              onClick={() => {
+                logoutHandler()
+                navigate('/login')
+              }}
             >
               Déconnexion
             </Button>
@@ -85,9 +79,8 @@ const Navbar = () => {
             </Link>
           </>
         )}
-
-        <ModeToggle />
-        <MobileMenu logoutHandler={logoutHandler} />
+        {/*   <ModeToggle />*/}
+        <MobileMenu />
       </aside>
     </div>
   )

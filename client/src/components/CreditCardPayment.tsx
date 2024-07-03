@@ -29,6 +29,7 @@ import {
 } from './ui/input-otp'
 import Loading from './Loading'
 import { Button } from './ui/button'
+import { useNewUserNotificationMutation } from '@/hooks/userHooks'
 
 const formSchema = z.object({
   network: z.string(),
@@ -45,10 +46,12 @@ const CreditCardPayment = () => {
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { userInfo } = state
   const { mutateAsync: account, isPending } = useNewAccountMutation()
+  const { mutateAsync: newUserNotification, isPending: notificationPending } =
+    useNewUserNotificationMutation()
   const navigate = useNavigate()
   const { search } = useLocation()
   const redirectInUrl = new URLSearchParams(search).get('redirect')
-  const redirect = redirectInUrl ? redirectInUrl : '/profil'
+  const redirect = redirectInUrl ? redirectInUrl : '/summary'
 
   const form = useForm<z.infer<typeof formSchema>>({
     mode: 'onChange',
@@ -91,7 +94,7 @@ const CreditCardPayment = () => {
           description: 'Votre carte de crédit ajoutée avec succès.',
         })
         navigate(redirect)
-        refresh()
+        await newUserNotification(userInfo?.register?.email!)
       } else {
         toast({
           variant: 'destructive',
@@ -231,7 +234,9 @@ const CreditCardPayment = () => {
                 )}
               />
 
-              {isPending ? <Loading /> : <Button type='submit'>Valider</Button>}
+              <Button disabled={isPending || notificationPending} type='submit'>
+                Valider
+              </Button>
             </form>
           </Form>
         </CustomModal>

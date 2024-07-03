@@ -22,11 +22,19 @@ import {
   FormMessage,
 } from './ui/form'
 import { Input } from './ui/input'
-import { PasswordInput } from './PasswordInput'
+import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card'
+import { useNewUserNotificationMutation } from '@/hooks/userHooks'
 
 const formSchema = z.object({
-  emailInterac: z.string().email({ message: `Email invalid` }),
-  passwordInterac: z.string(),
+  amountInterac: z
+    .number({
+      required_error: 'Le montant ne peut-être inférieur à 25$',
+      invalid_type_error: 'Le montant doit être un nombre.',
+    })
+    .gte(25),
+  refInterac: z
+    .string()
+    .min(8, { message: 'Doit avoir au moins 8 charactères.' }),
 })
 
 const InteracPayment = () => {
@@ -34,17 +42,19 @@ const InteracPayment = () => {
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { userInfo } = state
   const { mutateAsync: account, isPending } = useNewAccountMutation()
+  const { mutateAsync: newUserNotification, isPending: notificationPending } =
+    useNewUserNotificationMutation()
   const navigate = useNavigate()
   const { search } = useLocation()
   const redirectInUrl = new URLSearchParams(search).get('redirect')
-  const redirect = redirectInUrl ? redirectInUrl : '/profil'
+  const redirect = redirectInUrl ? redirectInUrl : '/summary'
 
   const form = useForm<z.infer<typeof formSchema>>({
     mode: 'onChange',
     resolver: zodResolver(formSchema),
     defaultValues: {
-      emailInterac: '',
-      passwordInterac: '',
+      amountInterac: 0,
+      refInterac: '',
     },
   })
 
@@ -54,15 +64,31 @@ const InteracPayment = () => {
     return () => ac.abort()
   }, [redirect, form.formState.isSubmitSuccessful, navigate])
 
+  const payLaterHandler = async (
+    e: React.MouseEvent<HTMLButtonElement>
+  ): Promise<void> => {
+    e.preventDefault()
+    try {
+      navigate(redirect)
+      refresh()
+      await newUserNotification(userInfo?.register?.email!)
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Oops!',
+        description: 'Quelque chose ne va pas.',
+      })
+    }
+  }
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    console.log(values)
     try {
       const data = await account({
         firstName: `${userInfo?.origines.firstName!} ${userInfo?.origines
           .lastName!}`,
         userTel: userInfo?.infos.tel!,
         userResidenceCountry: userInfo?.infos.residenceCountry!,
-        solde: 0,
+        solde: values.amountInterac,
         paymentMethod: 'interac',
         userId: userInfo?._id!,
         interac: { ...values },
@@ -72,10 +98,11 @@ const InteracPayment = () => {
       toast({
         variant: 'default',
         title: 'Moyen de paiement',
-        description: `N'oubliez pas de faire le transfert Interac.`,
+        description: `Félicitations vous avez terminé votre inscription.`,
       })
       navigate(redirect)
       refresh()
+      await newUserNotification(userInfo?.register?.email!)
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -84,6 +111,8 @@ const InteracPayment = () => {
       })
     }
   }
+
+  const { register } = form
 
   return (
     <>
@@ -107,19 +136,24 @@ const InteracPayment = () => {
             setModalVisibility(false)
           }}
           open={modalVisibility}
-          title='Credit Card'
-          description='Entrez les informations de votre carte'
+          title='Paiement Interac'
+          description='Entrez les informations du virement que vous avez effectué pour renflouer votre compte RPN (le montant ne peut-être inférieur à 25$).'
         >
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
               <FormField
                 control={form.control}
-                name='emailInterac'
+                name='amountInterac'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email Interac</FormLabel>
+                    <FormLabel>Montant Envoyé</FormLabel>
                     <FormControl>
-                      <Input placeholder='Email Interac' {...field} />
+                      <Input
+                        type='number'
+                        placeholder='25'
+                        {...field}
+                        {...register('amountInterac', { valueAsNumber: true })}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -128,21 +162,58 @@ const InteracPayment = () => {
 
               <FormField
                 control={form.control}
-                name='passwordInterac'
+                name='refInterac'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className='text-sm'>
-                      Mot de passe Interac
+                      Numéro de référence du transfert Interac
+                      <HoverCard>
+                        <HoverCardTrigger className='cursor-pointer'>
+                          (i)
+                        </HoverCardTrigger>
+                        <HoverCardContent className='font-light text-justify'>
+                          Interac vous envoie automatiquement un courriel de
+                          confirmation pour chaque virement réussi. Ce courriel
+                          contient votre &nbsp;
+                          <span className='text-destructive'>
+                            numéro de référence Interac
+                          </span>
+                          , qui commence généralement par CA. <br />
+                          Vous pouvez également trouver votre &nbsp;
+                          <span className='text-destructive'>
+                            numéro de référence Interac
+                          </span>
+                          &nbsp; sur votre confirmation de virement Interac ou
+                          sur la description de la transaction selon votre
+                          institution financière.
+                        </HoverCardContent>
+                      </HoverCard>
                     </FormLabel>
                     <FormControl>
-                      <PasswordInput placeholder='Mot de passe' {...field} />
+                      <Input placeholder='CAcM8D7L' {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {isPending ? <Loading /> : <Button type='submit'>Valider</Button>}
+              <div className='flex justify-between'>
+                <Button
+                  disabled={isPending || notificationPending}
+                  type='submit'
+                >
+                  Confirmer
+                </Button>
+
+                <Button
+                  variant='outline'
+                  className='text-destructive hover:bg-destructive hover:text-white border-destructive'
+                  onClick={payLaterHandler}
+                  disabled={notificationPending}
+                >
+                  Payer plus tard
+                </Button>
+              </div>
             </form>
           </Form>
         </CustomModal>

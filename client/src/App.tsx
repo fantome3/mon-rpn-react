@@ -1,10 +1,32 @@
 import { Outlet } from 'react-router-dom'
 import { ArrowUp } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { Button } from './components/ui/button'
+import { useNavigate } from 'react-router-dom'
+import apiClient from './apiClient'
+import { Store } from './lib/Store'
 
 const App = () => {
   const [showButton, setShowButton] = useState(false)
+  const navigate = useNavigate()
+  const { logoutHandler } = useContext(Store)
+
+  useEffect(() => {
+    const responseInterceptor = apiClient.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response && error.response.status === 401) {
+          logoutHandler()
+          navigate('/login')
+        }
+        return Promise.reject(error)
+      }
+    )
+
+    return () => {
+      apiClient.interceptors.response.eject(responseInterceptor)
+    }
+  }, [navigate])
 
   useEffect(() => {
     const handleScrollButtonVisibility = () => {

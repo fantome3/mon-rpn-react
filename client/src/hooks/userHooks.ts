@@ -2,6 +2,25 @@ import { useQuery, useMutation } from '@tanstack/react-query'
 import apiClient from '@/apiClient'
 import { User } from '@/types/User'
 
+export const useSendPasswordMutation = () =>
+  useMutation({
+    mutationFn: async ({
+      email,
+      password,
+    }: {
+      email: string
+      password: string
+    }) =>
+      (await apiClient.post(`api/users/send-password`, { email, password }))
+        .data,
+  })
+
+export const useNewUserNotificationMutation = () =>
+  useMutation({
+    mutationFn: async (email: string) =>
+      (await apiClient.post(`api/users/new-user-notification`, { email })).data,
+  })
+
 export const useForgotPasswordMutation = () =>
   useMutation({
     mutationFn: async ({ email }: { email: string }) =>

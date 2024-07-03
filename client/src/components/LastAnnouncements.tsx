@@ -26,7 +26,6 @@ const LastAnnouncements = () => {
             <TableRow>
               <TableHead>Annoncé</TableHead>
               <TableHead>Nom</TableHead>
-              <TableHead>Cause de décès</TableHead>
               <TableHead>Lieu de décès</TableHead>
               <TableHead>Date de décès</TableHead>
             </TableRow>
@@ -41,7 +40,6 @@ const LastAnnouncements = () => {
                     )}
                   </TableCell>
                   <TableCell>{announcement.firstName}</TableCell>
-                  <TableCell>{announcement.deathCause}</TableCell>
                   <TableCell>{announcement.deathPlace}</TableCell>
                   <TableCell>
                     {functionReverse(

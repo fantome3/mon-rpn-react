@@ -8,7 +8,7 @@ declare namespace Express {
       }
       rememberMe: boolean
       isAdmin: boolean
-      cpdLng: string
+      cpdLng?: string
     }
   }
 }

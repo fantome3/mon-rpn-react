@@ -17,13 +17,15 @@ const CardsSection = () => {
               </h3>
             </CardHeader>
             <CardContent className='flex flex-col  items-center justify-center mt-8 mb-8'>
-              <p className='text-sm text-slate-500 text-center'>
+              <p className='text-sm text-slate-500 text-justify'>
                 {content.desc}
               </p>
             </CardContent>
             <CardFooter className='flex gap-2 text-primary justify-center'>
               <Button variant='link'>
-                <span>{content.footerText}</span>
+                <a href={content.link} target='_blank'>
+                  {content.footerText}
+                </a>
                 <ArrowRight />
               </Button>
             </CardFooter>

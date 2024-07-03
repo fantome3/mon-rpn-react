@@ -30,7 +30,9 @@ const EngagementSection = () => {
               <Check size={35} className='text-primary' />
               <h3 className='font-semibold'>{engagement.title}</h3>
             </div>
-            <p className='text-slate-500 text-sm'>{engagement.desc}</p>
+            <p className='text-slate-500 text-sm text-justify'>
+              {engagement.desc}
+            </p>
           </div>
         ))}
         <CustomButton />

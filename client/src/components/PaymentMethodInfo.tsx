@@ -30,11 +30,18 @@ import {
   InputOTPSeparator,
   InputOTPSlot,
 } from './ui/input-otp'
-import { PasswordInput } from './PasswordInput'
+import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card'
 
 const interacFormSchema = z.object({
-  emailInterac: z.string().email({ message: `Email invalid` }),
-  passwordInterac: z.string(),
+  amountInterac: z
+    .number({
+      required_error: 'Le montant ne peut-être inférieur à 25$',
+      invalid_type_error: 'Le montant doit être un nombre.',
+    })
+    .gte(25),
+  refInterac: z
+    .string()
+    .min(8, { message: 'Doit avoir au moins 8 charactères.' }),
 })
 
 const creditCardFormSchema = z.object({
@@ -60,12 +67,10 @@ const PaymentMethodInfo = () => {
     mode: 'onChange',
     resolver: zodResolver(interacFormSchema),
     defaultValues: {
-      emailInterac:
-        account && account[0]?.interac ? account[0]?.interac.emailInterac : '',
-      passwordInterac:
-        account && account[0]?.interac
-          ? account[0]?.interac.passwordInterac
-          : '',
+      amountInterac:
+        account && account[0]?.interac ? account[0]?.interac.amountInterac : '',
+      refInterac:
+        account && account[0]?.interac ? account[0]?.interac.refInterac : '',
     },
   })
 
@@ -87,8 +92,8 @@ const PaymentMethodInfo = () => {
   useEffect(() => {
     if (account && account[0]?.interac) {
       interacForm.reset({
-        emailInterac: account[0]?.interac.emailInterac,
-        passwordInterac: account[0]?.interac.passwordInterac,
+        amountInterac: account[0]?.interac.amountInterac,
+        refInterac: account[0]?.interac.refInterac,
       })
     }
   }, [account && account[0]?.interac])
@@ -167,6 +172,8 @@ const PaymentMethodInfo = () => {
     }
   }
 
+  const { register } = interacForm
+
   return (
     <>
       <Card className='border-primary'>
@@ -189,20 +196,20 @@ const PaymentMethodInfo = () => {
               <div className='mb-4 grid items-start pb-4 last:mb-0 last:pb-0'>
                 <div className='space-y-1'>
                   <p className='text-sm font-medium leading-none'>
-                    Email interact
+                    Montant Envoyé
                   </p>
                   <p className='text-sm text-muted-foreground'>
-                    {account ? account[0]?.interac.emailInterac : ''}
+                    {account ? account[0]?.interac.amountInterac : 0}
                   </p>
                 </div>
               </div>
               <div className='mb-4 grid items-start pb-4 last:mb-0 last:pb-0'>
                 <div className='space-y-1'>
                   <p className='text-sm font-medium leading-none'>
-                    Mot de passe interact
+                    Numéro de référence du transfert Interac
                   </p>
                   <p className='text-sm text-muted-foreground'>
-                    {account ? account[0]?.interac.passwordInterac : ''}
+                    {account ? account[0]?.interac.refInterac : ''}
                   </p>
                 </div>
               </div>
@@ -234,8 +241,12 @@ const PaymentMethodInfo = () => {
                       Expire le
                     </p>
                     <p className='text-sm text-muted-foreground'>
-                      {account && account[0]?.card.expiry_date.slice(0, 2)} /
-                      {account && account[0]?.card.expiry_date.slice(2, 4)}
+                      {account
+                        ? `${
+                            account && account[0]?.card?.expiry_date.slice(0, 2)
+                          } /
+                      ${account && account[0]?.card?.expiry_date.slice(2, 4)}`
+                        : ''}
                     </p>
                   </div>
                 </div>
@@ -284,12 +295,20 @@ const PaymentMethodInfo = () => {
                 >
                   <FormField
                     control={interacForm.control}
-                    name='emailInterac'
+                    name='amountInterac'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email Interac</FormLabel>
+                        <FormLabel>Montant Envoyé</FormLabel>
                         <FormControl>
-                          <Input placeholder='Email Interac' {...field} />
+                          <Input
+                            disabled
+                            type='number'
+                            placeholder='25'
+                            {...field}
+                            {...register('amountInterac', {
+                              valueAsNumber: true,
+                            })}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -298,17 +317,35 @@ const PaymentMethodInfo = () => {
 
                   <FormField
                     control={interacForm.control}
-                    name='passwordInterac'
+                    name='refInterac'
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className='text-sm'>
-                          Mot de passe Interac
+                          Numéro de référence du transfert Interac
+                          <HoverCard>
+                            <HoverCardTrigger className='cursor-pointer'>
+                              (i)
+                            </HoverCardTrigger>
+                            <HoverCardContent className='font-light text-justify'>
+                              Interac vous envoie automatiquement un courriel de
+                              confirmation pour chaque virement réussi. Ce
+                              courriel contient votre &nbsp;
+                              <span className='text-destructive'>
+                                numéro de référence Interac
+                              </span>
+                              , qui commence généralement par CA. <br />
+                              Vous pouvez également trouver votre &nbsp;
+                              <span className='text-destructive'>
+                                numéro de référence Interac
+                              </span>
+                              &nbsp; sur votre confirmation de virement Interac
+                              ou sur la description de la transaction selon
+                              votre institution financière.
+                            </HoverCardContent>
+                          </HoverCard>
                         </FormLabel>
                         <FormControl>
-                          <PasswordInput
-                            placeholder='Mot de passe'
-                            {...field}
-                          />
+                          <Input placeholder='CAcM8D7L' {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -318,7 +355,7 @@ const PaymentMethodInfo = () => {
                   {updateLoading ? (
                     <Loading />
                   ) : (
-                    <Button type='submit'>Valider</Button>
+                    <Button type='submit'>Confirmer</Button>
                   )}
                 </form>
               </Form>

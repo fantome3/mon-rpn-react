@@ -40,7 +40,7 @@ export type User = {
   infos: Infos
   rememberMe: boolean
   isAdmin: boolean
-  cpdLng: string
+  cpdLng?: string
   primaryMember: boolean
   familyMembers: FamilyMember[] | []
   subscription?: Subscription

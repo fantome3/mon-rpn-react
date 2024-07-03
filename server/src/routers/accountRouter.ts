@@ -34,7 +34,7 @@ accountRouter.get(
 
 accountRouter.get(
   '/:userId/all',
-  isAuth,
+  //isAuth,
   //isAdmin,
   expressAsyncHandler(async (req: Request, res: Response) => {
     try {

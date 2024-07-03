@@ -1,31 +1,34 @@
 import banner1 from '../assets/banner_1.png'
 import banner2 from '../assets/banner_2.png'
 import banner3 from '../assets/banner_3.png'
-import { Handshake, Lightbulb, Leaf } from 'lucide-react'
+import { Info } from 'lucide-react'
 
 export const carousel_images = [banner1, banner2, banner3]
 
 export const cardContent = [
   {
     id: '1',
-    headerIcon: Handshake,
-    title: 'La valeur du conseiller',
-    desc: `Qu'est-ce qu'un conseiller en sécurité financière peut faire pour vous? Il vous aidera à choisir des produits d'épargne et d'assurance qui correspondent à votre réalité et vos besoins.`,
-    footerText: 'Voir les autres avantages',
+    headerIcon: Info,
+    title: 'Décès sur le chemin du travail',
+    desc: `Un jeune camerounais de 18 ans, du nom de Roger Obama, est mort dans un accident de circulation, dans l’arrondissement Montréal-Nord, alors qu’il conduisait à vive allure une voiture. `,
+    footerText: 'En savoir plus',
+    link: 'https://lanouvelletribune.info/2023/01/canada-un-jeune-camerounais-de-18-ans-meurt-dans-un-tragique-accident/',
   },
   {
     id: '2',
-    headerIcon: Lightbulb,
-    title: 'La valeur du conseiller',
-    desc: `Qu'est-ce qu'un conseiller en sécurité financière peut faire pour vous? Il vous aidera à choisir des produits d'épargne et d'assurance qui correspondent à votre réalité et vos besoins.`,
-    footerText: 'Voir les autres avantages',
+    headerIcon: Info,
+    title: 'Meurt pour la sauver',
+    desc: `Dans un geste héroique Kevin Fezeu étudiant à l'Université Laval plonga dans la rivière Saint-Charles pour sauver une amie ivorienne Marielle Kouass ayant fait une chute lors d'une balade. Mais les deux ne reviendront plus.`,
+    footerText: 'En savoir plus',
+    link: 'https://ici.radio-canada.ca/nouvelle/1887688/noyade-quebec-etudiants-police-operation',
   },
   {
     id: '3',
-    headerIcon: Leaf,
-    title: 'Durabilité',
-    desc: 'Voyez comment nous contribuons à une croissance durable et au bien-être de nos clients, de nos employés, de nos partenaires, de nos investisseurs et des communautés.',
-    footerText: 'Découvrir nos actions',
+    headerIcon: Info,
+    title: 'Tue père et frère',
+    desc: `La tragédie survient alors que le père de famille devrait prendre normalement l'avion le mercredi 13 mars pour Kinshasa. C'est là que l'un des fils décide d'en finir avec pour principale cible...`,
+    footerText: 'En savoir plus',
+    link: 'https://congorassure.cd/actualite-international/2024/03/14/toronto-un-jeune-dorigine-congolaise-tue-son-pere-et-son-frere',
   },
 ]
 

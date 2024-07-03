@@ -32,7 +32,7 @@ import { z } from 'zod'
 import { toast } from '@/components/ui/use-toast'
 
 const formSchema = z.object({
-  email: z.string().email({ message: `Email invalid` }),
+  email: z.string().email({ message: `Email invalide` }),
   password: z.string().min(6, { message: `Au moins 6 mots` }),
   confirmPassword: z.string().min(6, { message: `Au moins 6 mots` }),
   conditions: z.boolean(),

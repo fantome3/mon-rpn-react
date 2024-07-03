@@ -9,7 +9,7 @@ const InfoSection = () => {
           Ensemble, pour un rapatriement de corps digne et solidaire
         </p>
       </div>
-      <div className='container mt-8 lg:mt-16 lg:text-[18px] text-[14px] flex flex-col gap-y-4'>
+      <div className='container mt-8 lg:mt-16 lg:text-[18px] text-[14px] flex flex-col gap-y-4 text-justify'>
         <p>
           La vie est une aventure incertaine, un voyage dont nous ne connaissons
           ni la destination ni la durée. &nbsp;

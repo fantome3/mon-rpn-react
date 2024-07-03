@@ -8,5 +8,5 @@ export type GenerateTokenType = {
   register: Register
   rememberMe: boolean
   isAdmin: boolean
-  cpdLng: string
+  cpdLng?: string
 }

@@ -1,16 +1,17 @@
 import { Button } from './ui/button'
 import { Menu } from 'lucide-react'
 import { Sheet, SheetClose, SheetContent, SheetTrigger } from './ui/sheet'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Separator } from './ui/separator'
 import { menuItemsConnected, menuItemsDisconnected } from '@/lib/constant'
 import clsx from 'clsx'
 import { useContext } from 'react'
 import { Store } from '@/lib/Store'
 
-const MobileMenu = ({ logoutHandler }: { logoutHandler: () => void }) => {
-  const { state } = useContext(Store)
+const MobileMenu = () => {
+  const { state, logoutHandler } = useContext(Store)
   const { userInfo } = state
+  const navigate = useNavigate()
 
   const pathname = location.pathname
 
@@ -71,7 +72,10 @@ const MobileMenu = ({ logoutHandler }: { logoutHandler: () => void }) => {
         ) : (
           <SheetClose asChild>
             <div
-              onClick={() => logoutHandler()}
+              onClick={() => {
+                logoutHandler()
+                navigate('/login')
+              }}
               className='text-destructive cursor-pointer'
             >
               Déconnexion

@@ -24,7 +24,7 @@ const UserHomPage = () => {
           Ensemble, nous sommes plus forts.
         </p>
         <div className=' flex justify-center gap-10 md:flex-row flex-col-reverse md:p-10  p-4 items-center bg-primary text-white tracking-wide leading-loose rounded-md mb-10'>
-          <div className='md:w-[40%] w-full text-center md:text-start'>
+          <div className='md:w-[40%] w-full text-center md:text-justify'>
             <p>
               Merci de faire partir de notre communauté Nous pouvons encore
               réduire le montant de nos côtisations en invitant des proches qui
@@ -44,10 +44,14 @@ const UserHomPage = () => {
           <UserAccountInfo />
           <CurrentMonthStat
             data={
-              summary ? summary.currentMonthPrevieww[0].month[0].totalDeaths : 0
+              summary &&
+              summary?.currentMonthPrevieww[0]?.month[0]?.totalDeaths !==
+                undefined
+                ? summary?.currentMonthPrevieww[0]?.month[0]?.totalDeaths
+                : 0
             }
           />
-          <TotalDeath data={summary ? summary.deaths[0].numDeaths : 0} />
+          <TotalDeath data={summary ? summary?.deaths[0]?.numDeaths : 0} />
         </div>
 
         <GraphSection data={summary ? summary.totalMonthly : []} />
