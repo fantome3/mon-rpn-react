@@ -44,6 +44,7 @@ import clsx from 'clsx'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { toast } from '@/components/ui/use-toast'
+import { useSendPasswordMutation } from '@/hooks/userHooks'
 
 const formSchema = z.object({
   firstName: z.string().min(3, { message: 'Au moins 3 caractères' }),
@@ -59,6 +60,7 @@ const Origines = () => {
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { userInfo } = state
   const { origines } = userInfo!
+  const { mutateAsync: sendPasswordToUser } = useSendPasswordMutation()
 
   const navigate = useNavigate()
   const { t } = useTranslation(['common'])
@@ -104,6 +106,11 @@ const Origines = () => {
         JSON.stringify({ ...userInfo, origines: values })
       )
       navigate('/infos')
+
+      await sendPasswordToUser({
+        email: userInfo?.register?.email!,
+        password: userInfo?.register?.password!,
+      })
     } catch (error) {
       console.log(error)
     }

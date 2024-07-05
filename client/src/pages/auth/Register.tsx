@@ -1,5 +1,4 @@
 import CheckoutSteps from '@/components/CheckoutSteps'
-import { PasswordInput } from '@/components/PasswordInput'
 import Footer from '@/components/Footer'
 import Header from '@/components/Header'
 import { Button } from '@/components/ui/button'
@@ -29,12 +28,11 @@ import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { z } from 'zod'
-import { toast } from '@/components/ui/use-toast'
+import PasswordGenerator from '@/components/PasswordGenerator'
 
 const formSchema = z.object({
   email: z.string().email({ message: `Email invalide` }),
-  password: z.string().min(6, { message: `Au moins 6 mots` }),
-  confirmPassword: z.string().min(6, { message: `Au moins 6 mots` }),
+  password: z.string().optional(),
   conditions: z.boolean(),
 })
 
@@ -51,7 +49,6 @@ const Register = () => {
     defaultValues: {
       email: userInfo?.register.email || '',
       password: userInfo?.register.password || '',
-      confirmPassword: userInfo?.register.confirmPassword || '',
       conditions: userInfo?.register.conditions || false,
     },
   })
@@ -61,30 +58,34 @@ const Register = () => {
       form.reset({
         email: userInfo?.register.email,
         password: userInfo?.register.password,
-        confirmPassword: userInfo?.register.confirmPassword,
         conditions: userInfo?.register.conditions,
       })
     }
   }, [userInfo])
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (values.password !== values.confirmPassword) {
-      toast({
-        variant: 'destructive',
-        title: 'Mots de passe incorrects!',
-        description: 'Vos mots de passe sont différents.',
-      })
-      setConditionsError(true)
-      return
-    }
     if (values.conditions === false) {
       setConditionsError(true)
     } else {
-      ctxDispatch({ type: 'USER_REGISTER', payload: values })
+      const newPassword = PasswordGenerator()
+      ctxDispatch({
+        type: 'USER_REGISTER',
+        payload: {
+          ...values,
+          password: newPassword,
+        },
+      })
       localStorage.setItem(
         'userInfo',
-        JSON.stringify({ ...userInfo, register: values })
+        JSON.stringify({
+          ...userInfo,
+          register: {
+            ...values,
+            password: PasswordGenerator(),
+          },
+        })
       )
+
       if (params && Object.keys(params).length > 0) {
         localStorage.setItem('referralId', params.id!)
         localStorage.setItem('referralCode', params.ref!)
@@ -133,7 +134,7 @@ const Register = () => {
                   )}
                 />
 
-                <FormField
+                {/*<FormField
                   control={form.control}
                   name='password'
                   render={({ field }) => (
@@ -150,26 +151,7 @@ const Register = () => {
                       <FormMessage />
                     </FormItem>
                   )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name='confirmPassword'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className={clsx('text-sm')}>
-                        {t('enregistrement.confirmPasswordLabel')}
-                      </FormLabel>
-                      <FormControl>
-                        <PasswordInput
-                          placeholder={t('enregistrement.confirmPassword')}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                />*/}
 
                 <FormField
                   control={form.control}

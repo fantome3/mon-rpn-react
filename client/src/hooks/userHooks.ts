@@ -31,18 +31,15 @@ export const useResetPasswordMutation = () =>
   useMutation({
     mutationFn: async ({
       password,
-      confirmPassword,
       userId,
       token,
     }: {
       password: string
-      confirmPassword: string
       userId: string
       token: string
     }) =>
       await apiClient.post(`api/users/reset-password/${userId}/${token}`, {
         password,
-        confirmPassword,
       }),
   })
 

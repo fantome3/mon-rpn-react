@@ -268,7 +268,6 @@ userRouter.post(
         register: {
           ...register,
           password: bcrypt.hashSync(register.password),
-          confirmPassword: bcrypt.hashSync(register.confirmPassword),
         },
         origines,
         infos,
