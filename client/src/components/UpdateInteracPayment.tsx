@@ -25,7 +25,6 @@ import {
   FormMessage,
 } from './ui/form'
 import { Input } from './ui/input'
-import { PasswordInput } from './PasswordInput'
 import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card'
 
 const formSchema = z.object({
@@ -120,8 +119,9 @@ const UpdateInteracPayment = () => {
             setModalVisibility(false)
           }}
           open={modalVisibility}
-          title='Credit Card'
-          description='Entrez les informations de votre carte'
+          title='Paiement Interac'
+          description={`Faire le virement Interac à l'adresse courriel suivante "paiement.rpn@gmail.com" et utiliser le mot de passe suivant "monrpn" si demandé.
+Par la suite entrez les informations du virement que vous avez effectuer pour renflouer votre compte RPN.(le montant ne peut-être inférieur à 25$)`}
         >
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>

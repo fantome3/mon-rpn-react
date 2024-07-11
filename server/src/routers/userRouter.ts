@@ -68,22 +68,26 @@ userRouter.post(
         port: 587,
         secure: false,
         auth: {
-          user: process.env.NODEMAILER_AUTH_USER || 'konemory019@gmail.com',
-          pass: process.env.NODEMAILER_AUTH_PASS || 'uxtw beeo uowj nmrx',
+          user: process.env.NODEMAILER_AUTH_USER || 'paiement.rpn@gmail.com',
+          pass: process.env.NODEMAILER_AUTH_PASS || 'jgmw puwg usqi mcxk',
         },
       })
 
       const mailOptions = {
-        from: process.env.NODEMAILER_AUTH_USER || 'konemory019@gmail.com',
+        from: process.env.NODEMAILER_AUTH_USER || 'paiement.rpn@gmail.com',
         to: email,
         subject: 'MON-RPN - Mot de passe',
         text: `
-      Votre inscription sur notre plateforme MON-RPN s'est déroulée avec succès.
+      Votre inscription sur notre plateforme MON-RPN
+      s'est déroulée avec succès.
 
-      Voici le mot de passe actuel pour vous connectez à votre compte:
+      Voici le mot de passe actuel pour vous
+      connectez à votre compte:
       ${password}
 
-      Vous pouvez modifier votre mot de passe à la page profile de votre plateforme MON-RPN à tout moment.
+      Vous pouvez modifier votre mot de passe à la
+      page profile de votre plateforme MON-RPN à
+      tout moment.
 
       Bienvenue chez vous,
       
@@ -133,14 +137,14 @@ userRouter.post(
         port: 587,
         secure: false,
         auth: {
-          user: process.env.NODEMAILER_AUTH_USER || 'konemory019@gmail.com',
-          pass: process.env.NODEMAILER_AUTH_PASS || 'uxtw beeo uowj nmrx',
+          user: process.env.NODEMAILER_AUTH_USER || 'paiement.rpn@gmail.com',
+          pass: process.env.NODEMAILER_AUTH_PASS || 'jgmw puwg usqi mcxk',
         },
       })
 
       const mailOptions = {
-        from: process.env.NODEMAILER_AUTH_USER || 'konemory019@gmail.com',
-        to: 'papyrusabdallah@gmail.com',
+        from: process.env.NODEMAILER_AUTH_USER || 'paiement.rpn@gmail.com',
+        to: 'djokojires@gmail.com',
         subject: 'Nouvelle Inscription',
         text: `Un nouvel utilisateur vient de s'inscrire sur votre plateforme MON-RPN. Voici ses informations: 
         Nom et Prénoms: ${user?.origines.lastName} ${user?.origines.firstName},
@@ -181,8 +185,8 @@ userRouter.post(
           port: 587,
           secure: false,
           auth: {
-            user: process.env.NODEMAILER_AUTH_USER || 'konemory019@gmail.com',
-            pass: process.env.NODEMAILER_AUTH_PASS || 'wegd nzwc enbw dfrb',
+            user: process.env.NODEMAILER_AUTH_USER || 'paiement.rpn@gmail.com',
+            pass: process.env.NODEMAILER_AUTH_PASS || 'jgmw puwg usqi mcxk',
           },
         })
 

@@ -137,7 +137,8 @@ const InteracPayment = () => {
           }}
           open={modalVisibility}
           title='Paiement Interac'
-          description='Entrez les informations du virement que vous avez effectué pour renflouer votre compte RPN (le montant ne peut-être inférieur à 25$).'
+          description={`Faire le virement Interac à l'adresse courriel suivante "paiement.rpn@gmail.com" et utiliser le mot de passe suivant "monrpn" si demandé.
+Par la suite entrez les informations du virement que vous avez effectuer pour renflouer votre compte RPN.(le montant ne peut-être inférieur à 25$)`}
         >
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
