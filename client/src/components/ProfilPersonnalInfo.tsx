@@ -95,7 +95,6 @@ const UserOriginInfo = () => {
         register: {
           ...userRegister,
           password: userDetail?.register.password!,
-          confirmPassword: userDetail?.register.confirmPassword!,
         },
         primaryMember: primaryMember,
         familyMembers: familyMembers,

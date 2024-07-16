@@ -23,6 +23,35 @@ function updateUserPassword(id: string, newPassword: string): Promise<string> {
 }
 
 userRouter.post(
+  '/generate-token',
+  expressAsyncHandler(async (req: Request, res: Response) => {
+    const { email } = req.body
+    const token = jwt.sign(
+      { email },
+      process.env.JWT_SECRET || 'ddlfjssdmsmdkskm',
+      { expiresIn: '1h' }
+    )
+    res.json({ token })
+  })
+)
+
+userRouter.post(
+  '/verify-token',
+  expressAsyncHandler(async (req: Request, res: Response) => {
+    const { token } = req.body
+    try {
+      const decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET || 'ddlfjssdmsmdkskm'
+      )
+      res.json({ valid: true, decoded })
+    } catch (error) {
+      res.status(401).json({ valid: false, message: 'Invalid token' })
+    }
+  })
+)
+
+userRouter.post(
   '/reset-password/:id/:token',
   expressAsyncHandler(async (req: Request, res: Response) => {
     const { id, token } = req.params

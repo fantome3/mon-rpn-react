@@ -44,7 +44,10 @@ import clsx from 'clsx'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { toast } from '@/components/ui/use-toast'
-import { useSendPasswordMutation } from '@/hooks/userHooks'
+import {
+  useSendPasswordMutation,
+  useVerifyTokenMutation,
+} from '@/hooks/userHooks'
 
 const formSchema = z.object({
   firstName: z.string().min(3, { message: 'Au moins 3 caractères' }),
@@ -61,6 +64,7 @@ const Origines = () => {
   const { userInfo } = state
   const { origines } = userInfo!
   const { mutateAsync: sendPasswordToUser } = useSendPasswordMutation()
+  const { mutateAsync: verifyToken } = useVerifyTokenMutation()
 
   const navigate = useNavigate()
   const { t } = useTranslation(['common'])
@@ -100,10 +104,22 @@ const Origines = () => {
         return
       }
 
+      const tempToken = JSON.parse(localStorage.getItem('tempToken')!)
+
+      if (!tempToken) {
+        console.log('Token not found')
+      }
+
+      const VerifyToken = await verifyToken(tempToken!)
+
+      if (!VerifyToken.valid) {
+        console.log('Token is not valid')
+      }
+
       ctxDispatch({ type: 'USER_ORIGINES', payload: values })
       localStorage.setItem(
         'userInfo',
-        JSON.stringify({ ...userInfo, origines: values })
+        JSON.stringify({ ...userInfo, origines: values, token: tempToken })
       )
       navigate('/infos')
 

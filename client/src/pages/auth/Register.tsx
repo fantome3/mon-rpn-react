@@ -29,6 +29,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { z } from 'zod'
 import PasswordGenerator from '@/components/PasswordGenerator'
+import { useGenerateTokenMutation } from '@/hooks/userHooks'
 
 const formSchema = z.object({
   email: z.string().email({ message: `Email invalide` }),
@@ -43,6 +44,7 @@ const Register = () => {
   const navigate = useNavigate()
   const params = useParams()
   const { t } = useTranslation(['common'])
+  const { mutateAsync: generateToken } = useGenerateTokenMutation()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -75,6 +77,10 @@ const Register = () => {
           password: newPassword,
         },
       })
+
+      const GenerateToken = await generateToken(values.email)
+      localStorage.setItem('tempToken', JSON.stringify(GenerateToken.token))
+
       localStorage.setItem(
         'userInfo',
         JSON.stringify({
@@ -83,6 +89,7 @@ const Register = () => {
             ...values,
             password: PasswordGenerator(),
           },
+          token: JSON.stringify(GenerateToken.token),
         })
       )
 

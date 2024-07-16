@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 import { Infos, Origines, Register, User } from '@/types/User'
 import { Account } from '@/types/Account'
 
@@ -90,12 +90,12 @@ function useAppState() {
     initialState
   )
 
-  const logoutHandler = () => {
+  const logoutHandler = useCallback(() => {
     dispatch({ type: 'USER_SIGNOUT' })
     dispatch({ type: 'CLEAR_ACCOUNT' })
     localStorage.removeItem('userInfo')
     localStorage.removeItem('accountInfo')
-  }
+  }, [dispatch])
 
   return { state, dispatch, logoutHandler }
 }

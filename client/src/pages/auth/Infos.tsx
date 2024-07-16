@@ -35,7 +35,7 @@ import { Store } from '@/lib/Store'
 import clsx from 'clsx'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
-import { useRegisterMutation } from '@/hooks/userHooks'
+import { useRegisterMutation, useVerifyTokenMutation } from '@/hooks/userHooks'
 import Loading from '@/components/Loading'
 import { checkPostalCode, checkTel, refresh } from '@/lib/utils'
 import { User } from '@/types/User'
@@ -53,6 +53,7 @@ const formSchema = z.object({
 
 const Infos = () => {
   const { mutateAsync: registerfunc, isPending } = useRegisterMutation()
+  const { mutateAsync: verifyToken } = useVerifyTokenMutation()
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { userInfo } = state
   const { infos } = userInfo!
@@ -73,19 +74,23 @@ const Infos = () => {
   })
 
   useEffect(() => {
-    if (infos) {
-      form.reset({
-        residenceCountry: infos?.residenceCountry,
-        postalCode: infos?.postalCode,
-        address: infos?.address,
-        tel: infos?.tel,
-        hasInsurance: infos?.hasInsurance,
-      })
+    if (userInfo && userInfo.infos) {
+      form.reset(userInfo.infos)
     }
-  }, [infos])
+  }, [userInfo])
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
+      const tempToken = JSON.parse(localStorage.getItem('tempToken')!)
+      if (!tempToken) {
+        console.log('Token not found')
+      }
+
+      const VerifyToken = await verifyToken(tempToken!)
+      if (!VerifyToken.valid) {
+        console.log('Token is not valid')
+      }
+
       const userData: User = {
         ...userInfo!,
         infos: {

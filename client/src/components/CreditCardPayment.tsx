@@ -6,7 +6,7 @@ import { expiryDateRegex } from '@/lib/constant'
 import { useContext, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { formatCreditCardNumber, isDateInFuture, refresh } from '@/lib/utils'
+import { formatCreditCardNumber, isDateInFuture } from '@/lib/utils'
 import { useNewAccountMutation } from '@/hooks/accountHooks'
 import { Store } from '@/lib/Store'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -27,7 +27,6 @@ import {
   InputOTPSeparator,
   InputOTPSlot,
 } from './ui/input-otp'
-import Loading from './Loading'
 import { Button } from './ui/button'
 import { useNewUserNotificationMutation } from '@/hooks/userHooks'
 

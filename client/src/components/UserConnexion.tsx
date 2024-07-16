@@ -83,7 +83,6 @@ const UserConnexion = () => {
           ...register,
           email: email,
           password: user?.register.password!,
-          confirmPassword: user?.register.confirmPassword!,
         },
         primaryMember: primaryMember,
         familyMembers: familyMembers,

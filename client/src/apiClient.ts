@@ -10,13 +10,20 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   async (config) => {
-    if (localStorage.getItem('userInfo'))
-      config.headers.authorization = `Bearer ${
-        JSON.parse(localStorage.getItem('userInfo')!).token
-      }`
+    const userInfo = localStorage.getItem('userInfo')
+    if (userInfo) {
+      const parsedUserInfo = JSON.parse(userInfo)
+      if (parsedUserInfo && parsedUserInfo.token) {
+        config.headers.authorization = `Bearer ${parsedUserInfo.token}`
+      } else {
+        console.error('Token is missing in userInfo')
+      }
+    }
+
     return config
   },
   (error) => {
+    console.error('Request error:', error)
     Promise.reject(error)
   }
 )

@@ -2,6 +2,18 @@ import { useQuery, useMutation } from '@tanstack/react-query'
 import apiClient from '@/apiClient'
 import { User } from '@/types/User'
 
+export const useVerifyTokenMutation = () =>
+  useMutation({
+    mutationFn: async (token: string) =>
+      (await apiClient.post(`api/users/verify-token`, { token })).data,
+  })
+
+export const useGenerateTokenMutation = () =>
+  useMutation({
+    mutationFn: async (email: string) =>
+      (await apiClient.post(`api/users/generate-token`, { email })).data,
+  })
+
 export const useSendPasswordMutation = () =>
   useMutation({
     mutationFn: async ({
