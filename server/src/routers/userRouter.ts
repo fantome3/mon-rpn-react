@@ -291,16 +291,23 @@ userRouter.post(
         cpdLng,
         referredBy,
       } = req.body
+
+      if (!register || !register.email || !register.password) {
+        res.status(400).json({ message: 'Email and password are required' })
+        return
+      }
+
       const existingUser = await UserModel.findOne({
         'register.email': register.email,
       })
       if (existingUser) {
         res.status(409).json({ message: `L'email existe déjà` })
       }
+
       const newUser = new UserModel({
         register: {
           ...register,
-          password: bcrypt.hashSync(register.password),
+          password: bcrypt.hashSync(register.password, 10),
         },
         origines,
         infos,
@@ -318,8 +325,8 @@ userRouter.post(
         },
         token: generateToken(user),
       })
-    } catch (error) {
-      res.status(400).json(error)
+    } catch (error: any) {
+      res.status(400).json({ message: 'Bad Request', error: error.message })
     }
   })
 )

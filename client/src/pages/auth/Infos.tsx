@@ -81,18 +81,21 @@ const Infos = () => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      const tempToken = JSON.parse(localStorage.getItem('tempToken')!)
+      const tempToken = JSON.parse(localStorage.getItem('tempToken') || '')
       if (!tempToken) {
         console.log('Token not found')
+        return
       }
 
       const VerifyToken = await verifyToken(tempToken!)
       if (!VerifyToken.valid) {
         console.log('Token is not valid')
+        return
       }
 
       const userData: User = {
-        ...userInfo!,
+        register: userInfo?.register!,
+        origines: userInfo?.origines!,
         infos: {
           ...values,
           tel: checkTel(values.tel),
