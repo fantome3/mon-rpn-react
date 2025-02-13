@@ -28,6 +28,7 @@ import {
   Accounts,
   Announcements,
   UpdateMethod,
+  Conditions,
 } from './pages/index.ts'
 import './lib/i18n'
 import { StoreProvider } from './lib/Store.tsx'
@@ -49,6 +50,7 @@ const router = createBrowserRouter(
       <Route path='/infos' element={<Infos />} />
       <Route path='/about' element={<About />} />
       <Route path='/contact-us' element={<Contact />} />
+      <Route path='/conditions' element={<Conditions />} />
 
       <Route path='/' element={<App />}>
         <Route path='/' index={true} element={<HomePage />} />

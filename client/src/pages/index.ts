@@ -15,6 +15,7 @@ import PaymentMethod from './account/PaymentMethod'
 import Accounts from './admin/accounts/Accounts'
 import Announcements from './admin/announcements/Announcements'
 import UpdateMethod from './account/UpdateMethod'
+import Conditions from './conditions/Conditions'
 
 export {
   Login,
@@ -34,4 +35,5 @@ export {
   Accounts,
   Announcements,
   UpdateMethod,
+  Conditions,
 }

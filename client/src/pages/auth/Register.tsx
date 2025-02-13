@@ -63,7 +63,7 @@ const Register = () => {
         conditions: userInfo?.register.conditions,
       })
     }
-  }, [userInfo])
+  }, [userInfo, form])
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (values.conditions === false) {
@@ -172,12 +172,17 @@ const Register = () => {
                         />
                       </FormControl>
                       <FormLabel
-                        className={clsx('text-sm', {
+                        className={clsx('text-xs text-justify', {
                           'text-destructive':
                             conditionsError === true && field.value === false,
                         })}
                       >
-                        {t('enregistrement.conditions')}
+                        {t('enregistrement.conditions')}&nbsp;
+                        <span className='font-bold'>
+                          <Link to='/conditions'>
+                            {t('enregistrement.status')}
+                          </Link>
+                        </span>
                       </FormLabel>
                     </FormItem>
                   )}

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-types */
 import React, { useCallback } from 'react'
 import { Infos, Origines, Register, User } from '@/types/User'
 import { Account } from '@/types/Account'

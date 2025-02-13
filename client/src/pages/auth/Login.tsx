@@ -48,13 +48,18 @@ const Login = () => {
     cpdLng: z.string(),
   })
 
+  const Lng =
+    navigator.language ||
+    navigator.languages[0] ||
+    localStorage.getItem('i18nextLng')!
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: '',
       password: '',
       rememberMe: false,
-      cpdLng: localStorage.getItem('i18nextLng')!,
+      cpdLng: Lng,
     },
   })
 

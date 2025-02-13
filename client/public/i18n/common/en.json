@@ -237,7 +237,8 @@
     "password": "Password",
     "confirmPassword": "Confirm Password",
     "confirmPasswordLabel": "Confirm Password*",
-    "conditions": "Accept the terms of use*",
+    "conditions": "I have read and I accept",
+    "status": "the association's statutes and the application's terms of use.",
     "suivant": "Next"
   },
   "connexion": {
