@@ -52,6 +52,24 @@ class Register {
 
   @prop({ required: true, default: false })
   public conditions!: boolean
+
+  @prop({ required: true, enum: ['student', 'worker'] })
+  public occupation!: 'student' | 'worker'
+
+  @prop()
+  public institution?: string
+
+  @prop()
+  public otherInstitution?: string
+
+  @prop()
+  public studentNumber?: string
+
+  @prop({ enum: ['part-time', 'full-time'] })
+  public studentStatus?: 'part-time' | 'full-time'
+
+  @prop()
+  public workField?: string
 }
 
 class FamilyMember {

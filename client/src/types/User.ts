@@ -2,6 +2,12 @@ export type Register = {
   email: string
   password: string
   conditions: boolean
+  occupation: 'student' | 'worker'
+  institution?: string
+  otherInstitution?: string
+  studentNumber?: string
+  studentStatus?: 'part-time' | 'full-time'
+  workField?: string
 }
 
 export type Origines = {

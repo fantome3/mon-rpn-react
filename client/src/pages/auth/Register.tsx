@@ -30,17 +30,34 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { z } from 'zod'
 import PasswordGenerator from '@/components/PasswordGenerator'
 import { useGenerateTokenMutation } from '@/hooks/userHooks'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 
 const formSchema = z.object({
   email: z.string().email({ message: `Email invalide` }),
   password: z.string().optional(),
   conditions: z.boolean(),
+  occupation: z.enum(['student', 'worker'], {
+    required_error: 'Sélectionnez un occupation',
+  }),
+  institution: z.string().optional(),
+  otherInstitution: z.string().optional(),
+  studentNumber: z.string().optional(),
+  studentStatus: z.enum(['part-time', 'full-time']).optional(),
+  workField: z.string().optional(),
 })
 
 const Register = () => {
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { userInfo } = state
   const [conditionsError, setConditionsError] = useState(false)
+  const [isOtherInstitution, setIsOtherInstitution] = useState(false)
   const navigate = useNavigate()
   const params = useParams()
   const { t } = useTranslation(['common'])
@@ -52,21 +69,23 @@ const Register = () => {
       email: userInfo?.register.email || '',
       password: userInfo?.register.password || '',
       conditions: userInfo?.register.conditions || false,
+      occupation: userInfo?.register.occupation || undefined,
+      institution: userInfo?.register.institution || undefined,
+      otherInstitution: userInfo?.register.otherInstitution || '',
+      studentNumber: userInfo?.register.studentNumber || '',
+      studentStatus: userInfo?.register.studentStatus || undefined,
+      workField: userInfo?.register.workField || '',
     },
   })
 
   useEffect(() => {
-    if (userInfo) {
-      form.reset({
-        email: userInfo?.register.email,
-        password: userInfo?.register.password,
-        conditions: userInfo?.register.conditions,
-      })
+    if (userInfo?.register) {
+      form.reset(userInfo.register)
     }
   }, [userInfo, form])
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (values.conditions === false) {
+    if (!values.conditions) {
       setConditionsError(true)
     } else {
       const newPassword = PasswordGenerator()
@@ -122,6 +141,7 @@ const Register = () => {
                 onSubmit={form.handleSubmit(onSubmit)}
                 className='space-y-8'
               >
+                {/* Champ Email */}
                 <FormField
                   control={form.control}
                   name='email'
@@ -159,6 +179,163 @@ const Register = () => {
                     </FormItem>
                   )}
                 />*/}
+
+                {/* Champ Occupation */}
+                <FormField
+                  control={form.control}
+                  name='occupation'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className='text-sm'>Occupation</FormLabel>
+                      <FormControl>
+                        <Select onValueChange={field.onChange}>
+                          <SelectTrigger>
+                            <SelectValue placeholder='Sélectionnez votre occupation' />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value='student'>Étudiant</SelectItem>
+                            <SelectItem value='worker'>Travailleur</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Si Étudiant */}
+                {form.watch('occupation') === 'student' && (
+                  <>
+                    {/* Sélection Établissement */}
+                    <FormField
+                      control={form.control}
+                      name='institution'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className='text-sm'>
+                            Établissement
+                          </FormLabel>
+                          <FormControl>
+                            <Select
+                              onValueChange={(value) => {
+                                field.onChange(value)
+                                setIsOtherInstitution(value === 'other')
+                              }}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder='Sélectionnez votre établissement' />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value='Université Laval'>
+                                  Université Laval
+                                </SelectItem>
+                                <SelectItem value='Université du Québec à Rimouski'>
+                                  Université du Québec à Rimouski
+                                </SelectItem>
+                                <SelectItem value='other'>Autre</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Input Autre établissement */}
+                    {isOtherInstitution && (
+                      <FormField
+                        control={form.control}
+                        name='otherInstitution'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className='text-sm'>
+                              Autre établissement
+                            </FormLabel>
+                            <FormControl>
+                              <Input {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+
+                    {/* Numéro étudiant */}
+                    <FormField
+                      control={form.control}
+                      name='studentNumber'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className='text-sm'>
+                            Numéro étudiant (facultatif)
+                          </FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Statut étudiant */}
+                    <FormField
+                      control={form.control}
+                      name='studentStatus'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className='text-sm'>
+                            Statut étudiant
+                          </FormLabel>
+                          <FormControl>
+                            <RadioGroup
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <FormItem className='flex items-center space-x-3 space-y-0'>
+                                <FormControl>
+                                  <RadioGroupItem value='part-time' />
+                                </FormControl>
+                                <FormLabel className='font-normal'>
+                                  Temps Partiel
+                                </FormLabel>
+                              </FormItem>
+                              <FormItem className='flex items-center space-x-3 space-y-0'>
+                                <FormControl>
+                                  <RadioGroupItem value='full-time' />
+                                </FormControl>
+                                <FormLabel className='font-normal'>
+                                  Temps Plein
+                                </FormLabel>
+                              </FormItem>
+                            </RadioGroup>
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
+
+                {/* Si travailleur */}
+
+                {form.watch('occupation') === 'worker' && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name='workField'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className='text-sm'>
+                            Domaine d'activité
+                          </FormLabel>
+                          <FormControl>
+                            <Input placeholder='Charpentier' {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
 
                 <FormField
                   control={form.control}
