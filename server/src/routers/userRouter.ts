@@ -45,8 +45,10 @@ userRouter.post(
         process.env.JWT_SECRET || 'ddlfjssdmsmdkskm'
       )
       res.json({ valid: true, decoded })
+      return
     } catch (error) {
       res.status(401).json({ valid: false, message: 'Invalid token' })
+      return
     }
   })
 )
@@ -64,11 +66,13 @@ userRouter.post(
           res.send({
             message: 'Error with token',
           })
+          return
         } else {
           if (password !== confirmPassword) {
             res.send({
               message: 'Password Do Not Match',
             })
+            return
           }
           updateUserPassword(id, password)
             .then((status) => res.send({ Status: status }))
@@ -86,9 +90,11 @@ userRouter.post(
       const { email, password } = req.body
       if (!email) {
         res.status(400).send('Email Require')
+        return
       }
       if (!password) {
         res.status(400).send('Password Require')
+        return
       }
 
       const transporter = nodemailer.createTransport({
@@ -127,14 +133,17 @@ userRouter.post(
       transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
           res.status(500).send(`Erreur lors de l'envoi du mail`)
+          return
         } else {
           console.log(`Email envoyé: ${info.response}`)
           res.status(200).send('E-mail envoyé')
+          return
         }
       })
     } catch (error) {
       console.log(error)
       res.status(500).send('Erreur du serveur')
+      return
     }
   })
 )
@@ -146,11 +155,13 @@ userRouter.post(
       const { email } = req.body
       if (!email) {
         res.status(400).send('Email Require')
+        return
       }
 
       const user = await UserModel.findOne({ 'register.email': email })
       if (!user) {
         res.status(404).send('Email Not Found')
+        return
       }
 
       const accountByUserId = await AccountModel.findOne({
@@ -158,6 +169,7 @@ userRouter.post(
       })
       if (!accountByUserId) {
         res.status(404).send('Account Not Found')
+        return
       }
 
       const transporter = nodemailer.createTransport({
@@ -188,14 +200,17 @@ userRouter.post(
       transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
           res.status(500).send(`Erreur lors de l'envoi du mail`)
+          return
         } else {
           console.log(`Email envoyé: ${info.response}`)
           res.status(200).send('E-mail envoyé')
+          return
         }
       })
     } catch (error) {
       console.log(error)
       res.status(500).send('Erreur du serveur')
+      return
     }
   })
 )
@@ -230,6 +245,7 @@ userRouter.post(
           if (error) {
             console.log(error)
             res.status(500).send(`Erreur lors de l'envoi du mail`)
+            return
           } else {
             console.log(`Email envoyé: ${info.response}`)
             res
@@ -237,6 +253,7 @@ userRouter.post(
               .send(
                 'Consultez votre email pour obtenir des informations sur la réinitialisation de votre mot de passe.'
               )
+            return
           }
         })
 
@@ -244,8 +261,10 @@ userRouter.post(
           email,
           token: token,
         })
+        return
       } else {
         res.status(404).send('Email Introuvable')
+        return
       }
     } catch (error) {
       console.log(error)
@@ -269,11 +288,14 @@ userRouter.post(
           },
           token: generateToken(user),
         })
+        return
       } else {
         res.status(401).json({ message: 'Invalid email or password' })
+        return
       }
     } catch (error) {
       res.status(400).json(error)
+      return
     }
   })
 )
@@ -302,6 +324,7 @@ userRouter.post(
       })
       if (existingUser) {
         res.status(409).json({ message: `L'email existe déjà` })
+        return
       }
 
       const newUser = new UserModel({
@@ -325,8 +348,10 @@ userRouter.post(
         },
         token: generateToken(user),
       })
+      return
     } catch (error: any) {
       res.status(400).json({ message: 'Bad Request', error: error.message })
+      return
     }
   })
 )
@@ -351,13 +376,16 @@ userRouter.put(
             token: generateToken(updatedUser),
           },
         })
+        return
       } else {
         res.status(404).send({
           message: 'User Not Found',
         })
+        return
       }
     } catch (error) {
       res.status(400).json(error)
+      return
     }
   })
 )
@@ -373,8 +401,10 @@ userRouter.get(
         .populate('referredBy', '_id origines.firstName origines.lastName')
         .sort({ createdAt: -1 })
       res.send(users)
+      return
     } catch (error) {
       res.status(400).json(error)
+      return
     }
   })
 )
@@ -391,8 +421,10 @@ userRouter.get(
         users,
         countUsers,
       })
+      return
     } catch (error) {
       res.status(400).json(error)
+      return
     }
   })
 )
@@ -405,11 +437,14 @@ userRouter.get(
       const user = await UserModel.findById(req.params.id)
       if (user) {
         res.send(user)
+        return
       } else {
         res.status(404).send({ message: 'User Not Found' })
+        return
       }
     } catch (error) {
       res.status(400).json(error)
+      return
     }
   })
 )
@@ -432,13 +467,16 @@ userRouter.delete(
           message: 'User Deleted',
           user: deletedUser,
         })
+        return
       } else {
         res.status(404).send({
           message: 'User Not Found',
         })
+        return
       }
     } catch (error) {
       res.status(400).json(error)
+      return
     }
   })
 )
