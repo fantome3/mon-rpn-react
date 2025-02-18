@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import CheckoutSteps from '@/components/CheckoutSteps'
 import { Button } from '@/components/ui/button'
 import {
@@ -27,22 +28,40 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { countries, postalCodeRegex, telRegex } from '@/lib/constant'
+import {
+  countries,
+  postalCodeRegex,
+  statusOptions,
+  telRegex,
+} from '@/lib/constant'
 import { useTranslation } from 'react-i18next'
 import { Checkbox } from '@/components/ui/checkbox'
-import { useContext, useEffect } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { Store } from '@/lib/Store'
 import clsx from 'clsx'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { useRegisterMutation, useVerifyTokenMutation } from '@/hooks/userHooks'
 import Loading from '@/components/Loading'
-import { checkPostalCode, checkTel, refresh } from '@/lib/utils'
+import { checkPostalCode, checkTel } from '@/lib/utils'
 import { User } from '@/types/User'
 import { toast } from '@/components/ui/use-toast'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 const formSchema = z.object({
   residenceCountry: z.string().min(4, { message: 'Champ Obligatoire' }),
+  residenceCountryStatus: z.enum(
+    ['student', 'worker', 'canadian_citizen', 'permanent_resident'],
+    {
+      required_error: 'Sélectionnez un status',
+    }
+  ),
   postalCode: z
     .string()
     .regex(postalCodeRegex, { message: 'Champ Obligatoire' }),
@@ -52,6 +71,7 @@ const formSchema = z.object({
 })
 
 const Infos = () => {
+  const [showModal, setShowModal] = useState(false)
   const { mutateAsync: registerfunc, isPending } = useRegisterMutation()
   const { mutateAsync: verifyToken } = useVerifyTokenMutation()
   const { state, dispatch: ctxDispatch } = useContext(Store)
@@ -62,10 +82,12 @@ const Infos = () => {
   const redirectInUrl = new URLSearchParams(search).get('redirect')
   const redirect = redirectInUrl ? redirectInUrl : '/payment-method'
   const { t } = useTranslation(['common'])
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       residenceCountry: infos ? infos.residenceCountry : 'Canada',
+      residenceCountryStatus: infos ? infos.residenceCountryStatus : 'worker',
       postalCode: infos ? infos.postalCode : '',
       address: infos ? infos.address : '',
       tel: infos ? infos.tel : '',
@@ -77,7 +99,9 @@ const Infos = () => {
     if (userInfo && userInfo.infos) {
       form.reset(userInfo.infos)
     }
-  }, [userInfo])
+  }, [userInfo, form])
+
+  const browserLanguage = navigator.language
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
@@ -105,7 +129,7 @@ const Infos = () => {
         rememberMe: false,
         primaryMember: true,
         familyMembers: [],
-        cpdLng: localStorage.getItem('i18nextLng')!,
+        cpdLng: localStorage.getItem('i18nextLng')! || browserLanguage,
         referredBy: localStorage.getItem('referralId')!,
       }
       const registerData = await registerfunc(userData)
@@ -114,13 +138,9 @@ const Infos = () => {
         payload: registerData,
       })
       localStorage.setItem('userInfo', JSON.stringify(registerData))
-      toast({
-        variant: 'default',
-        title: 'Inscription',
-        description: 'Inscription réussie',
-      })
-      navigate(redirect)
-      refresh()
+      setShowModal(true)
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       if (error.response && error.response.status === 409) {
         toast({
@@ -163,9 +183,14 @@ const Infos = () => {
                   name='tel'
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className={clsx('text-sm')}>Tél</FormLabel>
+                      <FormLabel className={clsx('text-sm')}>
+                        {t('infoPerso.telephone')}
+                      </FormLabel>
                       <FormControl>
-                        <Input placeholder='Votre numéro' {...field} />
+                        <Input
+                          placeholder={t('infoPerso.telephoneInput')}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -177,9 +202,33 @@ const Infos = () => {
                   name='address'
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className={clsx('text-sm')}>Adresse</FormLabel>
+                      <FormLabel className={clsx('text-sm')}>
+                        {t('infoPerso.adresse')}
+                      </FormLabel>
                       <FormControl>
-                        <Input placeholder='Votre adresse' {...field} />
+                        <Input
+                          placeholder={t('infoPerso.adresseInput')}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name='postalCode'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className={clsx('text-sm')}>
+                        {t('infoPerso.postalCode')}
+                      </FormLabel>
+                      <FormControl className='w-[50%]'>
+                        <Input
+                          placeholder={t('infoPerso.postalCodeInput')}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -192,7 +241,7 @@ const Infos = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className={clsx('text-sm')}>
-                        Pays de résidence
+                        {t('infoPerso.paysResidence')}
                       </FormLabel>
                       <Select
                         onValueChange={field.onChange}
@@ -219,17 +268,30 @@ const Infos = () => {
                   )}
                 />
 
+                {/*  Statut du pays de résidence */}
                 <FormField
                   control={form.control}
-                  name='postalCode'
+                  name='residenceCountryStatus'
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className={clsx('text-sm')}>
-                        Code postal
-                      </FormLabel>
-                      <FormControl className='w-[50%]'>
-                        <Input placeholder='Votre code postal' {...field} />
-                      </FormControl>
+                      <FormLabel className='text-sm'>Statut</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className='w-[50%]'>
+                            <SelectValue placeholder='Sélectionnez votre statut' />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {statusOptions.map((status) => (
+                            <SelectItem key={status.value} value={status.value}>
+                              {status.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -247,7 +309,7 @@ const Infos = () => {
                         />
                       </FormControl>
                       <FormLabel className='text-sm'>
-                        Êtes-vous assurés?
+                        {t('infoPerso.hasInsurance')}
                       </FormLabel>
                     </FormItem>
                   )}
@@ -257,7 +319,7 @@ const Infos = () => {
                 ) : (
                   <div>
                     <Button className='mr-4' type='submit'>
-                      {t('enregistrement.suivant')}
+                      {t('enregistrement.enregistrer')}
                     </Button>
                     <Button
                       onClick={() => navigate(-1)}
@@ -275,6 +337,31 @@ const Infos = () => {
       </div>
 
       <Footer />
+
+      {/* Modal de confirmation */}
+      <Dialog open={showModal} onOpenChange={setShowModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className='font-bold text-xl p-4'>
+              Inscription réussie
+            </DialogTitle>
+            <DialogDescription className='p-4 text-justify'>
+              Un e-mail contenant votre mot de passe vous a été envoyé. Veuillez
+              vérifier votre boîte de réception.
+            </DialogDescription>
+          </DialogHeader>
+          <div className='p-4'>
+            <Button
+              onClick={() => {
+                setShowModal(false)
+                navigate(redirect)
+              }}
+            >
+              OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

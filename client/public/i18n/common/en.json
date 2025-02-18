@@ -229,7 +229,8 @@
     "oui": "Yes",
     "non": "No",
     "postalCode": "Postal code*",
-    "postalCodeInput": "Please enter your postal code"
+    "postalCodeInput": "Please enter your postal code",
+    "hasInsurance": "Do you have life insurance?"
   },
   "enregistrement": {
     "titre": "Registration",
@@ -239,7 +240,25 @@
     "confirmPasswordLabel": "Confirm Password*",
     "conditions": "I have read and I accept",
     "status": "the association's statutes and the application's terms of use*",
-    "suivant": "Next"
+    "occupationLabel": "Occupation",
+    "occupationPlaceholder": "Select your occupation",
+    "occupationStudent": "Student",
+    "occupationWorker": "Worker",
+    "institution": "Institution",
+    "institutionPlaceholder": "Select your institution",
+    "other": "Other",
+    "otherInstitution": "Other institution",
+    "studentNumber": "Student number",
+    "studentStatus": "Student status",
+    "partTime": "Part-time",
+    "fullTime": "Full-time",
+    "occupation": "Field of work",
+    "carpenter": "Carpenter",
+    "suivant": "Next",
+    "enregistrer": "Register",
+    "prev": "Prev",
+    "alreadyAnAccount": "Already have an account?",
+    "connexion": "Get connected!"
   },
   "connexion": {
     "titre": "Login",

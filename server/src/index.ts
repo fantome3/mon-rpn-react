@@ -6,6 +6,7 @@ import path from 'path'
 import { userRouter } from './routers/userRouter'
 import { accountRouter } from './routers/accountRouter'
 import { deathAnnouncementRouter } from './routers/deathAnnoucementRouter'
+import { uploadRouter } from './routers/uploadRouter'
 
 dotenv.config()
 mongoose.set('strictQuery', true)
@@ -38,6 +39,7 @@ app.use(express.urlencoded({ extended: true }))
 app.use('/api/users', userRouter)
 app.use('/api/accounts', accountRouter)
 app.use('/api/announcements', deathAnnouncementRouter)
+app.use('/api/upload', uploadRouter)
 
 app.use(express.static(path.join(__dirname, '../dist')))
 app.get('*', (req: Request, res: Response) =>

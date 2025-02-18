@@ -38,6 +38,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { institutions } from '@/lib/constant'
 
 const formSchema = z.object({
   email: z.string().email({ message: `Email invalide` }),
@@ -186,15 +187,25 @@ const Register = () => {
                   name='occupation'
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className='text-sm'>Occupation</FormLabel>
+                      <FormLabel className='text-sm'>
+                        {t('enregistrement.occupationLabel')}
+                      </FormLabel>
                       <FormControl>
                         <Select onValueChange={field.onChange}>
                           <SelectTrigger>
-                            <SelectValue placeholder='Sélectionnez votre occupation' />
+                            <SelectValue
+                              placeholder={t(
+                                'enregistrement.occupationPlaceholder'
+                              )}
+                            />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value='student'>Étudiant</SelectItem>
-                            <SelectItem value='worker'>Travailleur</SelectItem>
+                            <SelectItem value='student'>
+                              {t('enregistrement.occupationStudent')}
+                            </SelectItem>
+                            <SelectItem value='worker'>
+                              {t('enregistrement.occupationWorker')}
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </FormControl>
@@ -213,7 +224,7 @@ const Register = () => {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className='text-sm'>
-                            Établissement
+                            {t('enregistrement.institution')}
                           </FormLabel>
                           <FormControl>
                             <Select
@@ -223,16 +234,21 @@ const Register = () => {
                               }}
                             >
                               <SelectTrigger>
-                                <SelectValue placeholder='Sélectionnez votre établissement' />
+                                <SelectValue
+                                  placeholder={t(
+                                    'enregistrement.institutionPlaceholder'
+                                  )}
+                                />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value='Université Laval'>
-                                  Université Laval
-                                </SelectItem>
-                                <SelectItem value='Université du Québec à Rimouski'>
-                                  Université du Québec à Rimouski
-                                </SelectItem>
-                                <SelectItem value='other'>Autre</SelectItem>
+                                {institutions.map((institution) => (
+                                  <SelectItem
+                                    key={institution.value}
+                                    value={institution.value}
+                                  >
+                                    {institution.label}
+                                  </SelectItem>
+                                ))}
                               </SelectContent>
                             </Select>
                           </FormControl>
@@ -249,7 +265,7 @@ const Register = () => {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className='text-sm'>
-                              Autre établissement
+                              {t('enregistrement.otherInstitution')}
                             </FormLabel>
                             <FormControl>
                               <Input {...field} />
@@ -267,7 +283,7 @@ const Register = () => {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className='text-sm'>
-                            Numéro étudiant (facultatif)
+                            {t('enregistrement.studentNumber')}
                           </FormLabel>
                           <FormControl>
                             <Input {...field} />
@@ -284,7 +300,7 @@ const Register = () => {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className='text-sm'>
-                            Statut étudiant
+                            {t('enregistrement.studentStatus')}
                           </FormLabel>
                           <FormControl>
                             <RadioGroup
@@ -296,7 +312,7 @@ const Register = () => {
                                   <RadioGroupItem value='part-time' />
                                 </FormControl>
                                 <FormLabel className='font-normal'>
-                                  Temps Partiel
+                                  {t('enregistrement.partTime')}
                                 </FormLabel>
                               </FormItem>
                               <FormItem className='flex items-center space-x-3 space-y-0'>
@@ -304,7 +320,7 @@ const Register = () => {
                                   <RadioGroupItem value='full-time' />
                                 </FormControl>
                                 <FormLabel className='font-normal'>
-                                  Temps Plein
+                                  {t('enregistrement.fullTime')}
                                 </FormLabel>
                               </FormItem>
                             </RadioGroup>
@@ -325,10 +341,13 @@ const Register = () => {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className='text-sm'>
-                            Domaine d'activité
+                            {t('enregistrement.occupation')}
                           </FormLabel>
                           <FormControl>
-                            <Input placeholder='Charpentier' {...field} />
+                            <Input
+                              placeholder={t('enregistrement.carpenter')}
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -371,9 +390,9 @@ const Register = () => {
           </CardContent>
           <CardFooter className='text-muted-forground flex flex-col gap-y-8 items-center text-sm'>
             <p>
-              Déjà un compte?{' '}
+              {t('enregistrement.alreadyAnAccount')}&nbsp;
               <span className='text-primary hover:text-primary/60'>
-                <Link to='/login'>Connectez-vous!</Link>
+                <Link to='/login'>{t('enregistrement.connexion')}</Link>
               </span>
             </p>
           </CardFooter>

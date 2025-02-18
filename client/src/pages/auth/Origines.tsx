@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import CheckoutSteps from '@/components/CheckoutSteps'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/CustomCalendar'
@@ -25,7 +26,7 @@ import {
 } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { CalendarIcon } from 'lucide-react'
+import { CalendarIcon, Upload } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { z } from 'zod'
@@ -38,7 +39,7 @@ import {
 } from '@/components/ui/select'
 import { countries } from '@/lib/constant'
 import { useTranslation } from 'react-i18next'
-import { useContext, useEffect } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import { Store } from '@/lib/Store'
 import clsx from 'clsx'
 import Header from '@/components/Header'
@@ -48,10 +49,12 @@ import {
   useSendPasswordMutation,
   useVerifyTokenMutation,
 } from '@/hooks/userHooks'
+import { useUploadImageMutation } from '@/hooks/uploadHooks'
 
 const formSchema = z.object({
   firstName: z.string().min(3, { message: 'Au moins 3 caractères' }),
   lastName: z.string().min(3, { message: 'Au moins 3 caractères' }),
+  id_image: z.string(),
   birthDate: z.date({
     required_error: 'A date of birth is required.',
   }),
@@ -65,6 +68,11 @@ const Origines = () => {
   const { origines } = userInfo!
   const { mutateAsync: sendPasswordToUser } = useSendPasswordMutation()
   const { mutateAsync: verifyToken } = useVerifyTokenMutation()
+  const { mutateAsync: upload, isPending: uploadPending } =
+    useUploadImageMutation()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const [idImage, setIdImage] = useState<string>('')
 
   const navigate = useNavigate()
   const { t } = useTranslation(['common'])
@@ -76,6 +84,7 @@ const Origines = () => {
       birthDate: origines ? origines.birthDate : new Date('1990-01-01'),
       nativeCountry: origines ? origines.nativeCountry : 'Cameroun',
       sex: origines ? origines.sex : '',
+      id_image: origines ? origines.id_image : '',
     },
   })
 
@@ -87,9 +96,39 @@ const Origines = () => {
         birthDate: new Date(origines.birthDate),
         nativeCountry: origines.nativeCountry,
         sex: origines.sex,
+        id_image: origines.id_image,
       })
     }
-  }, [origines])
+  }, [origines, form])
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        return toast({
+          description: "La taille de l'image doit être plus petite que 5Mo",
+          variant: 'destructive',
+        })
+      }
+      await upload(file, {
+        onSuccess: (image_url) => {
+          console.log(image_url)
+          setIdImage(image_url)
+          toast({
+            variant: 'default',
+            description: 'Image téléchargée avec succès',
+          })
+        },
+        onError: (error) => {
+          console.log(error)
+          toast({
+            description: "Echec du téléchargement de l'image",
+            variant: 'destructive',
+          })
+        },
+      })
+    }
+  }
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
@@ -116,10 +155,17 @@ const Origines = () => {
         console.log('Token is not valid')
       }
 
-      ctxDispatch({ type: 'USER_ORIGINES', payload: values })
+      ctxDispatch({
+        type: 'USER_ORIGINES',
+        payload: { ...values, id_image: idImage },
+      })
       localStorage.setItem(
         'userInfo',
-        JSON.stringify({ ...userInfo, origines: values, token: tempToken })
+        JSON.stringify({
+          ...userInfo,
+          origines: { ...values, id_image: idImage },
+          token: tempToken,
+        })
       )
       navigate('/infos')
 
@@ -130,6 +176,10 @@ const Origines = () => {
     } catch (error) {
       console.log(error)
     }
+  }
+
+  const handleButtonClick = () => {
+    fileInputRef.current?.click()
   }
 
   return (
@@ -302,6 +352,39 @@ const Origines = () => {
                     </FormItem>
                   )}
                 />
+
+                {/* Image */}
+                <FormField
+                  control={form.control}
+                  name='id_image'
+                  render={() => (
+                    <FormItem className='flex flex-col'>
+                      <FormLabel className='mb-2'>
+                        Pièce d'identification
+                      </FormLabel>
+                      <FormControl>
+                        <div className=' flex items-center gap-2'>
+                          <Input
+                            ref={fileInputRef}
+                            type='file'
+                            onChange={handleImageChange}
+                            disabled={uploadPending}
+                            className='hidden'
+                          />
+                          <Button
+                            onClick={handleButtonClick}
+                            disabled={uploadPending}
+                            type='button'
+                            variant='outline'
+                          >
+                            <Upload />
+                          </Button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <div>
                   <Button className='mr-4' type='submit'>
                     {t('enregistrement.suivant')}
@@ -311,7 +394,7 @@ const Origines = () => {
                     className='bg-white text-primary border-2 hover:bg-slate-100 hover:text-primary/80 border-primary'
                     type='reset'
                   >
-                    Précédent
+                    {t('enregistrement.prev')}
                   </Button>
                 </div>
               </form>

@@ -308,6 +308,29 @@ export const relations = [
   { name: 'mother' },
 ]
 
+export const statusOptions = [
+  { value: 'visitor', label: 'Visiteur' },
+  { value: 'student', label: 'Étudiant' },
+  { value: 'worker', label: 'Travailleur' },
+  { value: 'permanent_resident', label: 'Résident Permanent' },
+  { value: 'canadian_citizen', label: 'Citoyen Canadien' },
+]
+
+export const institutions = [
+  { value: 'Université Laval', label: 'Université Laval' },
+  {
+    value: 'Université du Québec à Rimouski',
+    label: 'Université du Québec à Rimouski',
+  },
+  { value: 'Cégep de Lévis', label: 'Cégep de Lévis' },
+  { value: 'Cégep Limoilou', label: 'Cégep Limoilou' },
+  { value: 'Cégep Garneau', label: 'Cégep Garneau' },
+  { value: 'Cégep de Sainte-Foy', label: 'Cégep de Sainte-Foy' },
+  { value: 'Cégep André-Laurendeau', label: 'Cégep André-Laurendeau' },
+  { value: 'Cégep de Sept-Îles', label: 'Cégep de Sept-Îles' },
+  { value: 'other', label: 'Autre' },
+]
+
 export const status = [{ name: 'active' }, { name: 'inactive' }]
 
 // Expression régulière pour valider l'e-mail

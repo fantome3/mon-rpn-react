@@ -20,8 +20,8 @@ accountRouter.post(
 
 accountRouter.get(
   '/all',
-  isAuth,
-  isAdmin,
+  //isAuth,
+  //isAdmin,
   expressAsyncHandler(async (req: Request, res: Response) => {
     try {
       const accounts = await AccountModel.find()

@@ -6,9 +6,20 @@ import {
   Severity,
 } from '@typegoose/typegoose'
 import { v4 as uuidv4 } from 'uuid'
+
 class Infos {
   @prop({ required: true })
   public residenceCountry!: string
+
+  @prop({
+    required: true,
+    enum: ['student', 'worker', 'canadian_citizen', 'permanent_resident'],
+  })
+  public residenceCountryStatus!:
+    | 'student'
+    | 'worker'
+    | 'canadian_citizen'
+    | 'permanent_resident'
 
   @prop({ required: true })
   public postalCode!: string
@@ -38,6 +49,9 @@ class Origines {
 
   @prop({ required: true })
   public sex!: string
+
+  @prop({ required: true })
+  public id_image!: string
 }
 
 class Register {

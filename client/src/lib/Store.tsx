@@ -59,10 +59,8 @@ function userInfoReducer(state: User, action: Action) {
       }
 
     case 'USER_SIGNUP':
-      return {
-        ...state!,
-        userInfo: action.payload,
-      }
+      return action.payload
+
     case 'USER_SIGNOUT':
       return undefined
     default:

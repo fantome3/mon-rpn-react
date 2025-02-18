@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardFooter } from './ui/card'
 import Loading from './Loading'

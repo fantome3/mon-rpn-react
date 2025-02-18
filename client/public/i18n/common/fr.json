@@ -222,13 +222,14 @@
     "telephoneInput": "Entrer votre numéro",
     "paysOrigine": "Pays d'origine*",
     "paysOrigineInput": "Entrer votre pays d'origine",
-    "paysResidence": "Pays de residence*",
+    "paysResidence": "Pays de résidence*",
     "paysResidenceInput": "Entrer votre pays de résidence",
     "assuranceVie": "Êtes-vous assurés?",
     "oui": "Oui",
     "non": "Non",
     "postalCode": "Code postal*",
-    "postalCodeInput": "Entrer votre code postal"
+    "postalCodeInput": "Entrer votre code postal",
+    "hasInsurance": "Avez-vous une assurance vie?"
   },
   "enregistrement": {
     "titre": "Enregistrement",
@@ -238,7 +239,25 @@
     "confirmPasswordLabel": "Confirmer mot de passe*",
     "conditions": "J'ai lu et j'accepte",
     "status": "les status de l'association et les conditions d'utilisation de l'application*",
-    "suivant": "Suivant"
+    "occupationLabel": "Occupation",
+    "occupationPlaceholder": "Sélectionnez votre occupation",
+    "occupationStudent": "Étudiant",
+    "occupationWorker": "Travailleur",
+    "institution": "Établissement",
+    "institutionPlaceholder": "Sélectionnez votre établissement",
+    "other": "Autre",
+    "otherInstitution": "Autre établissement",
+    "studentNumber": "Numéro étudiant",
+    "studentStatus": "Statut étudiant",
+    "partTime": "Temps partiel",
+    "fullTime": "Temps plein",
+    "occupation": "Domaine d'activité",
+    "carpenter": "Charpentier",
+    "suivant": "Suivant",
+    "enregistrer": "Enregistrer",
+    "prev": "Précédent",
+    "alreadyAnAccount": "Déjà un compte?",
+    "connexion": "Connectez-vous!"
   },
   "connexion": {
     "titre": "Connexion",

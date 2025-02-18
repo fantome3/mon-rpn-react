@@ -16,10 +16,16 @@ export type Origines = {
   birthDate: Date
   nativeCountry: string
   sex: string
+  id_image: string
 }
 
 export type Infos = {
   residenceCountry: string
+  residenceCountryStatus:
+    | 'student'
+    | 'worker'
+    | 'canadian_citizen'
+    | 'permanent_resident'
   postalCode: string
   address: string
   tel: string
