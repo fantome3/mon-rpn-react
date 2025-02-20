@@ -18,7 +18,7 @@ export type Account = {
   userResidenceCountry: string
   solde: number
   paymentMethod: 'credit_card' | 'interac' | string
-  card?: Card
-  interac?: Interac
+  card?: Card[]
+  interac?: Interac[]
   userId: string
 }

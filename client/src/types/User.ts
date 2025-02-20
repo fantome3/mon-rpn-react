@@ -26,6 +26,7 @@ export type Infos = {
     | 'worker'
     | 'canadian_citizen'
     | 'permanent_resident'
+    | 'visitor'
   postalCode: string
   address: string
   tel: string
@@ -37,6 +38,14 @@ export type FamilyMember = {
   lastName: string
   relationship: string
   status: string
+  residenceCountryStatus:
+    | 'student'
+    | 'worker'
+    | 'canadian_citizen'
+    | 'permanent_resident'
+    | 'visitor'
+  birthDate: Date
+  tel?: string
 }
 
 export type Subscription = {

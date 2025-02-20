@@ -60,7 +60,7 @@ export const functionTranslate = (str: string) => {
 
 export const formatCreditCardNumber = (value: string): string => {
   // Remove all spaces
-  let formattedValue = value.replace(/\s+/g, '')
+  const formattedValue = value.replace(/\s+/g, '')
 
   // Add spaces after every 4 characters
   return formattedValue.match(/.{1,4}/g)?.join(' ') || formattedValue

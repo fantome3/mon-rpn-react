@@ -7,7 +7,9 @@ import { useContext } from 'react'
 const UpdateMethod = () => {
   const { state } = useContext(Store)
   const { userInfo } = state
-  const { data: accountByUserId } = useGetAccountsByUserIdQuery(userInfo?._id!)
+  const { data: accountByUserId } = useGetAccountsByUserIdQuery(
+    userInfo?._id ?? ''
+  )
 
   return (
     <>

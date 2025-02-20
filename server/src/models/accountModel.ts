@@ -7,6 +7,9 @@ class Interac {
 
   @prop({ required: true })
   public refInterac!: string
+
+  @prop({ default: Date.now })
+  public dateInterac!: Date
 }
 
 class Card {
@@ -24,6 +27,9 @@ class Card {
 
   @prop({ required: true })
   public credit_card_number!: string
+
+  @prop({ default: Date.now })
+  public dateCard!: Date
 }
 
 @modelOptions({
@@ -38,11 +44,11 @@ export class Account {
   @prop({ required: true })
   public paymentMethod!: string
 
-  @prop({})
-  public card?: Card
+  @prop({ type: () => [Card], default: [] })
+  public card?: Card[]
 
-  @prop({})
-  public interac?: Interac
+  @prop({ type: () => Interac, default: [] })
+  public interac?: Interac[]
 
   @prop({ required: true })
   public firstName!: string

@@ -3,7 +3,7 @@ import { Card, CardContent, CardFooter } from './ui/card'
 import { CreditCard } from 'lucide-react'
 import { z } from 'zod'
 import { expiryDateRegex } from '@/lib/constant'
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { formatCreditCardNumber, isDateInFuture, refresh } from '@/lib/utils'
@@ -12,7 +12,6 @@ import {
   useUpdateAccountMutation,
 } from '@/hooks/accountHooks'
 import { Store } from '@/lib/Store'
-import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from './ui/use-toast'
 import CustomModal from './CustomModal'
 import {
@@ -49,10 +48,6 @@ const UpdateCreditCardPayment = () => {
   const { userInfo } = state
   const { mutateAsync: updateAccount, isPending } = useUpdateAccountMutation()
   const { data: accountByUserId } = useGetAccountsByUserIdQuery(userInfo?._id)
-  const navigate = useNavigate()
-  const { search } = useLocation()
-  const redirectInUrl = new URLSearchParams(search).get('redirect')
-  const redirect = redirectInUrl ? redirectInUrl : '/profil'
 
   const form = useForm<z.infer<typeof formSchema>>({
     mode: 'onChange',
@@ -66,26 +61,25 @@ const UpdateCreditCardPayment = () => {
     },
   })
 
-  useEffect(() => {
-    const ac = new AbortController()
-    if (form.formState.isSubmitSuccessful) navigate(redirect)
-    return () => ac.abort()
-  }, [redirect, form.formState.isSubmitSuccessful, navigate])
-
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       if (isDateInFuture(values.expiry_date) === true) {
+        const existingCardTransactions = accountByUserId[0]?.card ?? []
+        const newCardTransaction = { ...values }
+        const updatedCardTransactions = [
+          ...existingCardTransactions,
+          newCardTransaction,
+        ]
+
         const data = await updateAccount({
-          firstName: accountByUserId[0]?.firstName!,
-          userTel: accountByUserId[0]?.userTel!,
-          userResidenceCountry: accountByUserId[0]?.userResidenceCountry!,
-          solde: accountByUserId[0]?.solde!,
+          firstName: accountByUserId[0]?.firstName ?? '',
+          userTel: accountByUserId[0]?.userTel ?? '',
+          userResidenceCountry: accountByUserId[0]?.userResidenceCountry ?? '',
+          solde: accountByUserId[0]?.solde ?? 0,
           paymentMethod: 'credit_card',
-          userId: accountByUserId[0]?.userId!,
-          _id: accountByUserId[0]?._id!,
-          card: {
-            ...values,
-          },
+          userId: accountByUserId[0]?.userId ?? '',
+          _id: accountByUserId[0]?._id ?? '',
+          card: updatedCardTransactions,
         })
         ctxDispatch({ type: 'ACCOUNT_INFOS', payload: data.account })
         localStorage.setItem('accountInfo', JSON.stringify(data.account))
@@ -94,7 +88,6 @@ const UpdateCreditCardPayment = () => {
           title: 'Moyen de paiement',
           description: 'Votre carte de crédit ajoutée avec succès.',
         })
-        navigate(redirect)
         refresh()
       } else {
         toast({

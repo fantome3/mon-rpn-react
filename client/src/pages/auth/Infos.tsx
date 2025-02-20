@@ -57,7 +57,7 @@ import {
 const formSchema = z.object({
   residenceCountry: z.string().min(4, { message: 'Champ Obligatoire' }),
   residenceCountryStatus: z.enum(
-    ['student', 'worker', 'canadian_citizen', 'permanent_resident'],
+    ['student', 'worker', 'canadian_citizen', 'permanent_resident', 'visitor'],
     {
       required_error: 'Sélectionnez un status',
     }
@@ -107,13 +107,21 @@ const Infos = () => {
     try {
       const tempToken = JSON.parse(localStorage.getItem('tempToken') || '')
       if (!tempToken) {
-        console.log('Token not found')
+        toast({
+          variant: 'destructive',
+          title: 'Token not found',
+          description: 'Please try again later.',
+        })
         return
       }
 
       const VerifyToken = await verifyToken(tempToken!)
       if (!VerifyToken.valid) {
-        console.log('Token is not valid')
+        toast({
+          variant: 'destructive',
+          title: 'Invalid Token',
+          description: 'Please try again later.',
+        })
         return
       }
 

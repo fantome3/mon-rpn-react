@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express'
 import expressAsyncHandler from 'express-async-handler'
-import { Account, AccountModel } from '../models/accountModel'
-import { isAdmin, isAuth } from '../utils'
+import { AccountModel } from '../models/accountModel'
+import { isAuth } from '../utils'
 
 export const accountRouter = express.Router()
 
@@ -50,15 +50,6 @@ accountRouter.get(
   })
 )
 
-const cleanAccount = async (account: Account) => {
-  if (account.card) {
-    delete account.card
-  }
-  if (account.interac) {
-    delete account.interac
-  }
-}
-
 accountRouter.put(
   '/:id',
   isAuth,
@@ -67,8 +58,6 @@ accountRouter.put(
     try {
       const account = await AccountModel.findById(req.params.id)
       if (account) {
-        // Supprimez les propriétés 'card' et 'interac' si elles existent
-        cleanAccount(account)
         Object.assign(account, req.body)
         const updatedAccount = await account.save()
         res.send({

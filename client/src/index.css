@@ -116,3 +116,28 @@ body {
   border-bottom: 0.2rem solid #003ea5;
   color: #003ea5;
 }
+
+.badge-student {
+  background-color: #4caf50; /* Green */
+  color: white;
+}
+
+.badge-worker {
+  background-color: #2196f3; /* Blue */
+  color: white;
+}
+
+.badge-canadian-citizen {
+  background-color: #ff9800; /* Orange */
+  color: white;
+}
+
+.badge-permanent-resident {
+  background-color: #9c27b0; /* Purple */
+  color: white;
+}
+
+.badge-visitor {
+  background-color: #f44336; /* Red */
+  color: white;
+}

@@ -14,7 +14,7 @@ import { ColumnDef } from '@tanstack/react-table'
 import clsx from 'clsx'
 import { useContext, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowUpDown, Pencil, Trash2, Tally1 } from 'lucide-react'
+import { ArrowUpDown, Pencil, Trash2, Tally1, CalendarIcon } from 'lucide-react'
 import CustomModal from '@/components/CustomModal'
 import {
   Form,
@@ -35,15 +35,42 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { relations, status } from '@/lib/constant'
+import {
+  relations,
+  residenceCountryStatusMap,
+  status,
+  statusOptions,
+  telRegex,
+} from '@/lib/constant'
 import { toast } from '@/components/ui/use-toast'
 import { Badge } from '@/components/ui/badge'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { cn } from '@/lib/utils'
+import { format } from 'date-fns'
+import { Calendar } from '@/components/CustomCalendar'
 
 const formSchema = z.object({
   firstName: z.string(),
   lastName: z.string(),
   relationship: z.string(),
+  residenceCountryStatus: z.enum(
+    ['student', 'worker', 'canadian_citizen', 'permanent_resident', 'visitor'],
+    {
+      required_error: 'Veuillez sélectionner le status au Canada.',
+    }
+  ),
   status: z.string(),
+  birthDate: z.date({
+    required_error: 'La date de naissance est exigée.',
+  }),
+  tel: z
+    .string()
+    .regex(telRegex, { message: `Entrer numéro correct` })
+    .optional(),
 })
 
 const Dependents = () => {
@@ -53,7 +80,7 @@ const Dependents = () => {
     data: user,
     isPending,
     refetch,
-  } = useGetUserDetailsQuery(userInfo?._id!)
+  } = useGetUserDetailsQuery(userInfo?._id ?? '')
   const [editingItem, setEditingItem] = useState<FamilyMember | null>(null)
   const [modalVisibility, setModalVisibility] = useState(false)
   const [deleteModal, setDeleteModal] = useState(false)
@@ -71,7 +98,12 @@ const Dependents = () => {
       firstName: editingItem ? editingItem.firstName : '',
       lastName: editingItem ? editingItem.lastName : '',
       relationship: editingItem ? editingItem.relationship : '',
+      residenceCountryStatus: editingItem
+        ? editingItem.residenceCountryStatus
+        : 'worker',
       status: editingItem ? editingItem.status : '',
+      birthDate: editingItem ? editingItem.birthDate : new Date('1990-01-01'),
+      tel: editingItem ? editingItem.tel : '',
     },
   })
 
@@ -82,9 +114,12 @@ const Dependents = () => {
         lastName: editingItem.lastName || '',
         relationship: editingItem.relationship || '',
         status: editingItem.status || '',
+        residenceCountryStatus: editingItem.residenceCountryStatus || 'worker',
+        birthDate: new Date(editingItem.birthDate),
+        tel: editingItem.tel,
       })
     }
-  }, [editingItem])
+  }, [editingItem, form])
 
   const columns: ColumnDef<FamilyMember>[] = [
     {
@@ -120,18 +155,59 @@ const Dependents = () => {
       header: 'Relation',
     },
     {
+      accessorKey: 'residenceCountryStatus',
+      header: 'Statut au Canada',
+      cell: ({ row }) => {
+        const status = row.original.residenceCountryStatus
+        return (
+          <Badge
+            className={clsx({
+              'badge-student': status === 'student',
+              'badge-worker': status === 'worker',
+              'badge-canadian-citizen': status === 'canadian_citizen',
+              'badge-permanent-resident': status === 'permanent_resident',
+              'badge-visitor': status === 'visitor',
+              'font-normal': true,
+            })}
+          >
+            {residenceCountryStatusMap[status]}
+          </Badge>
+        )
+      },
+    },
+    {
+      accessorKey: 'birthDate',
+      header: 'Né(e) le',
+      cell: ({ row }) => {
+        const birthDate = row.original.birthDate
+        return birthDate ? format(birthDate, 'dd/MM/yyyy') : ''
+      },
+    },
+    {
+      accessorKey: 'tel',
+      header: 'Téléphone',
+    },
+    {
       accessorKey: 'status',
-      header: 'Status',
+      header: 'Statut',
       cell: ({ row }) => {
         const status = row.original.status
         if (status === 'active') {
-          return <Badge>{status}</Badge>
+          return <Badge className='font-normal'>Actif</Badge>
         }
         if (status === 'inactive') {
-          return <Badge variant='outline'>{status}</Badge>
+          return (
+            <Badge className='font-normal' variant='outline'>
+              Inactif
+            </Badge>
+          )
         }
         if (status === 'deleted') {
-          return <Badge variant='destructive'>{status}</Badge>
+          return (
+            <Badge className='font-normal' variant='destructive'>
+              Supprimé
+            </Badge>
+          )
         }
       },
     },
@@ -185,7 +261,7 @@ const Dependents = () => {
           ...editingItem,
           status: 'deleted',
         }
-        const updatedFamilyMembers = [...user?.familyMembers!]
+        const updatedFamilyMembers = [...(user?.familyMembers ?? [])]
         updatedFamilyMembers[getIndex] = deletedMember
         await updateUser({
           ...user!,
@@ -218,9 +294,10 @@ const Dependents = () => {
           firstName: values.firstName,
           lastName: values.lastName,
           relationship: values.relationship,
+          residenceCountryStatus: values.residenceCountryStatus,
           status: values.status,
         }
-        const updatedFamilyMembers = [...user?.familyMembers!]
+        const updatedFamilyMembers = [...(user?.familyMembers ?? [])]
         updatedFamilyMembers[getIndex] = updatedMember
         await updateUser({
           ...user!,
@@ -298,7 +375,7 @@ const Dependents = () => {
                 <>
                   <DataTable
                     columns={columns}
-                    data={user ? user?.familyMembers! : []}
+                    data={user ? user?.familyMembers : []}
                   />
                 </>
               )}
@@ -399,6 +476,37 @@ const Dependents = () => {
 
               <FormField
                 control={form.control}
+                name='residenceCountryStatus'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className='mb-0.5 text-sm'>
+                      Status au Canada
+                    </FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      {...field}
+                    >
+                      <FormControl>
+                        <SelectTrigger className='w-full'>
+                          <SelectValue placeholder='Status au Canada' />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {statusOptions.map((status) => (
+                          <SelectItem key={status.value} value={status.value}>
+                            {status.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
                 name='status'
                 render={({ field }) => (
                   <FormItem>
@@ -414,9 +522,9 @@ const Dependents = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {status.map((stat) => (
-                          <SelectItem key={stat.name} value={stat.name}>
-                            {stat.name}
+                        {status.map((status) => (
+                          <SelectItem key={status.name} value={status.name}>
+                            {status.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -425,6 +533,68 @@ const Dependents = () => {
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={form.control}
+                name='birthDate'
+                render={({ field }) => (
+                  <FormItem className='flex flex-col'>
+                    <FormLabel className={clsx('mb-0.5 text-sm')}>
+                      Date de naissance
+                    </FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={'outline'}
+                            className={cn(
+                              'w-[50%] pl-3 text-left text-sm',
+                              !field.value && 'text-muted-foreground'
+                            )}
+                          >
+                            {field.value ? (
+                              format(field.value, 'dd/MM/yyyy')
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className='w-auto p-0' align='start'>
+                        <Calendar
+                          mode='single'
+                          captionLayout='dropdown-buttons'
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          disabled={(date) =>
+                            date > new Date() || date < new Date('1960-01-01')
+                          }
+                          initialFocus
+                          fromYear={1960}
+                          toYear={2030}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='tel'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={clsx('text-sm')}>Téléphone</FormLabel>
+                    <FormControl>
+                      <Input placeholder='Numéro de téléphone' {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               {isPending || updateLoading ? (
                 <Loading />
               ) : (

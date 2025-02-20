@@ -302,10 +302,10 @@ export const adminMenuItems = [
 ]
 
 export const relations = [
-  { name: 'wife' },
-  { name: 'son' },
-  { name: 'father' },
-  { name: 'mother' },
+  { name: 'Femme' },
+  { name: 'Enfant' },
+  { name: 'Père' },
+  { name: 'Mère' },
 ]
 
 export const statusOptions = [
@@ -315,6 +315,14 @@ export const statusOptions = [
   { value: 'permanent_resident', label: 'Résident Permanent' },
   { value: 'canadian_citizen', label: 'Citoyen Canadien' },
 ]
+
+export const residenceCountryStatusMap: { [key: string]: string } = {
+  student: 'Étudiant',
+  worker: 'Travailleur',
+  canadian_citizen: 'Citoyen Canadien',
+  permanent_resident: 'Résident Permanent',
+  visitor: 'Visiteur',
+}
 
 export const institutions = [
   { value: 'Université Laval', label: 'Université Laval' },

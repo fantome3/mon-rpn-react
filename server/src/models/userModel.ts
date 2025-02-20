@@ -13,13 +13,20 @@ class Infos {
 
   @prop({
     required: true,
-    enum: ['student', 'worker', 'canadian_citizen', 'permanent_resident'],
+    enum: [
+      'student',
+      'worker',
+      'canadian_citizen',
+      'permanent_resident',
+      'visitor',
+    ],
   })
   public residenceCountryStatus!:
     | 'student'
     | 'worker'
     | 'canadian_citizen'
     | 'permanent_resident'
+    | 'visitor'
 
   @prop({ required: true })
   public postalCode!: string
@@ -98,6 +105,29 @@ class FamilyMember {
 
   @prop({ required: true, default: 'active' })
   public status!: string //Active, Deleted,
+
+  @prop({
+    required: true,
+    enum: [
+      'student',
+      'worker',
+      'canadian_citizen',
+      'permanent_resident',
+      'visitor',
+    ],
+  })
+  public residenceCountryStatus!:
+    | 'student'
+    | 'worker'
+    | 'canadian_citizen'
+    | 'permanent_resident'
+    | 'visitor'
+
+  @prop({ required: true })
+  public birthDate!: Date
+
+  @prop()
+  public tel?: string
 }
 
 class Subscription {

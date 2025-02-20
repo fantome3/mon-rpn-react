@@ -2,15 +2,13 @@ import { motion } from 'framer-motion'
 import { Card, CardContent, CardFooter } from './ui/card'
 import Loading from './Loading'
 import { ArrowRightLeft } from 'lucide-react'
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useState } from 'react'
 import { Store } from '@/lib/Store'
 import {
   useGetAccountsByUserIdQuery,
   useUpdateAccountMutation,
 } from '@/hooks/accountHooks'
-import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from './ui/use-toast'
-import { refresh } from '@/lib/utils'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -39,16 +37,18 @@ const formSchema = z.object({
     .min(8, { message: 'Doit avoir au moins 8 charactères.' }),
 })
 
-const UpdateInteracPayment = () => {
+const UpdateInteracPayment = ({
+  onSuccess,
+}: {
+  onSuccess: (amount: number) => void
+}) => {
   const [modalVisibility, setModalVisibility] = useState(false)
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { userInfo } = state
-  const { data: accountByUserId } = useGetAccountsByUserIdQuery(userInfo?._id!)
+  const { data: accountByUserId } = useGetAccountsByUserIdQuery(
+    userInfo?._id ?? ''
+  )
   const { mutateAsync: updateAccount, isPending } = useUpdateAccountMutation()
-  const navigate = useNavigate()
-  const { search } = useLocation()
-  const redirectInUrl = new URLSearchParams(search).get('redirect')
-  const redirect = redirectInUrl ? redirectInUrl : '/profil'
 
   const form = useForm<z.infer<typeof formSchema>>({
     mode: 'onChange',
@@ -59,23 +59,21 @@ const UpdateInteracPayment = () => {
     },
   })
 
-  useEffect(() => {
-    const ac = new AbortController()
-    if (form.formState.isSubmitSuccessful) navigate(redirect)
-    return () => ac.abort()
-  }, [redirect, form.formState.isSubmitSuccessful, navigate])
-
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
+      const existingInteracTransactions = accountByUserId?.[0]?.interac ?? []
+      const newInteracTransaction = { ...values }
+      const updatedInteracTransactions = [
+        ...existingInteracTransactions,
+        newInteracTransaction,
+      ]
+
+      const newSolde = (accountByUserId?.[0]?.solde ?? 0) + values.amountInterac
+
       const data = await updateAccount({
-        firstName: accountByUserId[0]?.firstName!,
-        userTel: accountByUserId[0]?.userTel!,
-        userResidenceCountry: accountByUserId[0]?.userResidenceCountry!,
-        solde: accountByUserId[0]?.solde!,
-        paymentMethod: 'interac',
-        userId: accountByUserId[0]?.userId!,
-        _id: accountByUserId[0]?._id!,
-        interac: { ...values },
+        ...accountByUserId?.[0],
+        solde: newSolde,
+        interac: updatedInteracTransactions,
       })
       ctxDispatch({ type: 'ACCOUNT_INFOS', payload: data.account })
       localStorage.setItem('accountInfo', JSON.stringify(data.account))
@@ -84,8 +82,8 @@ const UpdateInteracPayment = () => {
         title: 'Moyen de paiement',
         description: `N'oubliez pas de faire le transfert Interac.`,
       })
-      navigate(redirect)
-      refresh()
+      onSuccess(values.amountInterac)
+      setModalVisibility(false)
     } catch (error) {
       toast({
         variant: 'destructive',
