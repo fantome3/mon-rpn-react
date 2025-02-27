@@ -31,8 +31,6 @@ const UserAccountInfo = () => {
     setModalVisibility(false)
   }
 
-  console.log(currentSolde)
-
   useEffect(() => {
     if (account && account[0]?.solde !== undefined) {
       setCurrentSolde(account?.[0]?.solde)
