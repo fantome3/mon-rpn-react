@@ -11,6 +11,11 @@ const UpdateMethod = () => {
     userInfo?._id ?? ''
   )
 
+  const handleSuccess = (amount: number) => {
+    console.log(`Paiement mis à jour avec le montant: ${amount}`)
+    // Ajouter ici toute action nécessaire après la mise à jour
+  }
+
   return (
     <>
       <div className='form flex-col sm:m-0 m-20'>
@@ -21,7 +26,7 @@ const UpdateMethod = () => {
               <UpdateCreditCardPayment />
             </>
           ) : (
-            <UpdateInteracPayment />
+            <UpdateInteracPayment onSuccess={handleSuccess} />
           )}
         </div>
         <div className='text-center mt-8'>
