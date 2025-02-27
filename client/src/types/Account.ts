@@ -1,4 +1,4 @@
-type Card = {
+export type CardType = {
   network: string
   cvv: string
   expiry_date: string
@@ -6,7 +6,7 @@ type Card = {
   credit_card_number: string
 }
 
-type Interac = {
+export type Interac = {
   amountInterac: number
   refInterac: string
 }
@@ -18,7 +18,7 @@ export type Account = {
   userResidenceCountry: string
   solde: number
   paymentMethod: 'credit_card' | 'interac' | string
-  card?: Card[]
+  card?: CardType[]
   interac?: Interac[]
   userId: string
 }

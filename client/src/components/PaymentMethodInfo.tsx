@@ -57,11 +57,21 @@ const creditCardFormSchema = z.object({
 const PaymentMethodInfo = () => {
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { userInfo } = state
-  const { data: account, refetch } = useGetAccountsByUserIdQuery(userInfo?._id!)
+  const { data: account, refetch } = useGetAccountsByUserIdQuery(
+    userInfo?._id ?? ''
+  )
   const { mutateAsync: updateAccount, isPending: updateLoading } =
     useUpdateAccountMutation()
 
+  const [isDisabled] = useState(true)
+
   const [addEditModalVisibility, setAddEditModalVisibility] = useState(false)
+
+  const lastAccountInterac =
+    account[0]?.interac[account[0]?.interac.length - 1]?.amountInterac ?? 0
+
+  const lastTransactionRef =
+    account[0]?.interac[account[0]?.interac.length - 1]?.refInterac ?? ''
 
   const interacForm = useForm<z.infer<typeof interacFormSchema>>({
     mode: 'onChange',
@@ -92,11 +102,11 @@ const PaymentMethodInfo = () => {
   useEffect(() => {
     if (account && account[0]?.interac) {
       interacForm.reset({
-        amountInterac: account[0]?.interac.amountInterac,
-        refInterac: account[0]?.interac.refInterac,
+        amountInterac: lastAccountInterac,
+        refInterac: lastTransactionRef,
       })
     }
-  }, [account && account[0]?.interac])
+  }, [account, interacForm, lastAccountInterac, lastTransactionRef])
 
   useEffect(() => {
     if (account && account[0]?.card) {
@@ -108,7 +118,7 @@ const PaymentMethodInfo = () => {
         credit_card_number: account[0]?.card.credit_card_number,
       })
     }
-  }, [account && account[0]?.card])
+  }, [account, creditCardForm])
 
   const interacOnSubmit = async (values: z.infer<typeof interacFormSchema>) => {
     try {
@@ -199,7 +209,7 @@ const PaymentMethodInfo = () => {
                     Montant Envoyé
                   </p>
                   <p className='text-sm text-muted-foreground'>
-                    {account ? account[0]?.interac.amountInterac : 0}
+                    $ {lastAccountInterac}
                   </p>
                 </div>
               </div>
@@ -209,7 +219,7 @@ const PaymentMethodInfo = () => {
                     Numéro de référence du transfert Interac
                   </p>
                   <p className='text-sm text-muted-foreground'>
-                    {account ? account[0]?.interac.refInterac : ''}
+                    {lastTransactionRef}
                   </p>
                 </div>
               </div>
@@ -256,8 +266,12 @@ const PaymentMethodInfo = () => {
           <div className='flex flex-col-reverse sm:flex-row sm:justify-between sm:items-center gap-y-8'>
             <div className='space-y-1'>
               <Link
-                className='text-sm text-primary hover:text-primary/80 font-medium leading-none'
-                to='/change-method'
+                className={`text-sm font-medium leading-none ${
+                  isDisabled
+                    ? 'pointer-events-none opacity-50 text-gray-400'
+                    : 'text-primary hover:text-primary/80'
+                }`}
+                to={isDisabled ? '#' : '/change-method'}
               >
                 Changer méthode de paiement
               </Link>

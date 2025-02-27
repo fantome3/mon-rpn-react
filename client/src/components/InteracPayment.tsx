@@ -25,6 +25,7 @@ import {
 import { Input } from './ui/input'
 import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card'
 import { useNewUserNotificationMutation } from '@/hooks/userHooks'
+import { Interac } from '@/types/Account'
 
 const formSchema = z.object({
   amountInterac: z
@@ -84,6 +85,12 @@ const InteracPayment = () => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
+      const existingInteracTransactions: Interac[] = []
+      const newInteracTransaction = { ...values }
+      const updatedInteracTransactions = [
+        ...existingInteracTransactions,
+        newInteracTransaction,
+      ]
       const data = await account({
         firstName: `${userInfo?.origines.firstName!} ${userInfo?.origines
           .lastName!}`,
@@ -92,7 +99,7 @@ const InteracPayment = () => {
         solde: values.amountInterac,
         paymentMethod: 'interac',
         userId: userInfo?._id!,
-        interac: { ...values },
+        interac: updatedInteracTransactions,
       })
       ctxDispatch({ type: 'ACCOUNT_INFOS', payload: data })
       localStorage.setItem('accountInfo', JSON.stringify(data))

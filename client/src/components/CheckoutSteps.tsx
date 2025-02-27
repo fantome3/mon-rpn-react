@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 const CheckoutSteps = (props: any) => {
   return (
     <div className='flex justify-center gap-3 checkout-steps text-sm pb-5'>

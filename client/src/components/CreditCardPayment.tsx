@@ -30,6 +30,7 @@ import {
 } from './ui/input-otp'
 import { Button } from './ui/button'
 import { useNewUserNotificationMutation } from '@/hooks/userHooks'
+import { CardType } from '@/types/Account'
 
 const formSchema = z.object({
   network: z.string(),
@@ -52,6 +53,7 @@ const CreditCardPayment = () => {
   const { search } = useLocation()
   const redirectInUrl = new URLSearchParams(search).get('redirect')
   const redirect = redirectInUrl ? redirectInUrl : '/summary'
+  const [isDisabled] = useState(true)
 
   const form = useForm<z.infer<typeof formSchema>>({
     mode: 'onChange',
@@ -74,6 +76,12 @@ const CreditCardPayment = () => {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       if (isDateInFuture(values.expiry_date) === true) {
+        const existingCreditCardTransactions: CardType[] = []
+        const newCreditCardTransaction = { ...values }
+        const updatedCreditCardTransactions = [
+          ...existingCreditCardTransactions,
+          newCreditCardTransaction,
+        ]
         const data = await account({
           firstName: `${userInfo?.origines.firstName!} ${userInfo?.origines
             .lastName!}`,
@@ -82,9 +90,7 @@ const CreditCardPayment = () => {
           solde: 0,
           paymentMethod: 'credit_card',
           userId: userInfo?._id!,
-          card: {
-            ...values,
-          },
+          card: updatedCreditCardTransactions,
         })
         ctxDispatch({ type: 'ACCOUNT_INFOS', payload: data })
         localStorage.setItem('accountInfo', JSON.stringify(data))
@@ -113,10 +119,16 @@ const CreditCardPayment = () => {
   return (
     <>
       <motion.div whileHover={{ scale: 1.2 }}>
-        <Card className='w-[250px] cursor-pointer text-white bg-fuchsia-500'>
+        <Card
+          className={`w-[250px]  text-white ${
+            isDisabled
+              ? 'cursor-not-allowed bg-gray-400 opacity-50'
+              : 'cursor-pointer bg-fuchsia-500'
+          }`}
+        >
           <CardContent
             onClick={() => {
-              setModalVisibility(true)
+              if (!isDisabled) setModalVisibility(true)
             }}
             className='flex justify-center items-center aspect-square p-6'
           >

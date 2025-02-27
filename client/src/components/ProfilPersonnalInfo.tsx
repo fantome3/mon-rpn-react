@@ -40,6 +40,12 @@ const formSchema = z.object({
   address: z.string().min(3, { message: 'Champ Obligatoire' }),
   tel: z.string().regex(telRegex, { message: `Entrer numéro correct` }),
   hasInsurance: z.boolean(),
+  residenceCountryStatus: z.enum(
+    ['student', 'worker', 'canadian_citizen', 'permanent_resident', 'visitor'],
+    {
+      required_error: 'Sélectionnez un status',
+    }
+  ),
 })
 
 const UserOriginInfo = () => {
@@ -56,7 +62,7 @@ const UserOriginInfo = () => {
     primaryMember,
     familyMembers,
   } = userInfo!
-  const { data: userDetail } = useGetUserDetailsQuery(userInfo?._id!)
+  const { data: userDetail } = useGetUserDetailsQuery(userInfo?._id ?? '')
   const { mutateAsync: editUserInfo, isPending } = useUpdateUserMutation()
   const [addEditModalVisibility, setAddEditModalVisibility] = useState(false)
 
@@ -68,6 +74,7 @@ const UserOriginInfo = () => {
       address: infos ? infos.address : '',
       tel: infos ? infos.tel : '',
       hasInsurance: infos ? infos.hasInsurance : false,
+      residenceCountryStatus: infos ? infos.residenceCountryStatus : 'worker',
     },
   })
 
@@ -79,9 +86,10 @@ const UserOriginInfo = () => {
         address: infos?.address,
         tel: infos?.tel,
         hasInsurance: infos?.hasInsurance,
+        residenceCountryStatus: infos?.residenceCountryStatus,
       })
     }
-  }, [userInfo])
+  }, [userInfo, form, infos])
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
@@ -94,7 +102,7 @@ const UserOriginInfo = () => {
         isAdmin: isAdmin,
         register: {
           ...userRegister,
-          password: userDetail?.register.password!,
+          password: userDetail?.register.password ?? '',
         },
         primaryMember: primaryMember,
         familyMembers: familyMembers,
