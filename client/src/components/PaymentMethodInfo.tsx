@@ -68,10 +68,14 @@ const PaymentMethodInfo = () => {
   const [addEditModalVisibility, setAddEditModalVisibility] = useState(false)
 
   const lastAccountInterac =
-    account[0]?.interac[account[0]?.interac.length - 1]?.amountInterac ?? 0
+    account && account.length > 0 && account[0].interac?.length
+      ? account[0].interac[account[0].interac.length - 1].amountInterac
+      : 0
 
   const lastTransactionRef =
-    account[0]?.interac[account[0]?.interac.length - 1]?.refInterac ?? ''
+    account && account.length > 0 && account[0].interac?.length
+      ? account[0].interac[account[0].interac.length - 1].refInterac
+      : ''
 
   const interacForm = useForm<z.infer<typeof interacFormSchema>>({
     mode: 'onChange',
@@ -100,7 +104,7 @@ const PaymentMethodInfo = () => {
   })
 
   useEffect(() => {
-    if (account && account[0]?.interac) {
+    if (account && account.length && account[0]?.interac) {
       interacForm.reset({
         amountInterac: lastAccountInterac,
         refInterac: lastTransactionRef,
@@ -109,7 +113,7 @@ const PaymentMethodInfo = () => {
   }, [account, interacForm, lastAccountInterac, lastTransactionRef])
 
   useEffect(() => {
-    if (account && account[0]?.card) {
+    if (account && account.length && account[0]?.card) {
       creditCardForm.reset({
         network: account[0]?.card.network,
         cvv: account[0]?.card.cvv,
@@ -183,6 +187,10 @@ const PaymentMethodInfo = () => {
   }
 
   const { register } = interacForm
+
+  if (!account || account.length === 0) {
+    return <Loading />
+  }
 
   return (
     <>

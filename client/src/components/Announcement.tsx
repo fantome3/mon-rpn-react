@@ -1,27 +1,31 @@
 import { X } from 'lucide-react'
 import { Button } from './ui/button'
 import { useContext, useEffect, useState } from 'react'
-import clsx from 'clsx'
 import { Store } from '@/lib/Store'
 
 const Announcement = () => {
   const { state } = useContext(Store)
   const { userInfo } = state
-  const [show, setShow] = useState(true)
+
+  //Calculer dynamiquement si l'annonce doit être affichée ou non
+  const [show, setShow] = useState(() => {
+    return !(userInfo?.familyMembers && userInfo?.familyMembers.length > 0)
+  })
+
+  console.log(show)
 
   useEffect(() => {
-    if (userInfo?.familyMembers && userInfo?.familyMembers.length > 0) {
-      setShow(false)
+    const hasFamilyMembers =
+      userInfo?.familyMembers && userInfo?.familyMembers.length > 0
+    if (hasFamilyMembers) {
+      setShow(!hasFamilyMembers) //Cache l'annonce si familyMembers n'est pas vide
     }
   }, [userInfo?.familyMembers])
 
+  if (!show) return null
+
   return (
-    <div
-      className={clsx(
-        'bg-destructive text-white p-4 flex items-center justify-between',
-        { hidden: show === false }
-      )}
-    >
+    <div className='bg-destructive text-white p-4 flex items-center justify-between'>
       <p>
         Ajouter les membres de votre famille, en cliquant le bouton "Ajouter une
         personne"

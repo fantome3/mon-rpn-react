@@ -31,6 +31,7 @@ export const generatePasswordToken = (email: string, _id: string) => {
 
 export const generateToken = (user: GenerateTokenType) => {
   const expiresIn = user.rememberMe ? '30d' : '30m'
+  const secret = process.env.JWT_SECRET || ''
 
   const payload = {
     _id: user._id,
@@ -42,7 +43,7 @@ export const generateToken = (user: GenerateTokenType) => {
     isAdmin: user.isAdmin,
     cpdLng: user.cpdLng,
   }
-  return jwt.sign(payload, process.env.JWT_SECRET!, {
+  return jwt.sign(payload, secret, {
     expiresIn: expiresIn,
   })
 }
@@ -83,7 +84,9 @@ export const isAuth = async (
       }
     }
 
-    const decode = jwt.verify(token!, process.env.JWT_SECRET!) as DecodedUser
+    const secret = process.env.JWT_SECRET || ''
+
+    const decode = jwt.verify(token!, secret) as DecodedUser
 
     const user = await UserModel.findById(decode._id)
     if (!user) {
