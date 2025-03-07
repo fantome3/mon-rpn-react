@@ -180,6 +180,15 @@ export class User {
 
   @prop({ ref: User, required: false }) // Reference to another User document
   public referredBy?: Ref<User>
+
+  @prop({ default: Date.now })
+  public registerTime?: Date
+
+  @prop({ default: Date.now })
+  public originesTime?: Date
+
+  @prop({ default: Date.now })
+  public infosTime?: Date
 }
 
 export const UserModel = getModelForClass(User)

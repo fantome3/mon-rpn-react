@@ -12,8 +12,6 @@ const Announcement = () => {
     return !(userInfo?.familyMembers && userInfo?.familyMembers.length > 0)
   })
 
-  console.log(show)
-
   useEffect(() => {
     const hasFamilyMembers =
       userInfo?.familyMembers && userInfo?.familyMembers.length > 0

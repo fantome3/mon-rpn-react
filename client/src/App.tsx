@@ -26,7 +26,7 @@ const App = () => {
     return () => {
       apiClient.interceptors.response.eject(responseInterceptor)
     }
-  }, [navigate])
+  }, [navigate, logoutHandler])
 
   useEffect(() => {
     const handleScrollButtonVisibility = () => {

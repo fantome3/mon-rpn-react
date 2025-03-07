@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import React, { useCallback } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import { Infos, Origines, Register, User } from '@/types/User'
 import { Account } from '@/types/Account'
 
@@ -46,16 +46,19 @@ function userInfoReducer(state: User, action: Action) {
       return {
         ...state!,
         register: action.payload,
+        registerTime: new Date(),
       }
     case 'USER_INFOS':
       return {
         ...state!,
         infos: action.payload,
+        infosTime: new Date(),
       }
     case 'USER_ORIGINES':
       return {
         ...state!,
         origines: action.payload,
+        originesTime: new Date(),
       }
 
     case 'USER_SIGNUP':
@@ -77,10 +80,16 @@ function rootReducer(state: AppState, action: Action) {
 
 const defaultDispatch: React.Dispatch<Action> = () => initialState
 
-const Store = React.createContext({
+const Store = React.createContext<{
+  state: AppState
+  dispatch: React.Dispatch<Action>
+  logoutHandler: () => void
+  disconnectAfter10Minutes: () => void
+}>({
   state: initialState,
   dispatch: defaultDispatch,
   logoutHandler: () => {},
+  disconnectAfter10Minutes: () => {},
 })
 
 function useAppState() {
@@ -94,9 +103,67 @@ function useAppState() {
     dispatch({ type: 'CLEAR_ACCOUNT' })
     localStorage.removeItem('userInfo')
     localStorage.removeItem('accountInfo')
+    window.location.reload()
   }, [dispatch])
 
-  return { state, dispatch, logoutHandler }
+  const disconnectAfter10Minutes = useCallback(() => {
+    const userInfo = JSON.parse(localStorage.getItem('userInfo')!)
+
+    if (!userInfo.registerTime) return
+
+    const registerTime = new Date(userInfo.registerTime).getTime()
+    const oginesTime = userInfo?.originesTime
+      ? new Date(userInfo.originesTime).getTime()
+      : null
+
+    const checkTimeElapsed = () => {
+      const currentTime = Date.now()
+      const elapsedRegisterTimeMinutes = (currentTime - registerTime) / 60000
+      const elapsedOriginesTimeMinutes = oginesTime
+        ? (currentTime - oginesTime) / 60000
+        : null
+
+      console.log(
+        `⏳ Temps écoulé : ${elapsedRegisterTimeMinutes.toFixed(2)} minutes`
+      )
+      console.log(`⏳ Temps écoulé : ${elapsedOriginesTimeMinutes!} minutes`)
+
+      if (elapsedRegisterTimeMinutes >= 10 && !userInfo?.infos) {
+        console.log('⏳ Déconnexion : inscription incomplète après 10 minutes')
+        window.location.href = '/register'
+        localStorage.removeItem('userInfo')
+        return
+      }
+
+      if (
+        elapsedOriginesTimeMinutes !== null &&
+        elapsedOriginesTimeMinutes >= 10 &&
+        !userInfo?.infos
+      ) {
+        console.log('⏳ Déconnexion : origines incomplètes après 10 minutes')
+        window.location.href = '/register'
+        localStorage.removeItem('userInfo')
+        return
+      }
+    }
+
+    checkTimeElapsed()
+
+    const interval = setInterval(() => {
+      checkTimeElapsed()
+    }, 60000)
+
+    return () => clearInterval(interval)
+  }, [])
+
+  useEffect(() => {
+    if (state.userInfo?.registerTime) {
+      const cleanup = disconnectAfter10Minutes()
+      return cleanup
+    }
+  }, [state.userInfo, disconnectAfter10Minutes])
+
+  return { state, dispatch, logoutHandler, disconnectAfter10Minutes }
 }
 
 function StoreProvider(props: React.PropsWithChildren<{}>) {

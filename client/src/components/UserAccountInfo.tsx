@@ -36,6 +36,12 @@ const UserAccountInfo = () => {
       setCurrentSolde(account?.[0]?.solde)
     }
   }, [account])
+
+  const handleClickOutside = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (event.target === event.currentTarget) {
+      setModalVisibility(false)
+    }
+  }
   return (
     <>
       <Card className='mt-10'>
@@ -62,7 +68,10 @@ const UserAccountInfo = () => {
       </Card>
 
       {modalVisibility && (
-        <div className='fixed top-0 left-0 z-50 w-full h-full bg-black bg-opacity-50 flex justify-center items-center'>
+        <div
+          className='fixed top-0 left-0 z-50 w-full h-full bg-black bg-opacity-50 flex justify-center items-center'
+          onClick={handleClickOutside}
+        >
           {paymentMethod === 'credit_card' ? (
             <>
               <UpdateCreditCardPayment />

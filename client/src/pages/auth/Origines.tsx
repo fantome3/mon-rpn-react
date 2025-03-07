@@ -65,12 +65,13 @@ const formSchema = z.object({
 const Origines = () => {
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { userInfo } = state
-  const { origines } = userInfo!
+  const origines = userInfo?.origines || null
   const { mutateAsync: sendPasswordToUser } = useSendPasswordMutation()
   const { mutateAsync: verifyToken } = useVerifyTokenMutation()
   const { mutateAsync: upload, isPending: uploadPending } =
     useUploadImageMutation()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const { logoutHandler } = useContext(Store)
 
   const [idImage, setIdImage] = useState<string>('')
 
@@ -164,9 +165,11 @@ const Origines = () => {
         JSON.stringify({
           ...userInfo,
           origines: { ...values, id_image: idImage },
+          originesTime: new Date(),
           token: tempToken,
         })
       )
+
       navigate('/infos')
 
       await sendPasswordToUser({
@@ -180,6 +183,11 @@ const Origines = () => {
 
   const handleButtonClick = () => {
     fileInputRef.current?.click()
+  }
+
+  const handlePreviousClick = () => {
+    logoutHandler()
+    navigate(-1)
   }
 
   return (
@@ -390,7 +398,7 @@ const Origines = () => {
                     {t('enregistrement.suivant')}
                   </Button>
                   <Button
-                    onClick={() => navigate(-1)}
+                    onClick={handlePreviousClick}
                     className='bg-white text-primary border-2 hover:bg-slate-100 hover:text-primary/80 border-primary'
                     type='reset'
                   >

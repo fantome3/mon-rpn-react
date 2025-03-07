@@ -32,7 +32,7 @@ const MobileMenu = () => {
       <SheetContent>
         <div className='py-10'>
           <ul className='flex flex-col gap-y-7'>
-            {userInfo
+            {userInfo && userInfo.infos
               ? menuItemsConnected.map((item) => (
                   <div
                     className={clsx('', {
@@ -67,9 +67,7 @@ const MobileMenu = () => {
                 ))}
           </ul>
         </div>
-        {!userInfo ? (
-          ''
-        ) : (
+        {userInfo && userInfo.infos ? (
           <SheetClose asChild>
             <div
               onClick={() => {
@@ -81,6 +79,8 @@ const MobileMenu = () => {
               Déconnexion
             </div>
           </SheetClose>
+        ) : (
+          ''
         )}
       </SheetContent>
     </Sheet>

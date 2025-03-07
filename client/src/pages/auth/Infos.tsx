@@ -166,6 +166,10 @@ const Infos = () => {
     }
   }
 
+  const handlePreviousClick = () => {
+    navigate(-1)
+  }
+
   return (
     <>
       <Header />
@@ -330,7 +334,7 @@ const Infos = () => {
                       {t('enregistrement.enregistrer')}
                     </Button>
                     <Button
-                      onClick={() => navigate(-1)}
+                      onClick={handlePreviousClick}
                       className='bg-white text-primary border-2 hover:bg-slate-100 hover:text-primary/80 border-primary'
                       type='reset'
                     >

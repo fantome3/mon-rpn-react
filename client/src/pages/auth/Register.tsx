@@ -97,6 +97,14 @@ const Register = () => {
           password: newPassword,
         },
       })
+      localStorage.setItem(
+        'userInfo',
+        JSON.stringify({
+          ...userInfo,
+          register: { ...values, password: newPassword },
+          registerTime: new Date(),
+        })
+      )
 
       const GenerateToken = await generateToken(values.email)
       localStorage.setItem('tempToken', JSON.stringify(GenerateToken.token))
@@ -109,6 +117,7 @@ const Register = () => {
             ...values,
             password: PasswordGenerator(),
           },
+          registerTime: new Date(),
           token: JSON.stringify(GenerateToken.token),
         })
       )

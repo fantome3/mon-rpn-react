@@ -28,22 +28,23 @@ const Navbar = () => {
       </aside>
       <nav className='hidden lg:block absolute left-[15%]'>
         <ul className='flex items-center justify-center gap-8'>
-          {menuItemsConnected.map((item) => (
-            <Link
-              className={clsx('', {
-                'font-bold text-lg': pathname === item.link,
-              })}
-              key={item.name}
-              to={item.link}
-            >
-              {item.name}
-            </Link>
-          ))}
+          {userInfo?.infos &&
+            menuItemsConnected.map((item) => (
+              <Link
+                className={clsx('', {
+                  'font-bold text-lg': pathname === item.link,
+                })}
+                key={item.name}
+                to={item.link}
+              >
+                {item.name}
+              </Link>
+            ))}
         </ul>
       </nav>
       <aside className=' items-center flex lg:flex gap-2'>
         {userInfo && userInfo.isAdmin ? <AdminMenu /> : ''}
-        {userInfo ? (
+        {userInfo && userInfo.infos ? (
           <>
             <Button
               className='text-destructive hover:text-destructive/90 hidden lg:flex'
