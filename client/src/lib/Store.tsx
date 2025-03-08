@@ -109,7 +109,7 @@ function useAppState() {
   const disconnectAfter10Minutes = useCallback(() => {
     const userInfo = JSON.parse(localStorage.getItem('userInfo')!)
 
-    if (!userInfo.registerTime) return
+    if (!userInfo.registerTime || userInfo.infos) return
 
     const registerTime = new Date(userInfo.registerTime).getTime()
     const oginesTime = userInfo?.originesTime

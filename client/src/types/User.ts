@@ -67,6 +67,6 @@ export type User = {
   referralCode?: string
   referredBy?: string
   registerTime?: Date
-  originTime?: Date
+  originesTime?: Date
   infosTime?: Date
 }
