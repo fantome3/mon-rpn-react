@@ -3,9 +3,13 @@ import expressAsyncHandler from 'express-async-handler'
 import { UserModel } from '../models/userModel'
 import bcrypt from 'bcryptjs'
 import { isAdmin, isAuth, generateToken, generatePasswordToken } from '../utils'
-import nodemailer from 'nodemailer'
 import jwt from 'jsonwebtoken'
 import { AccountModel } from '../models/accountModel'
+import {
+  sendForgotPasswordEmail,
+  sendNewUserNotification,
+  sendPassword,
+} from '../../mailer'
 
 export const userRouter = express.Router()
 
@@ -32,6 +36,7 @@ userRouter.post(
       { expiresIn: '1h' }
     )
     res.json({ token })
+    return
   })
 )
 
@@ -63,16 +68,14 @@ userRouter.post(
       process.env.JWT_SECRET || 'ddlfjssdmsmdkskm',
       (error, decoded) => {
         if (error) {
-          res.send({
+          return res.send({
             message: 'Error with token',
           })
-          return
         } else {
           if (password !== confirmPassword) {
-            res.send({
+            return res.send({
               message: 'Password Do Not Match',
             })
-            return
           }
           updateUserPassword(id, password)
             .then((status) => res.send({ Status: status }))
@@ -96,50 +99,7 @@ userRouter.post(
         res.status(400).send('Password Require')
         return
       }
-
-      const transporter = nodemailer.createTransport({
-        service: process.env.NODEMAILER_SERVICE || 'gmail',
-        host: process.env.NODEMAILER_HOST || 'smtp.gmail.com',
-        port: 587,
-        secure: false,
-        auth: {
-          user: process.env.NODEMAILER_AUTH_USER || 'paiement.rpn@gmail.com',
-          pass: process.env.NODEMAILER_AUTH_PASS || 'jgmw puwg usqi mcxk',
-        },
-      })
-
-      const mailOptions = {
-        from: process.env.NODEMAILER_AUTH_USER || 'paiement.rpn@gmail.com',
-        to: email,
-        subject: 'MON-RPN - Mot de passe',
-        text: `
-      Votre inscription sur notre plateforme MON-RPN
-      s'est déroulée avec succès.
-
-      Voici le mot de passe actuel pour vous
-      connectez à votre compte:
-      ${password}
-
-      Vous pouvez modifier votre mot de passe à la
-      page profile de votre plateforme MON-RPN à
-      tout moment.
-
-      Bienvenue chez vous,
-      
-      L'équipe MON-RPN.
-      `,
-      }
-
-      transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-          res.status(500).send(`Erreur lors de l'envoi du mail`)
-          return
-        } else {
-          console.log(`Email envoyé: ${info.response}`)
-          res.status(200).send('E-mail envoyé')
-          return
-        }
-      })
+      sendPassword({ email, password })
     } catch (error) {
       console.log(error)
       res.status(500).send('Erreur du serveur')
@@ -172,40 +132,15 @@ userRouter.post(
         return
       }
 
-      const transporter = nodemailer.createTransport({
-        service: process.env.NODEMAILER_SERVICE || 'gmail',
-        host: process.env.NODEMAILER_HOST || 'smtp.gmail.com',
-        port: 587,
-        secure: false,
-        auth: {
-          user: process.env.NODEMAILER_AUTH_USER || 'paiement.rpn@gmail.com',
-          pass: process.env.NODEMAILER_AUTH_PASS || 'jgmw puwg usqi mcxk',
-        },
-      })
-
-      const mailOptions = {
-        from: process.env.NODEMAILER_AUTH_USER || 'paiement.rpn@gmail.com',
-        to: 'djokojires@gmail.com',
-        subject: 'Nouvelle Inscription',
-        text: `Un nouvel utilisateur vient de s'inscrire sur votre plateforme MON-RPN. Voici ses informations: 
-        Nom et Prénoms: ${user?.origines.lastName} ${user?.origines.firstName},
-        Courriel: ${user?.register?.email},
-        Pays d'origine: ${user?.origines.nativeCountry},
-        Pays de résidence: ${user?.infos.residenceCountry},
-        Numéro: ${user?.infos.tel},
-        Méthode de paiement: ${accountByUserId?.paymentMethod},
-        Solde: ${accountByUserId?.solde} $`,
-      }
-
-      transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-          res.status(500).send(`Erreur lors de l'envoi du mail`)
-          return
-        } else {
-          console.log(`Email envoyé: ${info.response}`)
-          res.status(200).send('E-mail envoyé')
-          return
-        }
+      sendNewUserNotification({
+        lastName: user?.origines.lastName,
+        firstName: user?.origines.firstName,
+        nativeCountry: user?.origines.nativeCountry,
+        email: user?.register.email,
+        residenceCountry: user?.infos.residenceCountry,
+        tel: user?.infos.tel,
+        paymentMethod: accountByUserId?.paymentMethod,
+        solde: accountByUserId?.solde,
       })
     } catch (error) {
       console.log(error)
@@ -223,38 +158,11 @@ userRouter.post(
       const user = await UserModel.findOne({ 'register.email': email })
       if (user) {
         const token = generatePasswordToken(email, user._id)
-        const transporter = nodemailer.createTransport({
-          service: process.env.NODEMAILER_SERVICE || 'gmail',
-          host: process.env.NODEMAILER_HOST || 'smtp.gmail.com',
-          port: 587,
-          secure: false,
-          auth: {
-            user: process.env.NODEMAILER_AUTH_USER || 'paiement.rpn@gmail.com',
-            pass: process.env.NODEMAILER_AUTH_PASS || 'jgmw puwg usqi mcxk',
-          },
-        })
 
-        const mailOptions = {
-          from: process.env.NODEMAILER_AUTH_USER,
-          to: email,
-          subject: 'Réinitialisation de mot de passe',
-          text: `Cliquez sur le lien suivant pour réinitialiser votre mot de passe: http://localhost:5173/reset-password/${user._id}/${token}`,
-        }
-
-        transporter.sendMail(mailOptions, (error, info) => {
-          if (error) {
-            console.log(error)
-            res.status(500).send(`Erreur lors de l'envoi du mail`)
-            return
-          } else {
-            console.log(`Email envoyé: ${info.response}`)
-            res
-              .status(200)
-              .send(
-                'Consultez votre email pour obtenir des informations sur la réinitialisation de votre mot de passe.'
-              )
-            return
-          }
+        sendForgotPasswordEmail({
+          token,
+          userId: user._id,
+          email,
         })
 
         res.send({

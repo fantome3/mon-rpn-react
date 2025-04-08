@@ -1,0 +1,64 @@
+import express, { Request, Response } from 'express'
+import expressAsyncHandler from 'express-async-handler'
+import { isAuth, isAdmin } from '../utils'
+import { SettingsModel } from '../models/settingsModel'
+
+export const settingRouter = express.Router()
+
+settingRouter.post(
+  '/new',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req: Request, res: Response) => {
+    try {
+      const existing = await SettingsModel.findOne()
+
+      if (!existing) {
+        const newSettings = new SettingsModel(req.body)
+        await newSettings.save()
+        res.send(newSettings.toObject())
+      } else {
+        res.send(existing.toObject())
+      }
+    } catch (error) {
+      res.status(400).json(error)
+    }
+  })
+)
+
+settingRouter.put(
+  '/:id',
+  //isAuth,
+  //isAdmin,
+  expressAsyncHandler(async (req: Request, res: Response) => {
+    try {
+      const settings = await SettingsModel.findById(req.params.id)
+      if (settings) {
+        Object.assign(settings, req.body)
+        const updatedSettings = await settings.save()
+        res.send({
+          message: 'Settings Updated',
+          settings: updatedSettings,
+        })
+      }
+    } catch (error) {
+      res.status(400).json(error)
+    }
+  })
+)
+
+settingRouter.get(
+  '/current',
+  expressAsyncHandler(async (req: Request, res: Response) => {
+    try {
+      const settings = await SettingsModel.findOne()
+      if (!settings) {
+        res.status(404).json({ message: 'Aucun paramètre défini' })
+      } else {
+        res.send(settings.toObject())
+      }
+    } catch (error) {
+      res.status(400).json(error)
+    }
+  })
+)

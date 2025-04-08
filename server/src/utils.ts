@@ -59,8 +59,9 @@ export const isAuth = async (
   })
 
   const { authorization } = req.headers
+  console.log('AUTH HEADERS:', authorization) // 👈 ici
   if (!authorization) {
-    res.status(401).json({ message: 'No Token' })
+    return res.status(401).json({ message: 'No Token' })
   }
 
   const token = authorization?.slice(7, authorization.length)
@@ -73,13 +74,13 @@ export const isAuth = async (
         const exp = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60
         if (Date.now() < exp * 1000) {
           req.user = cachedToken
-          next()
+          return next()
         }
       } else if (expiresIn === '30m') {
         const exp = Math.floor(Date.now() / 1000) + 30 * 60
         if (Date.now() < exp * 1000) {
           req.user = cachedToken
-          next()
+          return next()
         }
       }
     }
@@ -90,20 +91,20 @@ export const isAuth = async (
 
     const user = await UserModel.findById(decode._id)
     if (!user) {
-      res.status(401).json({ message: 'User not found' })
+      return res.status(401).json({ message: 'User not found' })
     }
 
     req.user = decode
     const ttl = 2592000
     await cache.set(token!, decode, ttl)
-    next()
+    return next()
   } catch (error: any) {
     if (error.name === 'TokenExpiredError') {
-      res.status(401).json({ message: 'Token Expired' })
+      return res.status(401).json({ message: 'Token Expired' })
     } else if (error.name === 'JsonWebTokenError') {
-      res.status(401).json({ message: 'Invalid Token' })
+      return res.status(401).json({ message: 'Invalid Token' })
     } else {
-      res.status(500).json({ message: 'Unexpected Error' })
+      return res.status(500).json({ message: 'Unexpected Error' })
     }
   }
 }

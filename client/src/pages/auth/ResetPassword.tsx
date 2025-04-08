@@ -67,6 +67,7 @@ const ResetPassword = () => {
         return
       }
       await resetPassword(values)
+
       ctxDispatch({ type: 'USER_SIGNOUT' })
       localStorage.removeItem('userInfo')
       navigate('/login')

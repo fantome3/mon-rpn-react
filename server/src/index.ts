@@ -7,6 +7,8 @@ import { userRouter } from './routers/userRouter'
 import { accountRouter } from './routers/accountRouter'
 import { deathAnnouncementRouter } from './routers/deathAnnoucementRouter'
 import { uploadRouter } from './routers/uploadRouter'
+import { settingRouter } from './routers/settingRouter'
+import { transactionRouter } from './routers/transactionRouter'
 
 dotenv.config()
 mongoose.set('strictQuery', true)
@@ -40,6 +42,8 @@ app.use('/api/users', userRouter)
 app.use('/api/accounts', accountRouter)
 app.use('/api/announcements', deathAnnouncementRouter)
 app.use('/api/upload', uploadRouter)
+app.use('/api/settings', settingRouter)
+app.use('/api/transactions', transactionRouter)
 
 app.use(express.static(path.join(__dirname, '../dist')))
 app.get('*', (req: Request, res: Response) =>

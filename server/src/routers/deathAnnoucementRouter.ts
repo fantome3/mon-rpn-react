@@ -1,7 +1,13 @@
+import { Types } from 'mongoose'
 import express, { Request, Response } from 'express'
 import expressAsyncHandler from 'express-async-handler'
 import { isAdmin, isAuth } from '../utils'
 import { DeathAnnouncementModel } from '../models/deathAnnouncement'
+import { SettingsModel } from '../models/settingsModel'
+import { UserModel } from '../models/userModel'
+import { AccountModel } from '../models/accountModel'
+import { TransactionModel } from '../models/transactionModel'
+import { notifyAllUsers } from '../../mailer'
 
 export const deathAnnouncementRouter = express.Router()
 
@@ -13,9 +19,113 @@ deathAnnouncementRouter.post(
     try {
       const newDeathAnnouncement = new DeathAnnouncementModel(req.body)
       await newDeathAnnouncement.save()
-      res.send(newDeathAnnouncement.toObject())
+
+      // Récupération du montant global à prélever
+      const settings = await SettingsModel.findOne()
+
+      if (!settings || !settings.amountPerDependent) {
+        res.status(400).json({
+          message: 'Montant de prélèvement non défini dans les paramètres',
+        })
+        return
+      }
+      const amountPerPerson = settings.amountPerDependent
+      const users = await UserModel.find({ primaryMember: true }).lean()
+      const errors: any[] = []
+
+      for (const user of users) {
+        try {
+          const userId =
+            typeof user._id === 'string'
+              ? new Types.ObjectId(user._id)
+              : user._id
+          const nbActive =
+            user.familyMembers?.filter((member) => member.status === 'active')
+              .length || 0
+          const totalPersons = nbActive + 1 // +1 pour le membre principal
+          const totalToDeduct = totalPersons * amountPerPerson
+
+          const account = await AccountModel.findOne({ userId }).lean()
+          console.log(
+            '🔍 userId:',
+            userId.toString(),
+            '➡️ Account:',
+            account?.solde
+          )
+
+          if (!account) {
+            console.log(
+              `⛔ Aucun compte trouvé pour l'utilisateur ${user.register.email}`
+            )
+            errors.push({
+              user: user.register.email,
+              error: 'Aucun compte trouvé',
+            })
+            continue
+          }
+
+          if (account.solde < totalToDeduct) {
+            console.log(
+              `💸 Solde insuffisant pour ${user.register.email} : ${account.solde} < ${totalToDeduct}`
+            )
+            errors.push({
+              userId,
+              email: user.register.email,
+              reason: 'Solde insuffisant',
+              solde: account.solde,
+              required: totalToDeduct,
+            })
+            continue
+          }
+
+          //Déduction
+          account.solde -= totalToDeduct
+          await AccountModel.updateOne(
+            { userId },
+            { $inc: { solde: -totalToDeduct } }
+          )
+
+          //Tranctionns
+          await TransactionModel.create({
+            userId,
+            amount: totalToDeduct,
+            type: 'debit',
+            reason: `Prélèvement décès pour ${totalPersons} personnes`,
+          })
+
+          console.log(
+            `💸 Prélèvement de ${totalToDeduct} pour ${user.register.email}`
+          )
+        } catch (error: any) {
+          console.error(`❗Erreur pour l'utilisateur ${user._id}:`, error)
+          errors.push({
+            userId: user._id,
+            email: user.register?.email,
+            reason: 'Erreur système',
+            error: error.message,
+          })
+        }
+      }
+
+      console.log(
+        `✅ Prélèvements terminés. Utilisateurs ignorés ou en échec:`,
+        errors.length
+      )
+
+      await notifyAllUsers({
+        firstName: newDeathAnnouncement.firstName,
+        deathPlace: newDeathAnnouncement.deathPlace,
+        deathDate: newDeathAnnouncement.deathDate,
+      })
+      res.send({
+        message: 'Annonce créée et prélèvements effectués.',
+        announcement: newDeathAnnouncement.toObject(),
+        errors,
+      })
+      return
     } catch (error) {
       res.status(400).json(error)
+      return
     }
   })
 )

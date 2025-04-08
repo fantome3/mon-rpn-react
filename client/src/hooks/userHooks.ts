@@ -73,6 +73,13 @@ export const useLoginMutation = () =>
           rememberMe,
         })
       ).data,
+
+    onSuccess: (user) => {
+      console.log('Login successful:', user)
+    },
+    onError: (error) => {
+      console.error('Login failed:', error)
+    },
   })
 
 export const useRegisterMutation = () =>
