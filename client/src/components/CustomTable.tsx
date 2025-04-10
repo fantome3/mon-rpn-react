@@ -1,6 +1,8 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import {
   ColumnDef,
   ColumnFiltersState,
+  FilterFn,
   SortingState,
   VisibilityState,
   flexRender,
@@ -18,16 +20,16 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from './ui/table'
-import { Button } from './ui/button'
-import { Input } from './ui/input'
+} from '@/components/ui/table'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from './ui/select'
+} from '@/components/ui/select'
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -39,25 +41,52 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from './ui/dropdown-menu'
-import { useState } from 'react'
+} from '@/components/ui/dropdown-menu'
+import { useEffect, useState } from 'react'
 import { functionTranslate } from '@/lib/utils'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const globalFilterFunction: FilterFn<any> = (row, columnId, filterValue) => {
+  const cellValue = row.original[columnId]
+  //Gestion des objets imbriqués
+  if (typeof cellValue === 'object' && cellValue !== null) {
+    const stringValue = JSON.stringify(cellValue).toLowerCase()
+    return stringValue.includes(filterValue.toLowerCase())
+  }
+
+  if (typeof cellValue === 'number') {
+    return cellValue?.toString().includes(filterValue)
+  }
+
+  return cellValue?.toLowerCase().includes(filterValue.toLowerCase())
+}
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
+  initialPageIndex?: number
+  onPaginationChange?: (page: number) => void
+  pageName?: string
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  initialPageIndex = 0,
+  pageName,
+  onPaginationChange,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const [globalFilter, setGlobalFilter] = useState('')
+
   const table = useReactTable({
     data,
     columns,
+    initialState: {
+      pagination: { pageIndex: initialPageIndex },
+    },
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
@@ -65,23 +94,34 @@ export function DataTable<TData, TValue>({
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
+    globalFilterFn: globalFilterFunction,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
+      globalFilter,
     },
   })
+
+  useEffect(() => {
+    const pageIndex = table.getState().pagination.pageIndex
+    const storedPageIndex = parseInt(
+      localStorage.getItem(`${pageName}`) || '-1',
+      10
+    )
+    if (storedPageIndex !== pageIndex) {
+      localStorage.setItem(`${pageName}`, pageIndex.toString())
+      onPaginationChange?.(pageIndex)
+    }
+  }, [onPaginationChange, pageName, table.getState().pagination.pageIndex])
+
   return (
     <>
       <div className='flex items-center py-4'>
         <Input
           placeholder='Chercher...'
-          value={
-            (table.getColumn('firstName')?.getFilterValue() as string) ?? ''
-          }
-          onChange={(event) =>
-            table.getColumn('firstName')?.setFilterValue(event.target.value)
-          }
+          value={globalFilter ?? ''}
+          onChange={(event) => setGlobalFilter(event.target.value)}
           className='max-w-sm'
         />
         <DropdownMenu>
@@ -168,10 +208,10 @@ export function DataTable<TData, TValue>({
             </div>*/}
         <div className='flex items-center space-x-6 lg:space-x-8'>
           <div className='flex items-center space-x-2'>
-            <p className='text-sm font-medium'>N°/page</p>
+            <p className='text-sm font-medium'>Nbre/page</p>
             <Select
               value={`${table.getState().pagination.pageSize}`}
-              onValueChange={(value) => {
+              onValueChange={(value: string) => {
                 table.setPageSize(Number(value))
               }}
             >
@@ -189,7 +229,7 @@ export function DataTable<TData, TValue>({
               </SelectContent>
             </Select>
           </div>
-          <div className='lg:flex w-[100px] items-center justify-center text-sm font-ligth hidden '>
+          <div className='flex w-[100px] items-center justify-center text-sm font-medium'>
             Page {table.getState().pagination.pageIndex + 1} /{' '}
             {table.getPageCount()}
           </div>

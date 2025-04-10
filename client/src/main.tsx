@@ -29,6 +29,7 @@ import {
   Announcements,
   UpdateMethod,
   Conditions,
+  Transactions,
 } from './pages/index.ts'
 import './lib/i18n'
 import { StoreProvider } from './lib/Store.tsx'
@@ -69,6 +70,7 @@ const router = createBrowserRouter(
         <Route path='/admin' element={<AdminRoute />}>
           <Route path='accounts' element={<Accounts />} />
           <Route path='announcements' element={<Announcements />} />
+          <Route path='transactions' element={<Transactions />} />
         </Route>
       </Route>
     </>

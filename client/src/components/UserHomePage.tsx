@@ -8,6 +8,7 @@ import CurrentMonthStat from './CurrentMonthStat'
 import TotalDeath from './TotalDeath'
 import { useGetSummaryQuery } from '@/hooks/deathAnnouncementHook'
 import LastAnnouncements from './LastAnnouncements'
+import LastUserTransactions from './LastUserTransactions'
 
 const UserHomPage = () => {
   const { state } = useContext(Store)
@@ -56,6 +57,7 @@ const UserHomPage = () => {
 
         <GraphSection data={summary ? summary.totalMonthly : []} />
         <LastAnnouncements />
+        <LastUserTransactions />
       </div>
     </>
   )

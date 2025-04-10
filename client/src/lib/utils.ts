@@ -56,6 +56,36 @@ export const functionTranslate = (str: string) => {
   if (str === 'nativeCountry') {
     return `Pays d'origine`
   }
+
+  if (str === 'createdAt') {
+    return 'Date'
+  }
+
+  if (str === 'userTel') {
+    return 'Téléphone'
+  }
+  if (str === 'userResidenceCountry') {
+    return 'Pays de résidence'
+  }
+
+  if (str === 'userNativeCountry') {
+    return `Pays d'origine`
+  }
+  if (str === 'solde') {
+    return 'Solde'
+  }
+
+  if (str === 'paymentMethod') {
+    return 'Mode de paiement'
+  }
+
+  if (str === 'deathDate') {
+    return 'Date du décès'
+  }
+
+  if (str === 'deathPlace') {
+    return 'Lieu du décès'
+  }
 }
 
 export const formatCreditCardNumber = (value: string): string => {
@@ -94,4 +124,19 @@ export const ToLocaleStringFunc = (num: number) => {
   }
 
   return Number(num).toLocaleString('fr-FR')
+}
+
+// Formater les montants en dollar canadien
+export const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('fr-CA', {
+    style: 'currency',
+    currency: 'CAD',
+    minimumFractionDigits: 0,
+  }).format(amount)
+}
+
+// Formater les mois pour l'affichage
+export const formatMonth = (month: number, year: number) => {
+  const date = new Date(year, month - 1)
+  return date.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })
 }

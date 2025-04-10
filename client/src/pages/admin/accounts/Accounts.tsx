@@ -53,7 +53,7 @@ const Accounts = () => {
         : '',
       solde: editingAccount ? editingAccount.solde : 0,
       paymentMethod: editingAccount ? editingAccount.paymentMethod : '',
-      userId: editingAccount?.userId!,
+      userId: editingAccount?.userId || '',
     },
   })
 
@@ -68,7 +68,7 @@ const Accounts = () => {
         userId: editingAccount.userId,
       })
     }
-  }, [editingAccount])
+  }, [editingAccount, form])
 
   const columns: ColumnDef<Account>[] = [
     {
@@ -150,6 +150,7 @@ const Accounts = () => {
         <div className='flex '>
           <Button variant='ghost' size='sm'>
             <Pencil
+              size={20}
               onClick={() => {
                 setEditingAccount(row.original)
                 setModalVisibility(true)
@@ -166,8 +167,13 @@ const Accounts = () => {
     try {
       await updateAccount({
         ...values,
-        userId: editingAccount?.userId!,
+        userId: editingAccount?.userId ?? '',
         _id: editingAccount?._id,
+      })
+      toast({
+        variant: 'default',
+        title: 'Modification Compte',
+        description: 'Le compte a été modifié avec succès.',
       })
       setEditingAccount(null)
       setModalVisibility(false)

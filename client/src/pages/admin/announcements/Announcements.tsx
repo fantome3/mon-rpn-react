@@ -121,6 +121,7 @@ const Announcements = () => {
       cell: ({ row }) => (
         <div className='flex '>
           <Pencil
+            size={20}
             onClick={() => {
               setEditingAnnouncement(row.original)
               setModalVisibility(true)
@@ -129,6 +130,7 @@ const Announcements = () => {
           />
           <div className='font-semibold text-[#b9bdbc] mr-2'>|</div>
           <Trash2
+            size={20}
             onClick={() => {}}
             className='text-red-800 dark:text-red-500 ml-4 cursor-pointer'
           />
@@ -151,7 +153,7 @@ const Announcements = () => {
         deathDate: new Date(),
       })
     }
-  }, [editingAnnouncement])
+  }, [editingAnnouncement, form])
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!editingAnnouncement) {

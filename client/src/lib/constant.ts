@@ -299,6 +299,7 @@ export const menuItemsConnected = [
 export const adminMenuItems = [
   { name: 'Comptes', link: '/admin/accounts' },
   { name: 'Annonces', link: '/admin/announcements' },
+  { name: 'Transactions', link: '/admin/transactions' },
 ]
 
 export const relations = [
@@ -350,3 +351,28 @@ export const telRegex = /^(?:\+1\s*)?((?:\d\s*){10})$/ // /^(?:\+1)?(\d{10})$/
 export const postalCodeRegex = /^\S{3}\s?\S{3}$/
 
 export const expiryDateRegex = /^(0[1-9]|1[0-2])[0-9]{2}$/
+
+export const transactionType = [
+  {
+    type: 'debit',
+    value: 'Débité',
+  },
+  {
+    type: 'credit',
+    value: 'Crédité',
+  },
+]
+
+export const transactionStatus = [
+  {
+    status: 'completed',
+    value: 'Réussie',
+  },
+  {
+    status: 'failed',
+    value: 'Echouée',
+  },
+]
+
+// Couleurs pour le graphique de statut
+export const COLORS = ['#0088FE', '#00C49F', '#FF8042']

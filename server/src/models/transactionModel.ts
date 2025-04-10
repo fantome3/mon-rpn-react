@@ -20,6 +20,9 @@ export class Transaction {
 
   @prop({ required: true })
   public reason!: string //e.g "Prélèvement décès"
+
+  @prop({ required: true, default: 'completed' })
+  public status!: 'completed' | 'failed'
 }
 
 export const TransactionModel = getModelForClass(Transaction)
