@@ -86,6 +86,13 @@ export const functionTranslate = (str: string) => {
   if (str === 'deathPlace') {
     return 'Lieu du décès'
   }
+  if (str === 'type') {
+    return 'Type'
+  }
+
+  if (str === 'amount') {
+    return 'Montant'
+  }
 }
 
 export const formatCreditCardNumber = (value: string): string => {

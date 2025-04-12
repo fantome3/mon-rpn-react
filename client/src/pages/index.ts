@@ -17,6 +17,8 @@ import Announcements from './admin/announcements/Announcements'
 import UpdateMethod from './account/UpdateMethod'
 import Conditions from './conditions/Conditions'
 import Transactions from './admin/transactions/Transactions'
+import TransactionsByUserId from './transactions/Transactions'
+import AllAnnouncements from './announcements/Announcements'
 
 export {
   Login,
@@ -38,4 +40,6 @@ export {
   UpdateMethod,
   Conditions,
   Transactions,
+  TransactionsByUserId,
+  AllAnnouncements,
 }

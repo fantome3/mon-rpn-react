@@ -189,6 +189,12 @@ export class User {
 
   @prop({ default: Date.now })
   public infosTime?: Date
+
+  @prop({ default: null }) // Ex: 2024
+  public lastMembershipPaymentYear?: number
+
+  @prop({ default: false })
+  public membershipPaidThisYear?: boolean
 }
 
 export const UserModel = getModelForClass(User)

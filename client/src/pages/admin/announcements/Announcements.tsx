@@ -72,7 +72,7 @@ const Announcements = () => {
   const columns: ColumnDef<DeathAnnouncement>[] = [
     {
       accessorKey: 'createdAt',
-      header: 'Annoncé',
+      header: 'Date Annonce',
       cell: ({ row }) => {
         const created: string = row.getValue('createdAt')
         return <div> {functionReverse(created.substring(0, 10))} </div>
@@ -234,9 +234,9 @@ const Announcements = () => {
                 name='firstName'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nom</FormLabel>
+                    <FormLabel>Prénoms et Nom</FormLabel>
                     <FormControl>
-                      <Input placeholder='Nom' {...field} />
+                      <Input placeholder='Prénoms et Nom' {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

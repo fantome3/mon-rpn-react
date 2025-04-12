@@ -299,7 +299,7 @@ export const menuItemsConnected = [
 export const adminMenuItems = [
   { name: 'Comptes', link: '/admin/accounts' },
   { name: 'Annonces', link: '/admin/announcements' },
-  { name: 'Transactions', link: '/admin/transactions' },
+  { name: 'Gérer prélèvements', link: '/admin/transactions' },
 ]
 
 export const relations = [

@@ -28,7 +28,7 @@ const LastUserTransactions = () => {
       <CardHeader className='flex flex-row items-center justify-between'>
         <CardTitle>Mes dernières transactions</CardTitle>
         <Button variant='link' className='text-sm p-0 h-auto' asChild>
-          <a href='/user/transactions'>Voir tout →</a>
+          <a href={`/transactions/${userInfo?._id}/all`}>Voir tout →</a>
         </Button>
       </CardHeader>
       <CardContent>

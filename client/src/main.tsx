@@ -30,6 +30,8 @@ import {
   UpdateMethod,
   Conditions,
   Transactions,
+  TransactionsByUserId,
+  AllAnnouncements,
 } from './pages/index.ts'
 import './lib/i18n'
 import { StoreProvider } from './lib/Store.tsx'
@@ -64,6 +66,11 @@ const router = createBrowserRouter(
           <Route path='/sponsorship' element={<Sponsorship />} />
           <Route path='/payment-method' element={<PaymentMethod />} />
           <Route path='/change-method' element={<UpdateMethod />} />
+          <Route
+            path='/transactions/:id/all'
+            element={<TransactionsByUserId />}
+          />
+          <Route path='/announcements' element={<AllAnnouncements />} />
         </Route>
 
         {/**Admin Users */}
