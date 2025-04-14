@@ -9,6 +9,7 @@ import { deathAnnouncementRouter } from './routers/deathAnnoucementRouter'
 import { uploadRouter } from './routers/uploadRouter'
 import { settingRouter } from './routers/settingRouter'
 import { transactionRouter } from './routers/transactionRouter'
+import './cron/membershipReminder'
 
 dotenv.config()
 mongoose.set('strictQuery', true)

@@ -2,8 +2,23 @@ import express, { Request, Response } from 'express'
 import expressAsyncHandler from 'express-async-handler'
 import { isAuth, isAdmin } from '../utils'
 import { TransactionModel } from '../models/transactionModel'
+import { processAnnualMembershipPayment } from '../services/membershipService'
 
 export const transactionRouter = express.Router()
+
+transactionRouter.post(
+  '/manual-reminders',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req: Request, res: Response) => {
+    try {
+      await processAnnualMembershipPayment()
+      res.send({ message: 'Rappels envoyés avec succès' })
+    } catch (error) {
+      res.status(500).json({ message: 'Erreur lors de l’envoi des rappels' })
+    }
+  })
+)
 
 transactionRouter.get(
   '/all',
@@ -62,6 +77,25 @@ transactionRouter.put(
       }
     } catch (error) {
       res.status(400).json(error)
+    }
+  })
+)
+
+transactionRouter.delete(
+  '/delete-zero-amount',
+  //isAuth,
+  //isAdmin,
+  expressAsyncHandler(async (req: Request, res: Response) => {
+    try {
+      const result = await TransactionModel.deleteMany({ status: undefined })
+
+      res.send({
+        message: 'Transactions supprimées avec succès',
+        deletedCount: result.deletedCount,
+      })
+    } catch (error) {
+      console.error('Erreur suppression transactions amount = 0', error)
+      res.status(500).json({ message: 'Erreur lors de la suppression' })
     }
   })
 )

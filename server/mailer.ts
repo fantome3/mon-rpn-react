@@ -173,3 +173,60 @@ Veuillez consulter la plateforme MON-RPN pour plus d'informations.`
     }
   }
 }
+
+export const sendMembershipReminderEmail = async (
+  email: string,
+  expectedAmount: number,
+  currentBalance: number
+) => {
+  const subject = 'Cotisation annuelle sur MONRPN'
+  const text = `
+  Cher utilisateur, votre prélèvement pour la côtisation annuelle à échoué. Votre solde actuelle est de ${currentBalance} CAD et est insuffisante pour régler votre côtisation qui est de ${expectedAmount} CAD.
+
+  Veuillez renflouer votre compte afin que le prélèvement soit effectué.
+
+  Cordialement
+  `
+
+  try {
+    await sendEmail({
+      to: email,
+      subject,
+      text,
+    })
+    console.log(`📨 Email de rappel envoyé`)
+  } catch (error) {
+    console.error(`❌ Erreur envoi mail`, error)
+  }
+}
+
+export const sendMembershipSuccessEmail = async (
+  email: string,
+  amountPaid: number,
+  year: number
+) => {
+  const subject = '✅ Cotisation annuelle réglée avec succès'
+  const text = `
+  Bonjour,
+
+  Nous vous informons que votre cotisation annuelle pour l'année ${year} a été réglée avec succès. Le montant de ${amountPaid} CAD a été prélevé de votre compte MON-RPN.
+
+  Merci pour votre contribution. Votre statut de membre actif est désormais maintenu pour l'année ${year}.
+
+  Vous pouvez consulter vos transactions sur la plateforme MON-RPN à tout moment.
+
+  Bien cordialement,
+  L'équipe MON-RPN.
+  `
+
+  try {
+    await sendEmail({
+      to: email,
+      subject,
+      text,
+    })
+    console.log(`📨 Email de confirmation envoyé à ${email}`)
+  } catch (error) {
+    console.error(`❌ Erreur envoi mail de confirmation`, error)
+  }
+}

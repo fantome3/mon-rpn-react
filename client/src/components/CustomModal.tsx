@@ -71,7 +71,9 @@ function CustomModal({
             )}
           </DialogHeader>
         )}
-        <div className='flex items-center justify-center'>{children}</div>
+        <div className='overflow-y-auto max-h-[calc(100vh-12rem)] w-full'>
+          {children}
+        </div>
         {footer && (
           <DialogFooter className='flex justify-end gap-2 pt-2'>
             {footer}

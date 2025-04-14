@@ -9,11 +9,11 @@ export class Settings {
   @prop({ required: true, default: 10 })
   public amountPerDependent!: number
 
-  // Montant annuel par personne pour conserver le statut de membre
+  // Montant annuel par personne pour conserver le statut de membre (par personne ≥ 18 ans)
   @prop({ required: true, default: 10 })
   public membershipUnitAmount!: number
 
-  // Solde minimum requis pour ne pas recevoir d’alerte
+  // Solde minimum requis pour ne pas recevoir d’alerte (RPN)
   @prop({ required: true, default: 50 })
   public minimumBalanceRPN!: number
 }

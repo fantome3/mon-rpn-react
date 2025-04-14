@@ -1,4 +1,4 @@
-import { useGetTransactionsByUserIdQuery } from '@/hooks/useTransactionHooks'
+import { useGetTransactionsByUserIdQuery } from '@/hooks/transactionHooks'
 import { Store } from '@/lib/Store'
 import { useContext } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'

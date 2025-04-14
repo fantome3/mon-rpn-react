@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { formatMonth } from '@/lib/utils'
-import { useGetTransactionSummaryQuery } from '@/hooks/useTransactionHooks'
+import { useGetTransactionSummaryQuery } from '@/hooks/transactionHooks'
 import TransactionsTotales from './TransactionsTotales'
 import MontantTotal from './MontantTotal'
 import Credit_Transaction from './Credit_Transaction'
@@ -13,6 +13,8 @@ import StatusTransactionDetail from './StatusTransactionDetail'
 
 export default function BilanTransactions() {
   const { data: summary, isPending } = useGetTransactionSummaryQuery()
+
+  console.log(summary)
 
   // Préparer les données pour le graphique mensuel
   const monthlyChartData = summary.monthlySummary

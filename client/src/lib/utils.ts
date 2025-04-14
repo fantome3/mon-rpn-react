@@ -93,6 +93,13 @@ export const functionTranslate = (str: string) => {
   if (str === 'amount') {
     return 'Montant'
   }
+  if (str === 'reason') {
+    return 'Raison'
+  }
+
+  if (str === 'fullName') {
+    return 'Utilisateur'
+  }
 }
 
 export const formatCreditCardNumber = (value: string): string => {

@@ -5,27 +5,6 @@ import { SettingsModel } from '../models/settingsModel'
 
 export const settingRouter = express.Router()
 
-settingRouter.post(
-  '/new',
-  isAuth,
-  isAdmin,
-  expressAsyncHandler(async (req: Request, res: Response) => {
-    try {
-      const existing = await SettingsModel.findOne()
-
-      if (!existing) {
-        const newSettings = new SettingsModel(req.body)
-        await newSettings.save()
-        res.send(newSettings.toObject())
-      } else {
-        res.send(existing.toObject())
-      }
-    } catch (error) {
-      res.status(400).json(error)
-    }
-  })
-)
-
 settingRouter.put(
   '/:id',
   //isAuth,
@@ -49,6 +28,8 @@ settingRouter.put(
 
 settingRouter.get(
   '/current',
+  //isAuth,
+  //isAdmin,
   expressAsyncHandler(async (req: Request, res: Response) => {
     try {
       const settings = await SettingsModel.findOne()

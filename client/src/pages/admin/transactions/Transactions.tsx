@@ -25,7 +25,7 @@ import {
   useDeleteTransactionMutation,
   useGetAllTransactionsQuery,
   useUpdateTransactionMutation,
-} from '@/hooks/useTransactionHooks'
+} from '@/hooks/transactionHooks'
 import { transactionStatus, transactionType } from '@/lib/constant'
 import { functionReverse, ToLocaleStringFunc } from '@/lib/utils'
 import { Transaction } from '@/types/Transaction'
@@ -36,6 +36,8 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import BilanTransactions from './BilanTransactions'
+import TransactionsSetttings from './TransactionsSetttings'
+import TransactionPageSubmenu from './TransactionPageSubmenu'
 
 const formSchema = z.object({
   userId: z.union([z.string(), z.any()]),
@@ -59,6 +61,7 @@ const Transactions = () => {
     useUpdateTransactionMutation()
   const [modalVisibility, setModalVisibility] = useState(false)
   const [bilanModalVisibility, setBilanModalVisibility] = useState(false)
+  const [settingModalVisibility, setSettingModalVisibility] = useState(false)
   const [editingTransaction, setEditingTransaction] = useState<any>(null)
   const [deleteModal, setDeleteModal] = useState(false)
 
@@ -245,14 +248,10 @@ const Transactions = () => {
     <>
       <div className='container mt-16 flex items-center justify-between'>
         <h1 className='text-2xl font-semibold'>Les Transactions</h1>
-
-        <Button
-          variant='link'
-          className='text-sm p-0 h-auto'
-          onClick={() => setBilanModalVisibility(true)}
-        >
-          Récapitulatif des dépenses →
-        </Button>
+        <TransactionPageSubmenu
+          setBilanModalVisibility={setBilanModalVisibility}
+          setSettingModalVisibility={setSettingModalVisibility}
+        />
       </div>
       {isPending ? (
         <Loading />
@@ -416,6 +415,24 @@ const Transactions = () => {
           size='full'
         >
           <BilanTransactions />
+        </CustomModal>
+      )}
+      {settingModalVisibility && (
+        <CustomModal
+          setOpen={() => {
+            setSettingModalVisibility(false)
+            refetch()
+          }}
+          open={settingModalVisibility}
+          title='Les montants par prélèvement'
+          description='Modifiez les différents montants par prélèvements.'
+        >
+          <TransactionsSetttings
+            onSuccess={() => {
+              setSettingModalVisibility(false)
+              refetch()
+            }}
+          />
         </CustomModal>
       )}
     </>

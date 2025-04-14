@@ -2,6 +2,12 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import apiClient from '@/apiClient'
 import { Transaction } from '@/types/Transaction'
 
+export const useSendManualRemindersMutation = () =>
+  useMutation({
+    mutationFn: async () =>
+      (await apiClient.post(`api/transactions/manual-reminders`)).data,
+  })
+
 export const useGetAllTransactionsQuery = () =>
   useQuery({
     queryKey: ['transactions'],
