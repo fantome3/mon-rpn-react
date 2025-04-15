@@ -14,6 +14,7 @@ export type Interac = {
 export type Account = {
   _id?: string
   firstName: string
+  lastName: string
   userTel: string
   userResidenceCountry: string
   solde: number

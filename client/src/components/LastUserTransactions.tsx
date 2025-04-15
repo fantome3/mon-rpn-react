@@ -71,10 +71,16 @@ const LastUserTransactions = () => {
                       className={`text-xs ${
                         tx.status === 'completed'
                           ? 'bg-green-500'
+                          : tx.status === 'pending'
+                          ? 'bg-yellow-500'
                           : 'bg-red-500'
                       }`}
                     >
-                      {tx.status === 'completed' ? 'Réussie' : 'Échouée'}
+                      {tx.status === 'completed'
+                        ? 'Réussie'
+                        : tx.status === 'pending'
+                        ? 'En attente'
+                        : 'Échouée'}
                     </Badge>
                   </TableCell>
                 </TableRow>

@@ -24,6 +24,8 @@ import {
 } from './ui/form'
 import { Input } from './ui/input'
 import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card'
+import { useNewTransactionMutation } from '@/hooks/transactionHooks'
+import { ToLocaleStringFunc } from '@/lib/utils'
 
 const formSchema = z.object({
   amountInterac: z
@@ -49,6 +51,7 @@ const UpdateInteracPayment = ({
     userInfo?._id ?? ''
   )
   const { mutateAsync: updateAccount, isPending } = useUpdateAccountMutation()
+  const { mutateAsync: newTransaction } = useNewTransactionMutation()
 
   const form = useForm<z.infer<typeof formSchema>>({
     mode: 'onChange',
@@ -75,6 +78,15 @@ const UpdateInteracPayment = ({
         solde: newSolde,
         interac: updatedInteracTransactions,
       })
+
+      await newTransaction({
+        userId: userInfo?._id!,
+        amount: values.amountInterac,
+        type: 'credit',
+        reason: 'Renflouement via Interac',
+        status: 'pending',
+      })
+
       ctxDispatch({ type: 'ACCOUNT_INFOS', payload: data.account })
       localStorage.setItem('accountInfo', JSON.stringify(data.account))
       toast({
@@ -92,8 +104,6 @@ const UpdateInteracPayment = ({
       })
     }
   }
-
-  const { register } = form
 
   return (
     <>
@@ -131,10 +141,15 @@ Par la suite entrez les informations du virement que vous avez effectuer pour re
                     <FormLabel>Montant Envoyé</FormLabel>
                     <FormControl>
                       <Input
-                        type='number'
+                        type='text'
                         placeholder='25'
-                        {...field}
-                        {...register('amountInterac', { valueAsNumber: true })}
+                        value={ToLocaleStringFunc(field.value)}
+                        onChange={(event) => {
+                          const rawValue = event.target.value.replace(/\s/g, '')
+                          if (/^\d*$/.test(rawValue)) {
+                            field.onChange(Number(rawValue))
+                          }
+                        }}
                       />
                     </FormControl>
                     <FormMessage />

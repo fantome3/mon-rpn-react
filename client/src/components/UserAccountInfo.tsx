@@ -8,19 +8,27 @@ import {
 } from './ui/card'
 import { Store } from '@/lib/Store'
 import { useGetAccountsByUserIdQuery } from '@/hooks/accountHooks'
-import { ToLocaleStringFunc } from '@/lib/utils'
+import { refresh, ToLocaleStringFunc } from '@/lib/utils'
 import { Button } from './ui/button'
 import UpdateInteracPayment from './UpdateInteracPayment'
 import UpdateCreditCardPayment from './UpdateCreditCardPayment'
+import { useGetTransactionsByUserIdQuery } from '@/hooks/transactionHooks'
 
 const UserAccountInfo = () => {
   const { state } = useContext(Store)
   const { userInfo } = state
-  const { data: account } = useGetAccountsByUserIdQuery(userInfo?._id ?? '')
+  const userId = userInfo?._id ?? ''
+  const { data: account } = useGetAccountsByUserIdQuery(userId)
+  const { data: transactions } = useGetTransactionsByUserIdQuery(userId)
   const [modalVisibility, setModalVisibility] = useState(false)
   const [currentSolde, setCurrentSolde] = useState<number | null>(null)
 
   const paymentMethod = account && account[0]?.paymentMethod
+
+  const isLastTransactionPending =
+    transactions && transactions.length > 0
+      ? transactions[0].status === 'pending'
+      : false
 
   const handleTransactionSuccess = async (amount: number) => {
     setCurrentSolde((prevSolde) =>
@@ -29,6 +37,7 @@ const UserAccountInfo = () => {
         : amount
     )
     setModalVisibility(false)
+    refresh()
   }
 
   useEffect(() => {
@@ -51,9 +60,17 @@ const UserAccountInfo = () => {
         </CardHeader>
         <CardContent>
           <div className='flex justify-between items-center'>
-            <div className='text-3xl font-bold'>
-              $&nbsp;
-              {ToLocaleStringFunc(currentSolde ?? 0)}
+            <div
+              className={`text-3xl font-bold ${
+                isLastTransactionPending ? 'text-gray-400 italic' : ''
+              }`}
+            >
+              $&nbsp;{ToLocaleStringFunc(currentSolde ?? 0)}
+              {isLastTransactionPending && (
+                <span className='ml-2 text-sm text-muted-foreground'>
+                  (en attente)
+                </span>
+              )}
             </div>
             <Button
               onClick={() => setModalVisibility(true)}

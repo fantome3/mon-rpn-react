@@ -22,7 +22,7 @@ export class Transaction {
   public reason!: string //e.g "Prélèvement décès"
 
   @prop({ required: true, default: 'completed' })
-  public status!: 'completed' | 'failed'
+  public status!: 'completed' | 'failed' | 'pending'
 }
 
 export const TransactionModel = getModelForClass(Transaction)

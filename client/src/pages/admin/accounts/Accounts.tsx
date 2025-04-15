@@ -1,3 +1,4 @@
+import apiClient from '@/apiClient'
 import CustomModal from '@/components/CustomModal'
 import { DataTable } from '@/components/CustomTable'
 import IconButtonWithTooltip from '@/components/IconButtonWithTooltip'
@@ -20,17 +21,20 @@ import {
   useGetAccountsQuery,
   useUpdateAccountMutation,
 } from '@/hooks/accountHooks'
+import { Store } from '@/lib/Store'
 import { ToLocaleStringFunc, functionReverse } from '@/lib/utils'
 import { Account } from '@/types/Account'
+import { User } from '@/types/User'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ColumnDef } from '@tanstack/react-table'
 import { ArrowUpDown, Pencil } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 const formSchema = z.object({
   firstName: z.string(),
+  lastName: z.string(),
   userTel: z.string(),
   userResidenceCountry: z.string(),
   solde: z.number(),
@@ -44,12 +48,14 @@ const Accounts = () => {
     useUpdateAccountMutation()
   const [editingAccount, setEditingAccount] = useState<Account | null>(null)
   const [modalVisibility, setModalVisibility] = useState(false)
+  const { dispatch: ctxDispatch } = useContext(Store)
 
   const form = useForm<z.infer<typeof formSchema>>({
     mode: 'onChange',
     resolver: zodResolver(formSchema),
     defaultValues: {
       firstName: editingAccount ? editingAccount.firstName : '',
+      lastName: editingAccount ? editingAccount.lastName : '',
       userTel: editingAccount ? editingAccount.userTel : '',
       userResidenceCountry: editingAccount
         ? editingAccount.userResidenceCountry
@@ -64,6 +70,7 @@ const Accounts = () => {
     if (editingAccount) {
       form.reset({
         firstName: editingAccount.firstName || '',
+        lastName: editingAccount.lastName || '',
         userTel: editingAccount.userTel || '',
         userResidenceCountry: editingAccount.userResidenceCountry || '',
         solde: editingAccount.solde || 0,
@@ -83,17 +90,28 @@ const Accounts = () => {
       },
     },
     {
-      accessorKey: 'firstName',
+      id: 'fullName',
       header: ({ column }) => {
         return (
           <Button
             variant='ghost'
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
-            Nom
+            Prénoms & Nom
             <ArrowUpDown className='ml-2 h-4 w-4' />
           </Button>
         )
+      },
+      accessorFn: (row) => `${row.firstName} ${row.lastName}`, // Génère dynamiquement le champ
+      cell: ({ row }) => (
+        <div>
+          {row.original.firstName} {row.original.lastName}
+        </div>
+      ),
+      sortingFn: (rowA, rowB, columnId) => {
+        const nameA = String(rowA.getValue(columnId)).toLowerCase()
+        const nameB = String(rowB.getValue(columnId)).toLowerCase()
+        return nameA.localeCompare(nameB)
       },
     },
     {
@@ -175,6 +193,17 @@ const Accounts = () => {
         userId: editingAccount?.userId ?? '',
         _id: editingAccount?._id,
       })
+
+      // 🔁 Rafraîchir le Store si c'est l'utilisateur connecté
+      if (editingAccount?.userId) {
+        const updatedUser = await apiClient.get<User>(
+          `api/users/${editingAccount.userId}`
+        )
+
+        // Mettre à jour le Store et le localStorage avec les nouvelles données
+        ctxDispatch({ type: 'USER_LOGIN', payload: updatedUser.data })
+        localStorage.setItem('userInfo', JSON.stringify(updatedUser.data))
+      }
       toast({
         variant: 'default',
         title: 'Modification Compte',
@@ -231,6 +260,20 @@ const Accounts = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className='text-sm'>Prénoms</FormLabel>
+                    <FormControl>
+                      <Input placeholder='Nom' {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name='lastName'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className='text-sm'>Nom</FormLabel>
                     <FormControl>
                       <Input placeholder='Nom' {...field} />
                     </FormControl>

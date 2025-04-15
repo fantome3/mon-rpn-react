@@ -8,7 +8,7 @@ import { Store } from '@/lib/Store'
 import { useNewAccountMutation } from '@/hooks/accountHooks'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from './ui/use-toast'
-import { refresh } from '@/lib/utils'
+import { refresh, ToLocaleStringFunc } from '@/lib/utils'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -26,6 +26,7 @@ import { Input } from './ui/input'
 import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card'
 import { useNewUserNotificationMutation } from '@/hooks/userHooks'
 import { Interac } from '@/types/Account'
+import { useNewTransactionMutation } from '@/hooks/transactionHooks'
 
 const formSchema = z.object({
   amountInterac: z
@@ -46,6 +47,7 @@ const InteracPayment = () => {
   const { mutateAsync: account, isPending } = useNewAccountMutation()
   const { mutateAsync: newUserNotification, isPending: notificationPending } =
     useNewUserNotificationMutation()
+  const { mutateAsync: newTransaction } = useNewTransactionMutation()
   const navigate = useNavigate()
   const { search } = useLocation()
   const redirectInUrl = new URLSearchParams(search).get('redirect')
@@ -92,8 +94,8 @@ const InteracPayment = () => {
         newInteracTransaction,
       ]
       const data = await account({
-        firstName: `${userInfo?.origines.firstName!} ${userInfo?.origines
-          .lastName!}`,
+        firstName: userInfo?.origines.firstName!,
+        lastName: userInfo?.origines.lastName!,
         userTel: userInfo?.infos.tel!,
         userResidenceCountry: userInfo?.infos.residenceCountry!,
         solde: values.amountInterac,
@@ -101,6 +103,15 @@ const InteracPayment = () => {
         userId: userInfo?._id!,
         interac: updatedInteracTransactions,
       })
+
+      await newTransaction({
+        userId: userInfo?._id,
+        amount: values.amountInterac,
+        type: 'credit',
+        reason: 'Renfouement via Interac',
+        status: 'pending',
+      })
+
       ctxDispatch({ type: 'ACCOUNT_INFOS', payload: data })
       localStorage.setItem('accountInfo', JSON.stringify(data))
       toast({
@@ -119,8 +130,6 @@ const InteracPayment = () => {
       })
     }
   }
-
-  const { register } = form
 
   return (
     <>
@@ -158,10 +167,15 @@ Par la suite entrez les informations du virement que vous avez effectuer pour re
                     <FormLabel>Montant Envoyé</FormLabel>
                     <FormControl>
                       <Input
-                        type='number'
+                        type='text'
                         placeholder='25'
-                        {...field}
-                        {...register('amountInterac', { valueAsNumber: true })}
+                        value={ToLocaleStringFunc(field.value)}
+                        onChange={(event) => {
+                          const rawValue = event.target.value.replace(/\s/g, '')
+                          if (/^\d*$/.test(rawValue)) {
+                            field.onChange(Number(rawValue))
+                          }
+                        }}
                       />
                     </FormControl>
                     <FormMessage />

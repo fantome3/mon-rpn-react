@@ -5,6 +5,6 @@ export type Transaction = {
   amount: number
   type: 'debit' | 'credit'
   reason: string
-  status: 'completed' | 'failed'
+  status: 'completed' | 'failed' | 'pending'
   createdAt?: Date
 }

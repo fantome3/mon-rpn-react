@@ -14,8 +14,6 @@ import StatusTransactionDetail from './StatusTransactionDetail'
 export default function BilanTransactions() {
   const { data: summary, isPending } = useGetTransactionSummaryQuery()
 
-  console.log(summary)
-
   // Préparer les données pour le graphique mensuel
   const monthlyChartData = summary.monthlySummary
     ? [...summary.monthlySummary]

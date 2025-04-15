@@ -11,6 +11,20 @@ import { sendBalanceReminderIfNeeded } from '../services/checkMinimumBalanceAndS
 export const transactionRouter = express.Router()
 
 transactionRouter.post(
+  '/new',
+  expressAsyncHandler(async (req: Request, res: Response) => {
+    try {
+      const transaction = new TransactionModel(req.body)
+      await transaction.save()
+      res.send(transaction)
+    } catch (error) {
+      res.status(400).json(error)
+      return
+    }
+  })
+)
+
+transactionRouter.post(
   '/manual-reminders',
   isAuth,
   isAdmin,

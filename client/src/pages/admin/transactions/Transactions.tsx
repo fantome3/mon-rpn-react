@@ -40,7 +40,6 @@ import TransactionsSetttings from './TransactionsSetttings'
 import TransactionPageSubmenu from './TransactionPageSubmenu'
 import ManualUserPaymentButton from '@/components/ManualUserPaymentButton'
 import ManualBalanceReminderButton from '@/components/ManualBalanceReminderButton'
-import DeleteButton from '@/components/IconButtonWithTooltip'
 import IconButtonWithTooltip from '@/components/IconButtonWithTooltip'
 
 const formSchema = z.object({
@@ -48,7 +47,7 @@ const formSchema = z.object({
   amount: z.number().min(0, { message: 'Le montant doit être positif' }),
   type: z.enum(['debit', 'credit']),
   reason: z.string().min(1, { message: 'La raison est requise' }),
-  status: z.enum(['completed', 'failed']),
+  status: z.enum(['completed', 'failed', 'pending']),
 })
 
 const Transactions = () => {
@@ -148,6 +147,13 @@ const Transactions = () => {
         if (status === 'failed') {
           return (
             <Badge className='bg-red-500 text-white text-xs'>Echouée</Badge>
+          )
+        }
+        if (status === 'pending') {
+          return (
+            <Badge className='bg-yellow-500 text-white text-xs'>
+              En attente
+            </Badge>
           )
         }
       },

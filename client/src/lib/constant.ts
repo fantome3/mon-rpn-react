@@ -372,6 +372,10 @@ export const transactionStatus = [
     status: 'failed',
     value: 'Echouée',
   },
+  {
+    status: 'pending',
+    value: 'En attente',
+  },
 ]
 
 // Couleurs pour le graphique de statut

@@ -54,6 +54,9 @@ export class Account {
   public firstName!: string
 
   @prop({ required: true })
+  public lastName!: string
+
+  @prop({ required: true })
   public userTel!: string
 
   @prop({ required: true })

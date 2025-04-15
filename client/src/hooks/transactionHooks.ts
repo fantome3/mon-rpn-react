@@ -2,6 +2,13 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import apiClient from '@/apiClient'
 import { Transaction } from '@/types/Transaction'
 
+export const useNewTransactionMutation = () =>
+  useMutation({
+    mutationFn: async (transaction: Transaction) =>
+      (await apiClient.post<Transaction>(`api/transactions/new`, transaction))
+        .data,
+  })
+
 export const useManualBalanceReminderMutation = () =>
   useMutation({
     mutationFn: async (userId: string) =>
