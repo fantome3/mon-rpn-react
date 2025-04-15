@@ -230,3 +230,28 @@ export const sendMembershipSuccessEmail = async (
     console.error(`❌ Erreur envoi mail de confirmation`, error)
   }
 }
+
+export const sendLowerBanlanceAlertEmail = async (
+  email: string,
+  balance: number,
+  required: number
+) => {
+  const subject = '🚨 Solde insuffisant pour les prélèvements RPN'
+  const text = `
+  Bonjour,
+
+  Votre solde actuel est de ${balance} CAD, alors que le minimum requis pour les prélèvements RPN est de ${required} CAD.
+
+  Veuillez renflouer votre compte pour continuer à bénéficier du service.
+
+  Cordialement,
+  L’équipe MON-RPN.
+  `
+
+  try {
+    await sendEmail({ to: email, subject, text })
+    console.log(`📨 Email de rappel envoyé à ${email}`)
+  } catch (error) {
+    console.error(`❌ Erreur envoi mail de rappel`, error)
+  }
+}

@@ -124,3 +124,32 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
     })
   }
 }
+
+const generateReferralCode = (lastName: string, firstName: string): string => {
+  const codeBase = `${lastName.slice(0, 2).toUpperCase()}${firstName
+    .slice(0, 1)
+    .toUpperCase()}`
+  const randomNumbers = Math.floor(1000 + Math.random() * 9000)
+  return `${codeBase}${randomNumbers}`
+}
+
+export const generateUniqueReferralCode = async (
+  lastName: string,
+  firstName: string
+): Promise<string> => {
+  let code: string
+  let exists = true
+  let attempt = 0
+
+  do {
+    code = generateReferralCode(lastName, firstName)
+    const existingUser = await UserModel.findOne({ referralCode: code })
+    exists = !!existingUser
+    attempt++
+    if (attempt > 10) {
+      throw new Error('Echec génération code parainage unique après 10 essais.')
+    }
+  } while (exists)
+
+  return code
+}

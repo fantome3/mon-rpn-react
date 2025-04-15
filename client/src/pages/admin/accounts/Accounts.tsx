@@ -1,6 +1,9 @@
 import CustomModal from '@/components/CustomModal'
 import { DataTable } from '@/components/CustomTable'
+import IconButtonWithTooltip from '@/components/IconButtonWithTooltip'
 import Loading from '@/components/Loading'
+import ManualBalanceReminderButton from '@/components/ManualBalanceReminderButton'
+import ManualUserPaymentButton from '@/components/ManualUserPaymentButton'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -148,16 +151,18 @@ const Accounts = () => {
       enableHiding: false,
       cell: ({ row }) => (
         <div className='flex '>
-          <Button variant='ghost' size='sm'>
-            <Pencil
-              size={20}
-              onClick={() => {
-                setEditingAccount(row.original)
-                setModalVisibility(true)
-              }}
-              className='text-[#5ec81b]'
-            />
-          </Button>
+          <IconButtonWithTooltip
+            icon={<Pencil size={20} className='text-green-800' />}
+            tooltip='Modifier'
+            onClick={() => {
+              setEditingAccount(row.original)
+              setModalVisibility(true)
+            }}
+          />
+          <div className='font-semibold text-[#b9bdbc] mx-2'>|</div>
+          <ManualUserPaymentButton userId={row.original.userId} />
+          <div className='font-semibold text-[#b9bdbc] mx-2'>|</div>
+          <ManualBalanceReminderButton userId={row.original.userId} />
         </div>
       ),
     },

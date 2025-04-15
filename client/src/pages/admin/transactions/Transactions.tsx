@@ -38,6 +38,10 @@ import { z } from 'zod'
 import BilanTransactions from './BilanTransactions'
 import TransactionsSetttings from './TransactionsSetttings'
 import TransactionPageSubmenu from './TransactionPageSubmenu'
+import ManualUserPaymentButton from '@/components/ManualUserPaymentButton'
+import ManualBalanceReminderButton from '@/components/ManualBalanceReminderButton'
+import DeleteButton from '@/components/IconButtonWithTooltip'
+import IconButtonWithTooltip from '@/components/IconButtonWithTooltip'
 
 const formSchema = z.object({
   userId: z.union([z.string(), z.any()]),
@@ -172,27 +176,27 @@ const Transactions = () => {
       enableHiding: false,
       cell: ({ row }) => (
         <div className='flex '>
-          <Button variant='ghost' size='sm'>
-            <Pencil
-              size={20}
-              onClick={() => {
-                setEditingTransaction(row.original)
-                setModalVisibility(true)
-              }}
-              className='text-green-900 dark:text-[#5ec81b]'
-            />
-          </Button>
+          <IconButtonWithTooltip
+            icon={<Pencil size={20} className='text-green-800' />}
+            tooltip='Modifier'
+            onClick={() => {
+              setEditingTransaction(row.original)
+              setModalVisibility(true)
+            }}
+          />
           <div className='font-semibold text-[#b9bdbc] mx-2'>|</div>
-          <Button variant='ghost' size='sm'>
-            <Trash2
-              size={20}
-              onClick={() => {
-                setEditingTransaction(row.original)
-                setDeleteModal(true)
-              }}
-              className='text-red-800 dark:text-red-500  cursor-pointer'
-            />
-          </Button>
+          <IconButtonWithTooltip
+            icon={<Trash2 size={20} className='text-red-600' />}
+            tooltip='Supprimer'
+            onClick={() => {
+              setEditingTransaction(row.original)
+              setDeleteModal(true)
+            }}
+          />
+          <div className='font-semibold text-[#b9bdbc] mx-2'>|</div>
+          <ManualUserPaymentButton userId={row.original.userId?._id} />
+          <div className='font-semibold text-[#b9bdbc] mx-2'>|</div>
+          <ManualBalanceReminderButton userId={row.original.userId?._id} />
         </div>
       ),
     },

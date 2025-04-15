@@ -5,7 +5,6 @@ import {
   Ref,
   Severity,
 } from '@typegoose/typegoose'
-import { v4 as uuidv4 } from 'uuid'
 
 class Infos {
   @prop({ required: true })
@@ -175,7 +174,7 @@ export class User {
   @prop({ required: true, default: new Subscription() })
   public subscription!: Subscription
 
-  @prop({ default: () => uuidv4() }) // Generate unique UUID
+  @prop({})
   public referralCode?: string
 
   @prop({ ref: User, required: false }) // Reference to another User document

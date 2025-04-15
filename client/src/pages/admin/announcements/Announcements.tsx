@@ -1,6 +1,7 @@
 import { Calendar } from '@/components/CustomCalendar'
 import CustomModal from '@/components/CustomModal'
 import { DataTable } from '@/components/CustomTable'
+import IconButtonWithTooltip from '@/components/IconButtonWithTooltip'
 import Loading from '@/components/Loading'
 import { Button } from '@/components/ui/button'
 import {
@@ -120,19 +121,21 @@ const Announcements = () => {
       enableHiding: false,
       cell: ({ row }) => (
         <div className='flex '>
-          <Pencil
-            size={20}
+          <IconButtonWithTooltip
+            icon={<Pencil size={20} className='text-green-800 ' />}
+            tooltip='Modifier'
             onClick={() => {
               setEditingAnnouncement(row.original)
               setModalVisibility(true)
             }}
-            className='dark:text-green-500 text-green-800 mr-4 cursor-pointer'
           />
-          <div className='font-semibold text-[#b9bdbc] mr-2'>|</div>
-          <Trash2
-            size={20}
+
+          <div className='font-semibold text-[#b9bdbc] mx-2'>|</div>
+
+          <IconButtonWithTooltip
+            icon={<Trash2 size={20} className='text-red-600' />}
+            tooltip='Supprimer'
             onClick={() => {}}
-            className='text-red-800 dark:text-red-500 ml-4 cursor-pointer'
           />
         </div>
       ),
@@ -194,7 +197,9 @@ const Announcements = () => {
     <>
       <div className='container mt-16 flex items-center justify-between'>
         <h1 className='text-2xl font-semibold'>Les Annonces</h1>
-        <Button onClick={() => setModalVisibility(true)}>Ajouter</Button>
+        <Button onClick={() => setModalVisibility(true)}>
+          Publier un décès
+        </Button>
       </div>
       {isPending ? (
         <Loading />

@@ -1,10 +1,17 @@
 import cron from 'node-cron'
 import { processAnnualMembershipPayment } from '../services/membershipService'
+import { checkMinimumBalanceAndSendReminder } from '../services/checkMinimumBalanceAndSendReminder'
 
 //Chaque dimanche de janvier à 10h du matin
 cron.schedule('0 10 * 1 0', async () => {
   console.log('Lancement du rappel de cotisation annuelle...')
   await processAnnualMembershipPayment()
+})
+
+//Verification des soldes insuffisants tous les dimanches
+cron.schedule('0 9 * * 0', async () => {
+  console.log('📢 Vérification des soldes insuffisants...')
+  await checkMinimumBalanceAndSendReminder()
 })
 
 //Test sur la marche ou non du cron

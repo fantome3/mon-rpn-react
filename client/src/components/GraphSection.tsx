@@ -220,19 +220,11 @@ const GraphSection = ({
               <Tooltip
                 formatter={(value: number) => [formatNumber(value), 'Décès']}
                 labelFormatter={(label) => `Mois: ${label}`}
-                contentStyle={{
-                  backgroundColor: 'var(--background)',
-                  border: '1px solid var(--border)',
-                  borderRadius: '6px',
-                  boxShadow: 'var(--shadow)',
-                }}
               />
               <Bar
                 dataKey='décès'
                 fill='hsl(var(--primary))'
                 radius={[4, 4, 0, 0]}
-                barSize={50}
-                animationDuration={500}
               />
             </BarChart>
           </ResponsiveContainer>

@@ -52,6 +52,7 @@ import {
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { Calendar } from '@/components/CustomCalendar'
+import IconButtonWithTooltip from '@/components/IconButtonWithTooltip'
 
 const formSchema = z.object({
   firstName: z.string(),
@@ -217,38 +218,31 @@ const Dependents = () => {
       enableHiding: false,
       cell: ({ row }) => (
         <div className='flex '>
-          <Button
-            disabled={row.original.status === 'deleted'}
-            variant='ghost'
-            size='sm'
-          >
-            <Pencil
-              onClick={() => {
-                setEditingItem(row.original)
-                setModalVisibility(true)
-                setGetIndex(row.index)
-              }}
-              className='text-[#5ec81b] mr-4'
-            />
-          </Button>
+          <IconButtonWithTooltip
+            icon={<Pencil size={20} className='text-green-800 ' />}
+            tooltip='Modifier'
+            onClick={() => {
+              setEditingItem(row.original)
+              setModalVisibility(true)
+              setGetIndex(row.index)
+            }}
+            disabled={row.original.status === 'deleted' ? true : false}
+          />
 
-          <div className='font-semibold text-[#b9bdbc]'>
+          <div className='font-semibold text-[#b9bdbc] mx-4'>
             <Tally1 size={30} />
           </div>
-          <Button
-            disabled={row.original.status === 'deleted'}
-            variant='ghost'
-            size='sm'
-          >
-            <Trash2
-              onClick={() => {
-                setEditingItem(row.original)
-                setDeleteModal(true)
-                setGetIndex(row.index)
-              }}
-              className='text-[#f10c0c] ml-4'
-            />
-          </Button>
+
+          <IconButtonWithTooltip
+            icon={<Trash2 size={20} className='text-red-600' />}
+            tooltip='Supprimer'
+            onClick={() => {
+              setEditingItem(row.original)
+              setDeleteModal(true)
+              setGetIndex(row.index)
+            }}
+            disabled={row.original.status === 'deleted' ? true : false}
+          />
         </div>
       ),
     },

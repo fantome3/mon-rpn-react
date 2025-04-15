@@ -202,7 +202,7 @@ deathAnnouncementRouter.get(
           month: [
             {
               $match: {
-                createdAt: {
+                deathDate: {
                   $gte: firstDay,
                   $lt: lastDate,
                 },
@@ -220,7 +220,7 @@ deathAnnouncementRouter.get(
           today: [
             {
               $match: {
-                createdAt: {
+                deathDate: {
                   $gte: today,
                   $lt: tomorrow,
                 },
@@ -238,7 +238,7 @@ deathAnnouncementRouter.get(
           yesterday: [
             {
               $match: {
-                createdAt: {
+                deathDate: {
                   $gte: yesterday,
                   $lt: today,
                 },
@@ -264,7 +264,7 @@ deathAnnouncementRouter.get(
     const totalMonthly = await DeathAnnouncementModel.aggregate([
       {
         $match: {
-          createdAt: {
+          deathDate: {
             $gte: yearfirstDay,
             $lt: yearlastDay,
           },
@@ -273,7 +273,7 @@ deathAnnouncementRouter.get(
       {
         $group: {
           _id: {
-            $month: '$createdAt',
+            $month: '$deathDate',
           },
           totalDeaths: {
             $sum: 1,

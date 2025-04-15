@@ -2,7 +2,13 @@ import express, { Request, Response } from 'express'
 import expressAsyncHandler from 'express-async-handler'
 import { UserModel } from '../models/userModel'
 import bcrypt from 'bcryptjs'
-import { isAdmin, isAuth, generateToken, generatePasswordToken } from '../utils'
+import {
+  isAdmin,
+  isAuth,
+  generateToken,
+  generatePasswordToken,
+  generateUniqueReferralCode,
+} from '../utils'
 import jwt from 'jsonwebtoken'
 import { AccountModel } from '../models/accountModel'
 import {
@@ -235,6 +241,11 @@ userRouter.post(
         return
       }
 
+      const referralCode = await generateUniqueReferralCode(
+        origines.lastName,
+        origines.firstName
+      )
+
       const newUser = new UserModel({
         register: {
           ...register,
@@ -246,6 +257,7 @@ userRouter.post(
         isAdmin,
         cpdLng,
         referredBy,
+        referralCode,
       })
       const user = await newUser.save()
       res.send({
@@ -259,6 +271,26 @@ userRouter.post(
       return
     } catch (error: any) {
       res.status(400).json({ message: 'Bad Request', error: error.message })
+      return
+    }
+  })
+)
+
+userRouter.get(
+  '/all',
+  //isAuth,
+  //isAdmin,
+  expressAsyncHandler(async (req: Request, res: Response) => {
+    try {
+      const users = await UserModel.find()
+      const countUsers = await UserModel.countDocuments()
+      res.send({
+        users,
+        countUsers,
+      })
+      return
+    } catch (error) {
+      res.status(400).json(error)
       return
     }
   })
@@ -309,26 +341,6 @@ userRouter.get(
         .populate('referredBy', '_id origines.firstName origines.lastName')
         .sort({ createdAt: -1 })
       res.send(users)
-      return
-    } catch (error) {
-      res.status(400).json(error)
-      return
-    }
-  })
-)
-
-userRouter.get(
-  '/all',
-  isAuth,
-  isAdmin,
-  expressAsyncHandler(async (req: Request, res: Response) => {
-    try {
-      const users = await UserModel.find()
-      const countUsers = await UserModel.countDocuments()
-      res.send({
-        users,
-        countUsers,
-      })
       return
     } catch (error) {
       res.status(400).json(error)

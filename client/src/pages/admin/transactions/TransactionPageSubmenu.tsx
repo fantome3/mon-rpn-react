@@ -42,7 +42,7 @@ const TransactionPageSubmenu = ({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant='ghost' size='icon'>
-              <Settings className='w-5 h-5' />
+              <Settings className='w-6 h-6' />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align='end'>
