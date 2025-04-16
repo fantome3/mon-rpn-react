@@ -50,7 +50,7 @@ const TransactionStatus = ({
                       `${name} ${(percent * 100).toFixed(0)}%`
                     }
                   >
-                    {statusChartData.map((entry: any, index: number) => (
+                    {statusChartData.map((index: number) => (
                       <Cell
                         key={`cell-${index}`}
                         fill={COLORS[index % COLORS.length]}

@@ -73,6 +73,7 @@ const UpdateCreditCardPayment = () => {
 
         const data = await updateAccount({
           firstName: accountByUserId[0]?.firstName ?? '',
+          lastName: accountByUserId[0]?.lastName ?? '',
           userTel: accountByUserId[0]?.userTel ?? '',
           userResidenceCountry: accountByUserId[0]?.userResidenceCountry ?? '',
           solde: accountByUserId[0]?.solde ?? 0,
