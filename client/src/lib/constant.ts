@@ -379,4 +379,10 @@ export const transactionStatus = [
 ]
 
 // Couleurs pour le graphique de statut
+export const STATUS_COLOR_MAP: Record<string, string> = {
+  Complété: '#34d399',
+  'En attente': '#3b82f6',
+  Échoué: '#f43f5e',
+}
+
 export const COLORS = ['#0088FE', '#00C49F', '#FF8042']

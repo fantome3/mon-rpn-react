@@ -72,7 +72,7 @@ userRouter.post(
     jwt.verify(
       token,
       process.env.JWT_SECRET || 'ddlfjssdmsmdkskm',
-      (error, decoded) => {
+      async (error, decoded) => {
         if (error) {
           return res.send({
             message: 'Error with token',
@@ -83,9 +83,8 @@ userRouter.post(
               message: 'Password Do Not Match',
             })
           }
-          updateUserPassword(id, password)
-            .then((status) => res.send({ Status: status }))
-            .catch((error) => res.send({ Status: error }))
+          const status = await updateUserPassword(id, password)
+          res.send({ Status: status })
         }
       }
     )
@@ -105,7 +104,9 @@ userRouter.post(
         res.status(400).send('Password Require')
         return
       }
-      sendPassword({ email, password })
+      await sendPassword({ email, password })
+      res.status(200).send('Mot de passe envoyé')
+      return
     } catch (error) {
       console.log(error)
       res.status(500).send('Erreur du serveur')
@@ -278,8 +279,8 @@ userRouter.post(
 
 userRouter.get(
   '/all',
-  //isAuth,
-  //isAdmin,
+  isAuth,
+  isAdmin,
   expressAsyncHandler(async (req: Request, res: Response) => {
     try {
       const users = await UserModel.find()

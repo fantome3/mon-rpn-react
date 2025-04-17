@@ -15,7 +15,7 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from 'recharts'
-import { COLORS } from '@/lib/constant'
+import { STATUS_COLOR_MAP, COLORS } from '@/lib/constant'
 
 const TransactionStatus = ({
   isPending,
@@ -50,10 +50,13 @@ const TransactionStatus = ({
                       `${name} ${(percent * 100).toFixed(0)}%`
                     }
                   >
-                    {statusChartData.map((index: number) => (
+                    {statusChartData.map((item: any, index: number) => (
                       <Cell
                         key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
+                        fill={
+                          STATUS_COLOR_MAP[item.name] ??
+                          COLORS[index % COLORS.length]
+                        }
                       />
                     ))}
                   </Pie>

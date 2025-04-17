@@ -35,7 +35,7 @@ export default function BilanTransactions() {
   const statusChartData = summary.statusSummary
     ? summary.statusSummary.map((item: any) => ({
         name:
-          item._id === null
+          item._id === 'pending'
             ? 'En attente'
             : item._id === 'completed'
             ? 'Complété'

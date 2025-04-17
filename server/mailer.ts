@@ -31,16 +31,7 @@ export const sendEmail = async ({
     html: html || `<p>${text}</p>`,
   }
 
-  return transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.log(`Erreur lors de l'envoi du mail`)
-      return
-    } else {
-      console.log(`Email envoyé: ${info.response}`)
-      console.log('E-mail envoyé')
-      return
-    }
-  })
+  return await transporter.sendMail(mailOptions)
 }
 
 export const sendForgotPasswordEmail = async ({
