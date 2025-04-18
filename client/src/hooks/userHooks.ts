@@ -42,17 +42,27 @@ export const useForgotPasswordMutation = () =>
 export const useResetPasswordMutation = () =>
   useMutation({
     mutationFn: async ({
+      confirmPassword,
       password,
       userId,
       token,
     }: {
+      confirmPassword: string
       password: string
       userId: string
       token: string
     }) =>
       await apiClient.post(`api/users/reset-password/${userId}/${token}`, {
         password,
+        confirmPassword,
       }),
+
+    onSuccess: () => {
+      console.log('Reset password succeed')
+    },
+    onError: (error) => {
+      console.error('Reset password failed:', error)
+    },
   })
 
 export const useLoginMutation = () =>
@@ -74,8 +84,8 @@ export const useLoginMutation = () =>
         })
       ).data,
 
-    onSuccess: (user) => {
-      console.log('Login successful:', user)
+    onSuccess: () => {
+      console.log('Login successful')
     },
     onError: (error) => {
       console.error('Login failed:', error)

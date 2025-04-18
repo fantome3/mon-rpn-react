@@ -61,7 +61,7 @@ export const functionTranslate = (str: string) => {
     return 'Date'
   }
 
-  if (str === 'userTel') {
+  if (str === 'userTel' || str === 'tel') {
     return 'Téléphone'
   }
   if (str === 'userResidenceCountry') {
@@ -99,6 +99,14 @@ export const functionTranslate = (str: string) => {
 
   if (str === 'fullName') {
     return 'Utilisateur'
+  }
+
+  if (str === 'residenceCountryStatus') {
+    return 'Status au Canada'
+  }
+
+  if (str === 'birthDate') {
+    return 'Date de Naissance'
   }
 }
 

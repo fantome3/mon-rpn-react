@@ -74,14 +74,16 @@ userRouter.post(
       process.env.JWT_SECRET || 'ddlfjssdmsmdkskm',
       async (error, decoded) => {
         if (error) {
-          return res.send({
+          res.send({
             message: 'Error with token',
           })
+          return
         } else {
           if (password !== confirmPassword) {
-            return res.send({
+            res.send({
               message: 'Password Do Not Match',
             })
+            return
           }
           const status = await updateUserPassword(id, password)
           res.send({ Status: status })
@@ -96,21 +98,15 @@ userRouter.post(
   expressAsyncHandler(async (req: Request, res: Response) => {
     try {
       const { email, password } = req.body
-      if (!email) {
-        res.status(400).send('Email Require')
-        return
-      }
-      if (!password) {
-        res.status(400).send('Password Require')
+      if (!email || !password) {
+        res.status(400).send({ message: 'Email et mot de passe requis' })
         return
       }
       await sendPassword({ email, password })
-      res.status(200).send('Mot de passe envoyé')
-      return
+      res.status(200).send({ message: 'Mot de passe envoyé avec succès' })
     } catch (error) {
       console.log(error)
-      res.status(500).send('Erreur du serveur')
-      return
+      res.status(500).json({ message: 'Erreur lors de l’envoi de l’email' })
     }
   })
 )
