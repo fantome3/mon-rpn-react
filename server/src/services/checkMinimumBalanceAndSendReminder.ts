@@ -1,30 +1,37 @@
-import { sendLowerBanlanceAlertEmail } from '../../mailer'
+import {
+  sendDeactivationWarningEmail,
+  sendLowerBanlanceAlertEmail,
+} from '../mailer'
 import { AccountModel } from '../models/accountModel'
 import { SettingsModel } from '../models/settingsModel'
 import { UserModel } from '../models/userModel'
+import { calculateTotalPersons } from '../utils'
+import { handleFailedPrelevement } from './subscriptionService'
 
 export const checkMinimumBalanceAndSendReminder = async () => {
   const settings = await SettingsModel.findOne()
   const MINIMUM_UNIT = settings?.minimumBalanceRPN || 50
+  const MAX_MISSED = settings?.maxMissedReminders || 3
 
   const users = await UserModel.find()
   for (const user of users) {
-    const dependents =
-      user.familyMembers?.filter((member) => {
-        const age =
-          new Date().getFullYear() - new Date(member.birthDate).getFullYear()
-        return age >= 18
-      }) || []
-
-    const userAge =
-      new Date().getFullYear() - new Date(user.origines.birthDate).getFullYear()
-    const totalPersons = (userAge >= 18 ? 1 : 0) + dependents.length
+    const totalPersons = calculateTotalPersons(user)
 
     const account = await AccountModel.findOne({ userId: user._id })
     if (!account) continue
 
     const minRequired = totalPersons * MINIMUM_UNIT
+
     if (account.solde < minRequired) {
+      await handleFailedPrelevement({
+        user,
+        type: 'balance',
+        totalToDeduct: minRequired,
+        solde: account.solde,
+        maxMissed: MAX_MISSED,
+        totalPersons,
+      })
+
       await sendLowerBanlanceAlertEmail(
         user.register.email,
         account.solde,
@@ -40,22 +47,24 @@ export const sendBalanceReminderIfNeeded = async (userId: string) => {
 
   const settings = await SettingsModel.findOne()
   const MIN_UNIT = settings?.minimumBalanceRPN || 10
+  const MAX_MISSED = settings?.maxMissedReminders || 3
 
-  const currentYear = new Date().getFullYear()
-  const dependents =
-    user.familyMembers?.filter((member) => {
-      const age = currentYear - new Date(member.birthDate).getFullYear()
-      return age >= 18
-    }) || []
-
-  const userAge = currentYear - new Date(user.origines.birthDate).getFullYear()
-  const totalPersons = (userAge >= 18 ? 1 : 0) + dependents.length
+  const totalPersons = calculateTotalPersons(user)
   const minimumRequired = totalPersons * MIN_UNIT
 
   const account = await AccountModel.findOne({ userId })
   if (!account) return { status: 'NO_ACCOUNT' }
 
   if (account.solde < minimumRequired) {
+    await handleFailedPrelevement({
+      user,
+      type: 'balance',
+      totalToDeduct: minimumRequired,
+      solde: account.solde,
+      maxMissed: MAX_MISSED,
+      totalPersons,
+    })
+
     await sendLowerBanlanceAlertEmail(
       user.register.email,
       account.solde,

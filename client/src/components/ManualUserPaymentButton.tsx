@@ -3,7 +3,13 @@ import { toast } from './ui/use-toast'
 import { DollarSign } from 'lucide-react'
 import IconButtonWithTooltip from './IconButtonWithTooltip'
 
-const ManualUserPaymentButton = ({ userId }: { userId?: string }) => {
+const ManualUserPaymentButton = ({
+  userId,
+  disabled,
+}: {
+  userId?: string
+  disabled?: boolean
+}) => {
   const { mutateAsync: manualPayment, isPending } =
     useManualUserPaymentMutation()
 
@@ -51,7 +57,7 @@ const ManualUserPaymentButton = ({ userId }: { userId?: string }) => {
       tooltip='Prélèvement pour cotisation annuelle.'
       onClick={handleManualPayment}
       variant='ghost'
-      disabled={isPending ? true : false}
+      disabled={isPending || disabled}
     />
   )
 }

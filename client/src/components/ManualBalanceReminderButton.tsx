@@ -3,7 +3,13 @@ import { toast } from './ui/use-toast'
 import { Bell } from 'lucide-react'
 import IconButtonWithTooltip from './IconButtonWithTooltip'
 
-const ManualBalanceReminderButton = ({ userId }: { userId?: string }) => {
+const ManualBalanceReminderButton = ({
+  userId,
+  disabled,
+}: {
+  userId?: string
+  disabled?: boolean
+}) => {
   const { mutateAsync: balanceReminder, isPending } =
     useManualBalanceReminderMutation()
 
@@ -41,7 +47,7 @@ const ManualBalanceReminderButton = ({ userId }: { userId?: string }) => {
       tooltip=' Rappel pour solde insuffisant.'
       onClick={handleClick}
       variant='ghost'
-      disabled={isPending ? true : false}
+      disabled={isPending || disabled}
     />
   )
 }

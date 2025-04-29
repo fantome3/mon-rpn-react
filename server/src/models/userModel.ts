@@ -133,8 +133,27 @@ class Subscription {
   @prop({ required: true, default: Date.now })
   public startDate!: Date
 
-  @prop({ required: true, default: 'registered' })
-  public status!: string //Active, Inactive, Current, Registered
+  @prop({
+    required: true,
+    default: 'registered',
+    enum: ['registered', 'active', 'inactive', 'expired'],
+  })
+  public status!: 'registered' | 'active' | 'inactive' | 'expired'
+
+  @prop({ default: undefined })
+  public endDate?: Date
+
+  @prop({ default: 0 })
+  public missedRemindersCount?: number // Nombre de rappels ignorés
+
+  @prop({ default: undefined })
+  public scheduledDeactivationDate?: Date // Date de désactivation programmée
+
+  @prop({ default: null }) // Ex: 2024
+  public lastMembershipPaymentYear?: number
+
+  @prop({ default: false })
+  public membershipPaidThisYear?: boolean
 }
 
 @modelOptions({
@@ -188,12 +207,6 @@ export class User {
 
   @prop({ default: Date.now })
   public infosTime?: Date
-
-  @prop({ default: null }) // Ex: 2024
-  public lastMembershipPaymentYear?: number
-
-  @prop({ default: false })
-  public membershipPaidThisYear?: boolean
 }
 
 export const UserModel = getModelForClass(User)

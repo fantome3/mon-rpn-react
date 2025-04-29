@@ -2,38 +2,33 @@ import { UserModel } from '../models/userModel'
 import { TransactionModel } from '../models/transactionModel'
 import { AccountModel } from '../models/accountModel'
 import { SettingsModel } from '../models/settingsModel'
+import { calculateTotalPersons } from '../utils'
 import {
-  sendMembershipReminderEmail,
+  sendAccountDeactivatedEmail,
+  sendDeactivationWarningEmail,
   sendMembershipSuccessEmail,
-} from '../../mailer'
+  sendPrelevementFailedEmail,
+} from '../mailer'
+import { handleFailedPrelevement } from './subscriptionService'
 
 export const processAnnualMembershipPayment = async () => {
   const users = await UserModel.find()
   const settings = await SettingsModel.findOne()
   const MEMBERSHIP_UNIT_AMOUNT = settings?.membershipUnitAmount || 10
-
+  const maxMissed = settings?.maxMissedReminders || 3
   const currentYear = new Date().getFullYear()
 
   for (const user of users) {
     //Ignorer si paiement déjà effectué cette année
     if (
-      user.lastMembershipPaymentYear === currentYear &&
-      user.membershipPaidThisYear
+      user.subscription?.lastMembershipPaymentYear === currentYear &&
+      user.subscription?.membershipPaidThisYear
     ) {
       continue
     }
 
     //Calcul du nombre de personnes à charge + user (18+)
-    const dependents =
-      user.familyMembers?.filter((member) => {
-        const age =
-          new Date().getFullYear() - new Date(member.birthDate).getFullYear()
-        return age >= 18
-      }) || []
-
-    const userAge =
-      new Date().getFullYear() - new Date(user.origines.birthDate).getFullYear()
-    const totalPersons = (userAge >= 18 ? 1 : 0) + dependents.length
+    const totalPersons = calculateTotalPersons(user)
     const totalToDeduct = totalPersons * MEMBERSHIP_UNIT_AMOUNT
 
     //Chercher le compte lié à l'utilisateur
@@ -60,10 +55,18 @@ export const processAnnualMembershipPayment = async () => {
         currentYear
       )
 
-      user.lastMembershipPaymentYear = currentYear
-      user.membershipPaidThisYear = true
+      user.subscription.status = 'active'
+      user.subscription.lastMembershipPaymentYear = currentYear
+      user.subscription.membershipPaidThisYear = true
+      user.subscription.startDate = new Date()
+      user.subscription.endDate = new Date(
+        new Date().setFullYear(currentYear + 1)
+      )
+      user.subscription.missedRemindersCount = 0
+      user.subscription.scheduledDeactivationDate = undefined
       await user.save()
     } else {
+      //Paiement échoué
       await TransactionModel.create({
         userId: user._id,
         amount: totalToDeduct,
@@ -71,12 +74,15 @@ export const processAnnualMembershipPayment = async () => {
         type: 'debit',
         status: 'failed',
       })
-      //Envoyer un email de rappel
-      await sendMembershipReminderEmail(
-        user.register.email,
+
+      await handleFailedPrelevement({
+        user,
+        type: 'membership',
         totalToDeduct,
-        account.solde
-      )
+        solde: account.solde,
+        maxMissed,
+        totalPersons,
+      })
     }
   }
 }
@@ -88,23 +94,17 @@ export const processMembershipForUser = async (userId: string) => {
   }
   const settings = await SettingsModel.findOne()
   const MEMBERSHIP_UNIT_AMOUNT = settings?.membershipUnitAmount || 10
+  const maxMissed = settings?.maxMissedReminders || 3
   const currentYear = new Date().getFullYear()
 
   if (
-    user?.lastMembershipPaymentYear === currentYear &&
-    user?.membershipPaidThisYear
+    user?.subscription.lastMembershipPaymentYear === currentYear &&
+    user?.subscription.membershipPaidThisYear
   ) {
     return { status: 'ALREADY_PAID' }
   }
 
-  const dependents =
-    user?.familyMembers?.filter((member) => {
-      const age = currentYear - new Date(member.birthDate).getFullYear()
-      return age >= 18
-    }) || []
-
-  const userAge = currentYear - new Date(user!.origines.birthDate).getFullYear()
-  const totalPersons = (userAge >= 18 ? 1 : 0) + dependents.length
+  const totalPersons = calculateTotalPersons(user)
   const totalToDeduct = totalPersons * MEMBERSHIP_UNIT_AMOUNT
 
   const account = await AccountModel.findOne({ userId })
@@ -123,18 +123,17 @@ export const processMembershipForUser = async (userId: string) => {
       status: 'completed',
     })
 
-    user!.lastMembershipPaymentYear = currentYear
-    user!.membershipPaidThisYear = true
+    user!.subscription.lastMembershipPaymentYear = currentYear
+    user!.subscription.membershipPaidThisYear = true
+    user!.subscription.status = 'active'
+    user!.subscription.startDate = new Date()
+    user!.subscription.endDate = new Date(
+      new Date().setFullYear(currentYear + 1)
+    )
+    user!.subscription.missedRemindersCount = 0
+    user!.subscription.scheduledDeactivationDate = undefined
     await user!.save()
-    try {
-      await sendMembershipSuccessEmail(
-        user!.register.email,
-        totalToDeduct,
-        currentYear
-      )
-    } catch (error) {
-      console.error("Erreur lors de l'envoi de l'email de confirmation:", error)
-    }
+
     await sendMembershipSuccessEmail(
       user!.register.email,
       totalToDeduct,
@@ -150,15 +149,14 @@ export const processMembershipForUser = async (userId: string) => {
       status: 'failed',
     })
 
-    try {
-      await sendMembershipReminderEmail(
-        user!.register.email,
-        totalToDeduct,
-        account.solde
-      )
-    } catch (error) {
-      console.error("Erreur lors de l'envoi de l'email de confirmation:", error)
-    }
+    await handleFailedPrelevement({
+      user,
+      type: 'membership',
+      totalToDeduct,
+      solde: account.solde,
+      maxMissed,
+      totalPersons,
+    })
 
     return {
       status: 'INSUFFICIENT_FUNDS',
@@ -166,4 +164,66 @@ export const processMembershipForUser = async (userId: string) => {
       balance: account.solde,
     }
   }
+}
+
+export const processInactiveUsers = async () => {
+  const today = new Date()
+  const usersToDeactivate = await UserModel.find({
+    'subscription.status': { $in: ['active', 'registered'] },
+    'subscription.scheduledDeactivationDate': {
+      $lte: today,
+    },
+  })
+
+  for (const user of usersToDeactivate) {
+    user.subscription.status = 'inactive'
+    user.subscription.scheduledDeactivationDate = undefined
+    await user.save()
+
+    await sendAccountDeactivatedEmail(user.register.email)
+    console.log(`🛑 Compte désactivé : ${user.register.email}`)
+  }
+
+  console.log(
+    `✅ ${usersToDeactivate.length} comptes désactivés automatiquement.`
+  )
+}
+
+export const desactivateUserAccount = async (userId: string) => {
+  const user = await UserModel.findById(userId)
+
+  if (!user) {
+    return { status: 'NOT_FOUND', message: 'Utilisateur introuvable' }
+  }
+
+  user.subscription.status = 'inactive'
+  user.subscription.scheduledDeactivationDate = undefined
+  await user.save()
+  await sendAccountDeactivatedEmail(user.register.email)
+  console.log(`🛑 Compte désactivé manuellement pour : ${user.register.email}`)
+
+  return { status: 'SUCCESS', message: 'Compte désactivé avec succès' }
+}
+
+export const reactivateUserAccount = async (userId: string) => {
+  const user = await UserModel.findById(userId)
+
+  if (!user) {
+    return { status: 'NOT_FOUND', message: 'Utilisateur introuvable' }
+  }
+
+  user.subscription.status = 'active'
+  user.subscription.missedRemindersCount = 0
+  user.subscription.membershipPaidThisYear = true
+  user.subscription.lastMembershipPaymentYear = new Date().getFullYear()
+  user.subscription.startDate = new Date()
+  user.subscription.endDate = new Date(
+    new Date().setFullYear(new Date().getFullYear() + 1)
+  )
+  user.subscription.scheduledDeactivationDate = undefined
+  await user.save()
+
+  console.log(`✅ Compte réactivé pour : ${user.register.email}`)
+
+  return { status: 'SUCCESS', message: 'Compte réactivé avec succès' }
 }

@@ -3,4 +3,5 @@ export type SettingType = {
   membershipUnitAmount: number
   amountPerDependent: number
   minimumBalanceRPN: number
+  maxMissedReminders: number
 }

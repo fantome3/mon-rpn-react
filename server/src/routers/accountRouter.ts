@@ -25,7 +25,10 @@ accountRouter.get(
   //isAdmin,
   expressAsyncHandler(async (req: Request, res: Response) => {
     try {
-      const accounts = await AccountModel.find()
+      const accounts = await AccountModel.find().populate(
+        'userId',
+        '_id subscription.status'
+      )
       res.send(accounts)
     } catch (error) {
       res.status(400).json(error)
@@ -42,7 +45,7 @@ accountRouter.get(
       const accountsByUserId = await AccountModel.find({
         userId: req.params.userId,
       })
-        .populate('userId', '_id infos origines')
+        .populate('userId', '_id infos origines subscription.status')
         .exec()
       res.send(accountsByUserId)
     } catch (error) {

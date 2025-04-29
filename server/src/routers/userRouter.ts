@@ -15,7 +15,11 @@ import {
   sendForgotPasswordEmail,
   sendNewUserNotification,
   sendPassword,
-} from '../../mailer'
+} from '../mailer'
+import {
+  desactivateUserAccount,
+  reactivateUserAccount,
+} from '../services/membershipService'
 
 export const userRouter = express.Router()
 
@@ -394,6 +398,57 @@ userRouter.delete(
     } catch (error) {
       res.status(400).json(error)
       return
+    }
+  })
+)
+
+userRouter.put(
+  '/deactivate/:id',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params
+      const result = await desactivateUserAccount(id)
+
+      if (result.status === 'NOT_FOUND') {
+        res.status(404).json({ message: result.message })
+        return
+      }
+      if (result.status === 'SUCCESS') {
+        res.status(200).json({ message: result.message })
+        return
+      }
+    } catch (error) {
+      console.log(error)
+      res
+        .status(500)
+        .json({ message: 'Erreur lors de la désactivation du compte' })
+    }
+  })
+)
+
+userRouter.put(
+  '/reactivate/:id',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params
+      const result = await reactivateUserAccount(id)
+      if (result.status === 'NOT_FOUND') {
+        res.status(404).json({ message: result.message })
+        return
+      }
+      if (result.status === 'SUCCESS') {
+        res.status(200).json({ message: result.message })
+        return
+      }
+    } catch (error) {
+      console.log(error)
+      res
+        .status(500)
+        .json({ message: 'Erreur lors de la réactivation du compte' })
     }
   })
 )

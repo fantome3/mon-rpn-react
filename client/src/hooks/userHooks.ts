@@ -135,3 +135,35 @@ export const useGetUserDetailsQuery = (userId: string) =>
     queryFn: async () =>
       (await apiClient.get<User>(`api/users/${userId}`)).data,
   })
+
+export const useDesactivateUserMutation = () =>
+  useMutation({
+    mutationFn: async (userId: string) =>
+      (
+        await apiClient.put<{ message: string }>(
+          `api/users/deactivate/${userId}`
+        )
+      ).data,
+    onSuccess: () => {
+      console.log('User desactivated successfully')
+    },
+    onError: (error) => {
+      console.error('Error desactivating user:', error)
+    },
+  })
+
+export const useReactivateUserMutation = () =>
+  useMutation({
+    mutationFn: async (userId: string) =>
+      (
+        await apiClient.put<{ message: string }>(
+          `api/users/reactivate/${userId}`
+        )
+      ).data,
+    onSuccess: () => {
+      console.log('User reactivated successfully')
+    },
+    onError: (error) => {
+      console.error('Error reactivating user:', error)
+    },
+  })

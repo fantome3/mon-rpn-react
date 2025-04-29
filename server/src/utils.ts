@@ -94,6 +94,12 @@ export const isAuth = async (
       return res.status(401).json({ message: 'User not found' })
     }
 
+    if (user.subscription?.status === 'inactive') {
+      return res.status(403).send({
+        message: "Compte inactif. Veuillez contacter l'administrateur.",
+      })
+    }
+
     req.user = decode
     const ttl = 2592000
     await cache.set(token!, decode, ttl)
@@ -152,4 +158,23 @@ export const generateUniqueReferralCode = async (
   } while (exists)
 
   return code
+}
+
+/**
+ * Calcule le nombre total de personnes à prendre en compte pour la cotisation :
+ * - Le membre principal s'il a 18 ans ou plus
+ * - Les membres de la famille actifs et âgés de 18 ans ou plus
+ */
+export const calculateTotalPersons = (user: User): number => {
+  const currentYear = new Date().getFullYear()
+  const userAge = currentYear - new Date(user.origines.birthDate).getFullYear()
+  const includeUser = userAge >= 18 ? 1 : 0
+
+  const dependents =
+    user.familyMembers?.filter((member) => {
+      const age = currentYear - new Date(member.birthDate).getFullYear()
+      return age >= 18 && member.status === 'active'
+    }) || []
+
+  return includeUser + dependents.length
 }

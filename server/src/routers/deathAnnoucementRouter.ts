@@ -7,7 +7,8 @@ import { SettingsModel } from '../models/settingsModel'
 import { UserModel } from '../models/userModel'
 import { AccountModel } from '../models/accountModel'
 import { TransactionModel } from '../models/transactionModel'
-import { notifyAllUsers } from '../../mailer'
+import { notifyAllUsers } from '../mailer'
+import { handleFailedPrelevement } from '../services/subscriptionService'
 
 export const deathAnnouncementRouter = express.Router()
 
@@ -65,9 +66,17 @@ deathAnnouncementRouter.post(
           }
 
           if (account.solde < totalToDeduct) {
-            console.log(
-              `💸 Solde insuffisant pour ${user.register.email} : ${account.solde} < ${totalToDeduct}`
-            )
+            const userDoc = await UserModel.findById(userId)
+            if (userDoc) {
+              await handleFailedPrelevement({
+                user: userDoc,
+                type: 'balance',
+                totalToDeduct,
+                solde: account.solde,
+                maxMissed: settings?.maxMissedReminders,
+                totalPersons: totalPersons,
+              })
+            }
             errors.push({
               userId,
               email: user.register.email,
@@ -85,7 +94,7 @@ deathAnnouncementRouter.post(
             { $inc: { solde: -totalToDeduct } }
           )
 
-          //Tranctionns
+          //Tranctions
           await TransactionModel.create({
             userId,
             amount: totalToDeduct,

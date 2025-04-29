@@ -19,6 +19,7 @@ import Conditions from './conditions/Conditions'
 import Transactions from './admin/transactions/Transactions'
 import TransactionsByUserId from './transactions/Transactions'
 import AllAnnouncements from './announcements/Announcements'
+import AccountDeactivated from './account-deactivated/AccountDeactivated'
 
 export {
   Login,
@@ -42,4 +43,5 @@ export {
   Transactions,
   TransactionsByUserId,
   AllAnnouncements,
+  AccountDeactivated,
 }

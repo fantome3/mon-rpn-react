@@ -21,5 +21,5 @@ export type Account = {
   paymentMethod: 'credit_card' | 'interac' | string
   card?: CardType[]
   interac?: Interac[]
-  userId: string
+  userId: string | any
 }

@@ -10,18 +10,19 @@ const ProtectedRoute = () => {
     state: { userInfo },
   } = useContext(Store)
 
-  if (userInfo) {
-    return (
-      <>
-        <Announcement />
-        <Header />
-        <Outlet />
-        <Footer />
-      </>
-    )
-  } else {
-    return <Navigate to='/login' />
+  if (!userInfo) return <Navigate to='/login' />
+  if (userInfo?.subscription?.status === 'inactive') {
+    return <Navigate to='/account-deactivated' />
   }
+
+  return (
+    <>
+      <Announcement />
+      <Header />
+      <Outlet />
+      <Footer />
+    </>
+  )
 }
 
 export default ProtectedRoute

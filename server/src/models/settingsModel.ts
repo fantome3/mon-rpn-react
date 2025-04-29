@@ -14,8 +14,11 @@ export class Settings {
   public membershipUnitAmount!: number
 
   // Solde minimum requis pour ne pas recevoir d’alerte (RPN)
-  @prop({ required: true, default: 50 })
+  @prop({ required: true, default: 10 })
   public minimumBalanceRPN!: number
+
+  @prop({ required: true, default: 5 })
+  public maxMissedReminders!: number
 }
 
 export const SettingsModel = getModelForClass(Settings)

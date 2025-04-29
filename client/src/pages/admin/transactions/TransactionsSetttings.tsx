@@ -30,6 +30,9 @@ const formSchema = z.object({
   minimumBalanceRPN: z
     .number()
     .min(0, { message: 'Le montant doit être positif' }),
+  maxMissedReminders: z
+    .number()
+    .min(0, { message: 'Le montant doit être positif' }),
 })
 
 type TransactionSettingsProps = {
@@ -40,6 +43,7 @@ const TransactionsSetttings = ({ onSuccess }: TransactionSettingsProps) => {
   const { data: settings, isPending } = useGetSettingsQuery()
   const { mutateAsync: updateSettings, isPending: loadingUpdate } =
     useUpdateSettingMutation()
+  console.log(settings)
 
   const form = useForm<z.infer<typeof formSchema>>({
     mode: 'onChange',
@@ -48,6 +52,7 @@ const TransactionsSetttings = ({ onSuccess }: TransactionSettingsProps) => {
       membershipUnitAmount: 0,
       amountPerDependent: 0,
       minimumBalanceRPN: 0,
+      maxMissedReminders: 0,
     },
   })
 
@@ -57,6 +62,7 @@ const TransactionsSetttings = ({ onSuccess }: TransactionSettingsProps) => {
         membershipUnitAmount: settings.membershipUnitAmount || 0,
         amountPerDependent: settings.amountPerDependent || 0,
         minimumBalanceRPN: settings.minimumBalanceRPN || 0,
+        maxMissedReminders: settings.maxMissedReminders || 0,
       })
     }
   }, [settings, form])
@@ -145,6 +151,29 @@ const TransactionsSetttings = ({ onSuccess }: TransactionSettingsProps) => {
                 <Input
                   type='text'
                   placeholder='Solde minimum'
+                  value={ToLocaleStringFunc(field.value)}
+                  onChange={(event) => {
+                    const rawValue = event.target.value.replace(/\s/g, '')
+                    if (/^\d*$/.test(rawValue)) {
+                      field.onChange(Number(rawValue))
+                    }
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name='maxMissedReminders'
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Max de prélèvement manqué</FormLabel>
+              <FormControl>
+                <Input
+                  type='text'
+                  placeholder='Max de prélèvement manqué'
                   value={ToLocaleStringFunc(field.value)}
                   onChange={(event) => {
                     const rawValue = event.target.value.replace(/\s/g, '')

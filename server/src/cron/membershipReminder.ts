@@ -1,5 +1,8 @@
 import cron from 'node-cron'
-import { processAnnualMembershipPayment } from '../services/membershipService'
+import {
+  processAnnualMembershipPayment,
+  processInactiveUsers,
+} from '../services/membershipService'
 import { checkMinimumBalanceAndSendReminder } from '../services/checkMinimumBalanceAndSendReminder'
 
 //Chaque dimanche de janvier à 10h du matin
@@ -14,11 +17,17 @@ cron.schedule('0 9 * * 0', async () => {
   await checkMinimumBalanceAndSendReminder()
 })
 
+// Tous les jours à 5h du matin
+cron.schedule('0 5 * * *', async () => {
+  console.log('🔄 Cron désactivation des comptes inactifs...')
+  await processInactiveUsers()
+})
+
 //Test sur la marche ou non du cron
 //cron.schedule('*/30 * * * * *', async () => {
-//  try {
-//    console.log('🚀 Cron lancé !'), await processAnnualMembershipPayment()
-//  } catch (error) {
+// try {
+//    console.log('🚀 Cron lancé !'), await processInactiveUsers()
+// } catch (error) {
 //    console.error('❌ Erreur dans le cron :', error)
 //  }
 //})

@@ -4,6 +4,8 @@ import { DataTable } from '@/components/CustomTable'
 import IconButtonWithTooltip from '@/components/IconButtonWithTooltip'
 import Loading from '@/components/Loading'
 import ManualBalanceReminderButton from '@/components/ManualBalanceReminderButton'
+import ManualDeactivateButton from '@/components/ManualDeactivateButton'
+import ManualReactivateButton from '@/components/ManualReactivateButton'
 import ManualUserPaymentButton from '@/components/ManualUserPaymentButton'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -44,6 +46,7 @@ const formSchema = z.object({
 
 const Accounts = () => {
   const { data: accounts, isPending, error, refetch } = useGetAccountsQuery()
+
   const { mutateAsync: updateAccount, isPending: loadingUpdate } =
     useUpdateAccountMutation()
   const [editingAccount, setEditingAccount] = useState<Account | null>(null)
@@ -86,7 +89,13 @@ const Accounts = () => {
       header: 'Créé le',
       cell: ({ row }) => {
         const created: string = row.getValue('createdAt')
-        return <div> {functionReverse(created.substring(0, 10))} </div>
+        const status = row.original.userId.subscription.status
+        return (
+          <div className={status === 'inactive' ? 'text-gray-400' : ''}>
+            {' '}
+            {functionReverse(created.substring(0, 10))}{' '}
+          </div>
+        )
       },
     },
     {
@@ -103,11 +112,14 @@ const Accounts = () => {
         )
       },
       accessorFn: (row) => `${row.firstName} ${row.lastName}`, // Génère dynamiquement le champ
-      cell: ({ row }) => (
-        <div>
-          {row.original.firstName} {row.original.lastName}
-        </div>
-      ),
+      cell: ({ row }) => {
+        const status = row.original.userId.subscription.status
+        return (
+          <div className={status === 'inactive' ? 'text-gray-400' : ''}>
+            {row.original.firstName} {row.original.lastName}
+          </div>
+        )
+      },
       sortingFn: (rowA, rowB, columnId) => {
         const nameA = String(rowA.getValue(columnId)).toLowerCase()
         const nameB = String(rowB.getValue(columnId)).toLowerCase()
@@ -127,6 +139,14 @@ const Accounts = () => {
           </Button>
         )
       },
+      cell: ({ row }) => {
+        const isInactive =
+          row.original.userId.subscription.status === 'inactive'
+        const userTel: string = row.getValue('userTel')
+        return (
+          <div className={isInactive ? 'text-gray-400' : ''}>{userTel}</div>
+        )
+      },
     },
     {
       accessorKey: 'userResidenceCountry',
@@ -141,13 +161,29 @@ const Accounts = () => {
           </Button>
         )
       },
+      cell: ({ row }) => {
+        const isInactive =
+          row.original.userId.subscription.status === 'inactive'
+        const residenceCountry: string = row.getValue('userResidenceCountry')
+        return (
+          <div className={isInactive ? 'text-gray-400' : ''}>
+            {residenceCountry}
+          </div>
+        )
+      },
     },
     {
       accessorKey: 'solde',
       header: 'Solde',
       cell: ({ row }) => {
         const solde: number = row.getValue('solde')
-        return <div> {ToLocaleStringFunc(solde)} </div>
+        const status = row.original.userId.subscription.status
+        return (
+          <div className={status === 'inactive' ? 'text-gray-400' : ''}>
+            {' '}
+            {ToLocaleStringFunc(solde)}{' '}
+          </div>
+        )
       },
     },
     {
@@ -155,11 +191,25 @@ const Accounts = () => {
       header: 'Méthode de paiement',
       cell: ({ row }) => {
         const paymentMethod = row.original.paymentMethod
-
+        const status = row.original.userId.subscription.status
         if (paymentMethod === 'credit_card') {
-          return <Badge className='bg-fuchsia-500'>{paymentMethod}</Badge>
+          return (
+            <Badge
+              className={
+                status === 'inactive' ? 'bg-gray-400' : 'bg-fuchsia-500'
+              }
+            >
+              {paymentMethod}
+            </Badge>
+          )
         } else {
-          return <Badge className='bg-sky-400'>{paymentMethod}</Badge>
+          return (
+            <Badge
+              className={status === 'inactive' ? 'bg-gray-400' : 'bg-sky-400'}
+            >
+              {paymentMethod}
+            </Badge>
+          )
         }
       },
     },
@@ -167,22 +217,45 @@ const Accounts = () => {
       accessorKey: 'action',
       header: 'Action',
       enableHiding: false,
-      cell: ({ row }) => (
-        <div className='flex '>
-          <IconButtonWithTooltip
-            icon={<Pencil size={20} className='text-green-800' />}
-            tooltip='Modifier'
-            onClick={() => {
-              setEditingAccount(row.original)
-              setModalVisibility(true)
-            }}
-          />
-          <div className='font-semibold text-[#b9bdbc] mx-2'>|</div>
-          <ManualUserPaymentButton userId={row.original.userId} />
-          <div className='font-semibold text-[#b9bdbc] mx-2'>|</div>
-          <ManualBalanceReminderButton userId={row.original.userId} />
-        </div>
-      ),
+      cell: ({ row }) => {
+        const isInactive =
+          row.original.userId.subscription.status === 'inactive'
+        return (
+          <div className={`flex `}>
+            <IconButtonWithTooltip
+              icon={<Pencil size={20} className='text-green-800' />}
+              tooltip='Modifier'
+              onClick={() => {
+                setEditingAccount(row.original)
+                setModalVisibility(true)
+              }}
+              disabled={isInactive}
+            />
+            <div className='font-semibold text-[#b9bdbc] mx-2'>|</div>
+            <ManualUserPaymentButton
+              userId={row.original.userId._id}
+              disabled={isInactive}
+            />
+            <div className='font-semibold text-[#b9bdbc] mx-2'>|</div>
+            <ManualBalanceReminderButton
+              userId={row.original.userId._id}
+              disabled={isInactive}
+            />
+            <div className='font-semibold text-[#b9bdbc] mx-2'>|</div>
+            {row.original.userId.subscription.status === 'inactive' ? (
+              <ManualReactivateButton
+                userId={row.original.userId._id}
+                refetch={refetch}
+              />
+            ) : (
+              <ManualDeactivateButton
+                userId={row.original.userId._id}
+                refetch={refetch}
+              />
+            )}
+          </div>
+        )
+      },
     },
   ]
 
@@ -336,7 +409,11 @@ const Accounts = () => {
                       Méthode de paiement
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder='Méthode de paiement' {...field} />
+                      <Input
+                        placeholder='Méthode de paiement'
+                        {...field}
+                        disabled
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
