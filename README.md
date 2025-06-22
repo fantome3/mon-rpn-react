@@ -148,3 +148,163 @@ SMTP_PASS=yourpassword
 - `npm run build` : transpile le TypeScript en JavaScript
 
 ```
+
+# DÉPLOIEMENT SUR VPS
+
+## 📁 Arborescence du projet
+
+```bash
+monrpn/
+├── client/                 # App React (Vite)
+│   ├── Dockerfile          # Build + Nginx
+│   └── nginx.conf          # Proxy vers /api
+├── server/                 # API Node.js + Express + Mongo
+│   ├── Dockerfile
+│   └── .env                # Variables d'env serveur
+├── docker-compose.yml
+└── README.md
+```
+
+## ⚙️ Prérequis VPS
+
+### Serveur Linux (ex: Contabo, DigitalOcean)
+
+### Docker et Docker Compose installés :
+
+```bash
+sudo apt update && sudo apt install docker.io docker-compose -y
+
+```
+
+### 🧱 Étape 1 – Construire les images
+
+```bash
+docker-compose build
+```
+
+### 🔐 Étape 2 – Créer .env dans /server
+
+```bash
+MONGODB_URI=mongodb://monrpn-mongo:27017/monrpn
+PORT=5010
+...
+```
+
+### 🚀 Étape 3 – Lancer les services
+
+```bash
+docker-compose up -d
+```
+
+### monrpn-client → Serveur Nginx sur http://<ip_du_serveur>:3000
+
+### monrpn-server → Serveur Express en fond (port 5010)
+
+### monrpn-mongo → Base de données MongoDB
+
+### 📦 Dockerfile client/Dockerfile (Vite + Nginx)
+
+```bash
+# Build client
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY . .
+RUN npm install && npm run build
+
+# Serve via Nginx
+FROM nginx:alpine
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+
+```
+
+### 📦 Dockerfile server/Dockerfile
+
+```bash
+# Étape 1 : build TypeScript
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+# Étape 2 : image minimale de production
+FROM node:20-alpine
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm install --production
+COPY --from=builder /app/build ./build
+
+
+EXPOSE 5010
+
+CMD ["node", "build/index.js"]
+
+```
+
+### Exemple client/nginx.conf
+
+```bash
+server {
+  listen 80;
+  server_name _;
+
+  root /usr/share/nginx/html;
+  index index.html;
+
+  location / {
+    try_files $uri $uri/ /index.html;
+  }
+
+  location /api/ {
+    proxy_pass http://monrpn-server:5010;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host $host;
+    proxy_cache_bypass $http_upgrade;
+  }
+}
+
+
+```
+
+### 📂 docker-compose.yml
+
+```bash
+services:
+  client:
+    build: ./client
+    container_name: monrpn-client
+    ports:
+      - '3000:80'
+    depends_on:
+      - server
+
+  server:
+    build: ./server
+    container_name: monrpn-server
+    ports:
+      - '5010:5010'
+    env_file:
+      - ./server/.env
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:6.0
+    container_name: monrpn-mongo
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:
+
+```

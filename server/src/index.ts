@@ -11,7 +11,7 @@ import { settingRouter } from './routers/settingRouter'
 import { transactionRouter } from './routers/transactionRouter'
 import './cron/membershipReminder'
 
-dotenv.config()
+dotenv.config({ path: path.join(__dirname, '../.env') })
 mongoose.set('strictQuery', true)
 
 const MONGODB_URI =
@@ -45,6 +45,10 @@ app.use('/api/announcements', deathAnnouncementRouter)
 app.use('/api/upload', uploadRouter)
 app.use('/api/settings', settingRouter)
 app.use('/api/transactions', transactionRouter)
+
+app.get('/api/ping', (_req, res) => {
+  res.send('pong')
+})
 
 app.use(express.static(path.join(__dirname, '../dist')))
 app.get('*', (req: Request, res: Response) =>
