@@ -28,7 +28,7 @@
     "node-cron": "^3.0.3",
     "nodemailer": "^6.9.13",
     "streamifier": "^0.1.1",
-    "puppeteer": "^21.6.0"
+    "puppeteer": "^23.11.1"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -43,7 +43,6 @@
     "@typescript-eslint/parser": "^7.4.0",
     "eslint": "^8.57.0",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.4.3",
-    "@types/puppeteer": "^21.3.4"
+    "typescript": "^5.4.3"
   }
 }
