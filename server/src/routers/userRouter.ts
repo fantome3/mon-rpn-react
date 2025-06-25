@@ -20,6 +20,7 @@ import {
   desactivateUserAccount,
   reactivateUserAccount,
 } from '../services/membershipService'
+import { registerUserOnExternalApp } from '../services/externalRegistrationService'
 
 export const userRouter = express.Router()
 
@@ -261,6 +262,11 @@ userRouter.post(
         referralCode,
       })
       const user = await newUser.save()
+
+      // Enregistrement simultané sur la plateforme externe
+      registerUserOnExternalApp({ register, origines, infos }).catch((err) => {
+        console.error('External registration failed:', err)
+      })
       res.send({
         ...user.toObject(),
         register: {
