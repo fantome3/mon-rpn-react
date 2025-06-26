@@ -4,7 +4,7 @@ export const sendExternalRegistrationFailureEmail = async (
   memberEmail: string,
   error: string
 ) => {
-  const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com'
+  const adminEmail = process.env.ADMIN_EMAIL || 'paiement.rpn@gmail.com'
   const subject = 'Erreur inscription plateforme externe'
   const text = `L\'inscription du membre ${memberEmail} sur l\'application externe a échoué.\nDétail: ${error}`
 

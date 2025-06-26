@@ -56,7 +56,7 @@ class Origines {
   @prop({ required: true })
   public sex!: string
 
-  @prop({ required: true })
+  @prop({ required: false })
   public id_image!: string
 }
 

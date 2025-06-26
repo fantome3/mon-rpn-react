@@ -11,7 +11,7 @@ const Announcement = () => {
   const [show, setShow] = useState(() => {
     return !(userInfo?.familyMembers && userInfo?.familyMembers.length > 0)
   })
-
+/*
   useEffect(() => {
     const hasFamilyMembers =
       userInfo?.familyMembers && userInfo?.familyMembers.length > 0
@@ -19,7 +19,7 @@ const Announcement = () => {
       setShow(!hasFamilyMembers) //Cache l'annonce si familyMembers n'est pas vide
     }
   }, [userInfo?.familyMembers])
-
+*/
   if (!show) return null
 
   return (

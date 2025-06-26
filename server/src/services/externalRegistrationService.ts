@@ -1,4 +1,4 @@
-import puppeteer from 'puppeteer'
+import puppeteer, { Page } from 'puppeteer'
 import { sendExternalRegistrationFailureEmail } from '../mailer'
 
 type RegistrationPayload = {
@@ -6,12 +6,7 @@ type RegistrationPayload = {
     email: string
     password: string
     conditions: boolean
-    occupation: string
     institution?: string | null
-    otherInstitution?: string | null
-    studentNumber?: string | null
-    studentStatus?: string | null
-    workField?: string | null
   }
   origines: {
     firstName: string
@@ -19,19 +14,13 @@ type RegistrationPayload = {
     birthDate: string
     nativeCountry: string
     sex: string
-    id_image: string
   }
   infos: {
-    residenceCountry: string
-    residenceCountryStatus: string
-    postalCode: string
-    address: string
     tel: string
-    hasInsurance: boolean
   }
 }
 
-async function loginToExternalApp(page: puppeteer.Page) {
+async function loginToExternalApp(page: Page) {
   const email = process.env.EXTERNAL_APP_EMAIL || ''
   const password = process.env.EXTERNAL_APP_PASSWORD || ''
   await page.goto('https://app.notrerpn.org/auth/login')
@@ -41,8 +30,16 @@ async function loginToExternalApp(page: puppeteer.Page) {
   await page.waitForNavigation({ waitUntil: 'networkidle0' })
 }
 
-async function fillMemberForm(page: puppeteer.Page, payload: RegistrationPayload) {
+async function fillMemberForm(page: Page, payload: RegistrationPayload) {
   await page.goto('https://app.notrerpn.org/communities/members/add')
+  // Scroll jusqu'à "Province"
+  await page.evaluate(() => {
+    const provinceLabel = document.querySelector('label[for="region-label"], #region-label');
+    if (provinceLabel) {
+      provinceLabel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  });
+
   await page.type('input[name="firstName"]', payload.origines.firstName)
   await page.type('input[name="lastName"]', payload.origines.lastName)
   await page.type('input[name="birthDate"]', payload.origines.birthDate)
@@ -51,8 +48,9 @@ async function fillMemberForm(page: puppeteer.Page, payload: RegistrationPayload
   await page.click(`input[name="gender"][value="${payload.origines.sex[0].toUpperCase()}"]`)
   await page.evaluate(() => {
     const nat = document.querySelector('input[name="nationality"]') as HTMLInputElement
-    if (nat) nat.value = 'FR'
+    if (nat) nat.value = 'CMR'
   })
+
   await page.type('input[name="city"]', 'Montréal')
   await page.evaluate(() => {
     const region = document.querySelector('input[name="region"]') as HTMLInputElement
@@ -60,12 +58,27 @@ async function fillMemberForm(page: puppeteer.Page, payload: RegistrationPayload
     if (region) region.value = 'QC'
     if (country) country.value = 'CA'
   })
+
+  await new Promise(resolve => setTimeout(resolve, 500));
+  await page.screenshot({ path: 'remplirInfos_1.png' });
+
   await page.evaluate(() => {
     const memberType = document.querySelector('input[name="memberType"]') as HTMLInputElement
     if (memberType) memberType.value = 'n.resident'
   })
   await page.click('input[name="arrivalDateAfterLimit"][value="TRUE"]')
-  await page.click('button[type="submit"]')
+  // Scroll jusqu'au bouton "Enregistrer"
+  await page.evaluate(() => {
+    const submitButton = Array.from(document.querySelectorAll('button')).find(btn => btn.textContent?.includes('Enregistrer'));
+    if (submitButton) {
+      submitButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  });
+
+  await new Promise(resolve => setTimeout(resolve, 500));
+  await page.screenshot({ path: 'remplirInfos_2.png' });
+
+  //await page.click('button[type="submit"]')
   await page.waitForNavigation({ waitUntil: 'networkidle0' })
 }
 
