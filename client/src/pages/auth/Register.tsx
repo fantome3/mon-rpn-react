@@ -27,6 +27,7 @@ import { useContext, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import ConditionsModal from '@/components/ConditionsModal'
 import { z } from 'zod'
 import PasswordGenerator from '@/components/PasswordGenerator'
 import { useGenerateTokenMutation } from '@/hooks/userHooks'
@@ -59,6 +60,7 @@ const Register = () => {
   const { userInfo } = state
   const [conditionsError, setConditionsError] = useState(false)
   const [isOtherInstitution, setIsOtherInstitution] = useState(false)
+  const [showConditionsModal, setShowConditionsModal] = useState(false)
   const navigate = useNavigate()
   const params = useParams()
   const { t } = useTranslation(['common'])
@@ -129,6 +131,15 @@ const Register = () => {
       setConditionsError(false)
       navigate('/origines')
     }
+  }
+
+  const handleAcceptConditions = () => {
+    form.setValue('conditions', true)
+    setConditionsError(false)
+  }
+
+  const handleRefuseConditions = () => {
+    form.setValue('conditions', false)
   }
 
   return (
@@ -383,11 +394,13 @@ const Register = () => {
                         })}
                       >
                         {t('enregistrement.conditions')}&nbsp;
-                        <span className='font-bold'>
-                          <Link to='/conditions'>
-                            {t('enregistrement.status')}
-                          </Link>
-                        </span>
+                        <button
+                          type='button'
+                          onClick={() => setShowConditionsModal(true)}
+                          className='font-bold text-primary underline hover:text-primary/60'
+                        >
+                          {t('enregistrement.status')}
+                        </button>
                       </FormLabel>
                     </FormItem>
                   )}
@@ -407,6 +420,15 @@ const Register = () => {
           </CardFooter>
         </Card>
       </div>
+
+      {showConditionsModal && (
+        <ConditionsModal
+          open={showConditionsModal}
+          setOpen={setShowConditionsModal}
+          onAccept={handleAcceptConditions}
+          onRefuse={handleRefuseConditions}
+        />
+      )}
 
       <Footer />
     </>
