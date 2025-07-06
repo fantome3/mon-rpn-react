@@ -71,7 +71,6 @@ const Origines = () => {
   const { mutateAsync: upload, isPending: uploadPending } =
     useUploadImageMutation()
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const { logoutHandler } = useContext(Store)
 
   const [idImage, setIdImage] = useState<string>('')
 
@@ -101,6 +100,12 @@ const Origines = () => {
       })
     }
   }, [origines, form])
+
+  useEffect(() => {
+    if (origines?.id_image) {
+      setIdImage(origines.id_image)
+    }
+  }, [origines])
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -186,7 +191,19 @@ const Origines = () => {
   }
 
   const handlePreviousClick = () => {
-    logoutHandler()
+    const currentValues = form.getValues()
+    ctxDispatch({
+      type: 'USER_ORIGINES',
+      payload: { ...currentValues, id_image: idImage },
+    })
+    localStorage.setItem(
+      'userInfo',
+      JSON.stringify({
+        ...userInfo,
+        origines: { ...currentValues, id_image: idImage },
+        originesTime: new Date(),
+      })
+    )
     navigate(-1)
   }
 

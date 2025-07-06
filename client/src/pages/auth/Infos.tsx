@@ -167,6 +167,16 @@ const Infos = () => {
   }
 
   const handlePreviousClick = () => {
+    const currentValues = form.getValues()
+    ctxDispatch({ type: 'USER_INFOS', payload: currentValues })
+    localStorage.setItem(
+      'userInfo',
+      JSON.stringify({
+        ...userInfo,
+        infos: currentValues,
+        infosTime: new Date(),
+      })
+    )
     navigate(-1)
   }
 
