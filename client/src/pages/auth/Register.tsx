@@ -380,29 +380,32 @@ const Register = () => {
                   control={form.control}
                   name='conditions'
                   render={({ field }) => (
-                    <FormItem className='flex flex-row items-start space-x-3 space-y-0 py-4'>
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel
-                        className={clsx('text-xs text-justify', {
-                          'text-destructive':
-                            conditionsError === true && field.value === false,
-                        })}
-                      >
-                        {t('enregistrement.conditions')}&nbsp;
-                        <button
-                          type='button'
-                          onClick={() => setShowConditionsModal(true)}
-                          className='font-bold text-primary underline hover:text-primary/60'
-                        >
-                          {t('enregistrement.status')}
-                        </button>
-                      </FormLabel>
-                    </FormItem>
+                  <FormItem className='flex flex-row items-start space-x-3 space-y-0 py-4'>
+                    <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                    </FormControl>
+                    <FormLabel
+                    className={clsx('text-xs text-justify', {
+                      'text-destructive':
+                      conditionsError === true && field.value === false,
+                    })}
+                    >
+                    {t('enregistrement.conditions')}&nbsp;
+                    <Link
+                      to='#'
+                      onClick={(e) => {
+                      e.preventDefault()
+                      setShowConditionsModal(true)
+                      }}
+                      className='font-bold text-primary underline hover:text-primary/60'
+                    >
+                      {t('enregistrement.status')}
+                    </Link>
+                    </FormLabel>
+                  </FormItem>
                   )}
                 />
 

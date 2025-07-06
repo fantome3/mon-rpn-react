@@ -1,5 +1,6 @@
 import puppeteer, { Page } from 'puppeteer'
 import { sendExternalRegistrationFailureEmail } from '../mailer'
+import path from 'path'
 
 type RegistrationPayload = {
   register: {
@@ -23,8 +24,11 @@ type RegistrationPayload = {
 async function loginToExternalApp(page: Page) {
   const email = process.env.EXTERNAL_APP_EMAIL || ''
   const password = process.env.EXTERNAL_APP_PASSWORD || ''
+  console.log('Logging in to external app with email:', email)
   await page.goto('https://app.notrerpn.org/auth/login')
+  await page.waitForSelector('input[name="login"]');
   await page.type('input[name="login"]', email)
+  //await page.waitForSelector('input[name="password"]');
   await page.type('input[name="password"]', password)
   await page.click('button[type="submit"]')
   await page.waitForNavigation({ waitUntil: 'networkidle0' })
@@ -32,6 +36,9 @@ async function loginToExternalApp(page: Page) {
 
 async function fillMemberForm(page: Page, payload: RegistrationPayload) {
   await page.goto('https://app.notrerpn.org/communities/members/add')
+  await page.waitForSelector('input[name="firstName"]')
+  await page.screenshot({ path: path.resolve(__dirname, 'screenshots/remplirInfos_0.png') });
+
   // Scroll jusqu'à "Province"
   await page.evaluate(() => {
     const provinceLabel = document.querySelector('label[for="region-label"], #region-label');
@@ -60,6 +67,7 @@ async function fillMemberForm(page: Page, payload: RegistrationPayload) {
   })
 
   await new Promise(resolve => setTimeout(resolve, 500));
+  await page.screenshot({ path: path.resolve(__dirname, 'screenshots/remplirInfos_1.png') });
   await page.screenshot({ path: 'remplirInfos_1.png' });
 
   await page.evaluate(() => {
@@ -77,21 +85,36 @@ async function fillMemberForm(page: Page, payload: RegistrationPayload) {
 
   await new Promise(resolve => setTimeout(resolve, 500));
   await page.screenshot({ path: 'remplirInfos_2.png' });
-
+console.log('Submitting form...')
   //await page.click('button[type="submit"]')
   await page.waitForNavigation({ waitUntil: 'networkidle0' })
 }
 
 export const registerUserOnExternalApp = async (payload: RegistrationPayload) => {
-  const browser = await puppeteer.launch({ headless: true })
+  const browser = await puppeteer.launch({ 
+    headless: false,
+    args: [
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-dev-shm-usage',
+    '--disable-gpu',
+    '--disable-software-rasterizer',
+    '--disable-dev-tools',
+    '--no-zygote',
+    '--single-process',
+  ]
+})
   const page = await browser.newPage()
   try {
     await loginToExternalApp(page)
+    console.log('Logged in to external app successfully')
+    console.log('Filling member form with payload:', payload)
     await fillMemberForm(page, payload)
   } catch (error: any) {
     await sendExternalRegistrationFailureEmail(payload.register.email, error.message)
     throw error
   } finally {
+    await sendExternalRegistrationFailureEmail(payload.register.email, "Successfully registered on external app")
     await browser.close()
   }
 }
