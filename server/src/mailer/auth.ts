@@ -1,4 +1,5 @@
 import { sendEmail } from './core'
+import { emailTemplate } from './templates/emailTemplate'
 
 export const sendForgotPasswordEmail = async ({
   token,
@@ -11,12 +12,14 @@ export const sendForgotPasswordEmail = async ({
 }) => {
   const subject = 'Réinitialisation de votre mot de passe'
   const text = `Cliquez sur le lien suivant pour réinitialiser votre mot de passe: http://localhost:5173/reset-password/${userId}/${token}`
+  const html = emailTemplate({ content: `<p>${text}</p>` })
 
   try {
     await sendEmail({
       to: email,
       subject,
       text,
+      html,
     })
     console.log(`📨 Mot de passe envoyé`)
   } catch (error) {
@@ -45,7 +48,7 @@ export const sendNewUserNotification = async ({
 }) => {
   const subject = 'Nouvelle inscription sur MON-RPN'
   const text = `
-  Un nouvel utilisateur vient de s'inscrire sur votre plateforme MON-RPN. Voici ses informations: 
+  Un nouvel utilisateur vient de s'inscrire sur votre plateforme MON-RPN. Voici ses informations:
         Nom et Prénoms: ${lastName} ${firstName},
         Courriel: ${email},
         Pays d'origine: ${nativeCountry},
@@ -54,11 +57,15 @@ export const sendNewUserNotification = async ({
         Méthode de paiement: ${paymentMethod},
         Solde: ${solde} $
   `
+  const html = emailTemplate({
+    content: `<p>Un nouvel utilisateur vient de s'inscrire sur votre plateforme MON-RPN. Voici ses informations:</p><ul><li>Nom et Prénoms: ${lastName} ${firstName}</li><li>Courriel: ${email}</li><li>Pays d'origine: ${nativeCountry}</li><li>Pays de résidence: ${residenceCountry}</li><li>Numéro: ${tel}</li><li>Méthode de paiement: ${paymentMethod}</li><li>Solde: ${solde} $</li></ul>`,
+  })
   try {
     await sendEmail({
       to: 'djokojires@gmail.com',
       subject,
       text,
+      html,
     })
     console.log(`📨 Mot de passe envoyé`)
   } catch (error) {
@@ -90,11 +97,13 @@ Votre inscription sur notre plateforme MON-RPN
       
       L'équipe MON-RPN.
 `
+  const html = emailTemplate({ content: text.replace(/\n/g, '<br/>') })
   try {
     await sendEmail({
       to: email,
       subject,
       text,
+      html,
     })
 
     console.log(`📨 Mot de passe envoyé`)

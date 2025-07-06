@@ -1,4 +1,5 @@
 import { sendEmail } from './core'
+import { emailTemplate } from './templates/emailTemplate'
 
 export const sendDeactivationWarningEmail = async (
   email: string,
@@ -20,7 +21,8 @@ Merci de régulariser votre situation.
 
 L'équipe MON-RPN.
   `
-  await sendEmail({ to: email, subject, text })
+  const html = emailTemplate({ content: text.replace(/\n/g, '<br/>') })
+  await sendEmail({ to: email, subject, text, html })
 }
 
 export const sendAccountDeactivatedEmail = async (email: string) => {
@@ -34,7 +36,8 @@ Contactez l'administration pour le réactiver.
 
 L'équipe MON-RPN.
   `
-  await sendEmail({ to: email, subject, text })
+  const html = emailTemplate({ content: text.replace(/\n/g, '<br/>') })
+  await sendEmail({ to: email, subject, text, html })
 }
 
 export const sendLowerBanlanceAlertEmail = async (
@@ -54,8 +57,10 @@ export const sendLowerBanlanceAlertEmail = async (
   L’équipe MON-RPN.
   `
 
+  const html = emailTemplate({ content: text.replace(/\n/g, '<br/>') })
+
   try {
-    await sendEmail({ to: email, subject, text })
+    await sendEmail({ to: email, subject, text, html })
     console.log(`📨 Email de rappel envoyé à ${email}`)
   } catch (error) {
     console.error(`❌ Erreur envoi mail de rappel`, error)
