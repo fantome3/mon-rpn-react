@@ -1,4 +1,5 @@
 import { sendEmail } from './core'
+import { emailTemplate } from './templates/emailTemplate'
 
 export const sendMembershipReminderEmail = async (
   email: string,
@@ -17,7 +18,8 @@ Veuillez renflouer votre compte pour régulariser votre situation.
 Cordialement,  
 L'équipe MON-RPN.
   `
-  await sendEmail({ to: email, subject, text })
+  const html = emailTemplate({ content: text.replace(/\n/g, '<br/>') })
+  await sendEmail({ to: email, subject, text, html })
 }
 
 export const sendMembershipSuccessEmail = async (
@@ -35,5 +37,6 @@ Merci pour votre engagement.
 
 L'équipe MON-RPN.
   `
-  await sendEmail({ to: email, subject, text })
+  const html = emailTemplate({ content: text.replace(/\n/g, '<br/>') })
+  await sendEmail({ to: email, subject, text, html })
 }

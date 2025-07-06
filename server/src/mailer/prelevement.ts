@@ -1,4 +1,5 @@
 import { sendEmail } from './core'
+import { emailTemplate } from './templates/emailTemplate'
 
 export const sendPrelevementFailedEmail = async (
   email: string,
@@ -34,11 +35,14 @@ Cordialement,
 L’équipe MON-RPN.
 `
 
+  const html = emailTemplate({ content: text.replace(/\n/g, '<br/>') })
+
   try {
     await sendEmail({
       to: email,
       subject,
       text,
+      html,
     })
     console.log(`📨 Email d’échec de prélèvement envoyé à ${email}`)
   } catch (error) {
