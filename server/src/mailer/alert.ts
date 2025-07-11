@@ -19,7 +19,7 @@ Suite à ${reason}, votre compte pourrait être désactivé le ${deactivationDat
 
 Merci de régulariser votre situation.
 
-L'équipe MON-RPN.
+L'équipe ACQ-RPN.
   `
   const html = emailTemplate({ content: text.replace(/\n/g, '<br/>') })
   await sendEmail({ to: email, subject, text, html })
@@ -28,13 +28,15 @@ L'équipe MON-RPN.
 export const sendAccountDeactivatedEmail = async (email: string) => {
   const subject = '🚫 Votre compte a été désactivé'
   const text = `
-Bonjour,
+    <h2>Compte désactivé</h2>
+    <p>Bonjour,</p>
 
-Votre compte a été désactivé faute de régularisation.
+    <p>Votre compte a été désactivé faute de régularisation.</p>
 
-Contactez l'administration pour le réactiver.
+    <p>Contactez l'administration pour le réactiver.</p>
 
-L'équipe MON-RPN.
+    <p>Cordialement,</p>
+    <p>L'équipe ACQ-RPN.</p>
   `
   const html = emailTemplate({ content: text.replace(/\n/g, '<br/>') })
   await sendEmail({ to: email, subject, text, html })
@@ -54,7 +56,7 @@ export const sendLowerBanlanceAlertEmail = async (
   Veuillez renflouer votre compte pour continuer à bénéficier du service.
 
   Cordialement,
-  L’équipe MON-RPN.
+  L’équipe ACQ-RPN.
   `
 
   const html = emailTemplate({ content: text.replace(/\n/g, '<br/>') })

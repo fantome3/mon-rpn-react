@@ -13,8 +13,13 @@ export const notifyAllUsers = async ({
 }) => {
   const users = await UserModel.find({ primaryMember: true })
   const subject = `🕊 Décès annoncé : ${firstName}`
-  const text = `Nous vous informons du décès de ${firstName}, survenu à ${deathPlace} le ${deathDate.toLocaleDateString()}.
-Veuillez consulter la plateforme MON-RPN pour plus d'informations.`
+  const text = `
+  <h2>Avis de décès</h2>
+  <p>Bonjour,</p>
+  <p>Nous vous informons du décès de ${firstName}, survenu à ${deathPlace} le ${deathDate.toLocaleDateString()}.</p>
+  <p>Veuillez consulter la plateforme ACQ-RPN pour plus d'informations.</p>
+  <br/>
+  <p>Cordialement,</p>`
   const html = emailTemplate({ content: text.replace(/\n/g, '<br/>') })
 
   for (const user of users) {

@@ -46,20 +46,26 @@ export const sendNewUserNotification = async ({
   paymentMethod: string
   solde: number
 }) => {
-  const subject = 'Nouvelle inscription sur MON-RPN'
+  const subject = 'Nouvelle inscription sur ACQ-RPN'
   const text = `
-  Un nouvel utilisateur vient de s'inscrire sur votre plateforme MON-RPN. Voici ses informations:
-        Nom et Prénoms: ${lastName} ${firstName},
-        Courriel: ${email},
-        Pays d'origine: ${nativeCountry},
-        Pays de résidence: ${residenceCountry},
-        Numéro: ${tel},
-        Méthode de paiement: ${paymentMethod},
-        Solde: ${solde} $
+  <h1 style="font-size: 18px; margin-top: 0;">Nouvel utilisateur inscrit</h1>
+  <p style="line-height: 1.6;">Bonjour,</p>
+  <p style="line-height: 1.6;">Un nouvel utilisateur vient de s'inscrire sur votre plateforme ACQ-RPN. Voici ses informations :</p>
+  <ul style="line-height: 1.6; padding-left: 20px;">
+    <li>Prénom(s) : ${firstName}</li>
+    <li>Nom : ${lastName}</li>
+    <li>Courriel : ${email}</li>
+    <li>Pays d'origine : ${nativeCountry}</li>
+    <li>Pays de résidence : ${residenceCountry}</li>
+    <li>Numéro : ${tel}</li>
+    <li>Méthode de paiement : ${paymentMethod}</li>
+    <li>Solde de départ : ${solde} $</li>
+  </ul>
   `
   const html = emailTemplate({
-    content: `<p>Un nouvel utilisateur vient de s'inscrire sur votre plateforme MON-RPN. Voici ses informations:</p><ul><li>Nom et Prénoms: ${lastName} ${firstName}</li><li>Courriel: ${email}</li><li>Pays d'origine: ${nativeCountry}</li><li>Pays de résidence: ${residenceCountry}</li><li>Numéro: ${tel}</li><li>Méthode de paiement: ${paymentMethod}</li><li>Solde: ${solde} $</li></ul>`,
+    content: text.replace(/\n/g, '<br/>'),
   })
+  
   try {
     await sendEmail({
       to: 'djokojires@gmail.com',
@@ -67,7 +73,7 @@ export const sendNewUserNotification = async ({
       text,
       html,
     })
-    console.log(`📨 Mot de passe envoyé`)
+    console.log(`📨 info sur l'abonnée envoyé à jires djoko`)
   } catch (error) {
     console.error(`❌ Erreur envoi mail`, error)
   }
@@ -80,22 +86,22 @@ export const sendPassword = async ({
   password: string
   email: string
 }) => {
-  const subject = 'MON-RPN - Mot de passe'
+  const subject = 'ACQ-RPN - Mot de passe'
   const text = `
-Votre inscription sur notre plateforme MON-RPN
+Votre inscription sur notre plateforme ACQ-RPN
       s'est déroulée avec succès.
 
       Voici le mot de passe actuel pour vous
       connectez à votre compte:
-      ${password}
+      <strong>${password}</strong>
 
       Vous pouvez modifier votre mot de passe à la
-      page profile de votre plateforme MON-RPN à
+      page profile de votre plateforme ACQ-RPN à
       tout moment.
 
       Bienvenue chez vous,
       
-      L'équipe MON-RPN.
+      L'équipe ACQ-RPN.
 `
   const html = emailTemplate({ content: text.replace(/\n/g, '<br/>') })
   try {
@@ -105,7 +111,6 @@ Votre inscription sur notre plateforme MON-RPN
       text,
       html,
     })
-
     console.log(`📨 Mot de passe envoyé`)
   } catch (error) {
     console.error(`❌ Erreur envoi mail`, error)

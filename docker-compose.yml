@@ -5,8 +5,8 @@ services:
       dockerfile: Dockerfile.dev
     container_name: monrpn-client
     volumes:
-      - ./client:/app        # code du client monté
-      - /app/node_modules    # évite d'écraser node_modules
+      - ./client:/app 
+      - /app/node_modules 
     ports:
       - '5173:5173'
     environment:

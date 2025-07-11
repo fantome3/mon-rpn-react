@@ -1,6 +1,6 @@
-# MON-RPN
+# ACQ-RPN
 
-**MON-RPN** est une plateforme web de solidarité permettant de gérer les cotisations, les annonces de décès, et le rapatriement des corps à travers un réseau communautaire. Elle offre une interface pour les membres, les administrateurs, et des statistiques détaillées.
+**ACQ-RPN** est une plateforme web de solidarité permettant de gérer les cotisations, les annonces de décès, et le rapatriement des corps à travers un réseau communautaire. Elle offre une interface pour les membres, les administrateurs, et des statistiques détaillées.
 
 ---
 

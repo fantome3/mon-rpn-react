@@ -9,30 +9,29 @@ export const sendPrelevementFailedEmail = async (
 ) => {
   const subject =
     type === 'membership'
-      ? '❌ Échec de cotisation annuelle sur MON-RPN'
-      : '❌ Échec de prélèvement décès sur MON-RPN'
+      ? '❌ Échec de cotisation annuelle sur ACQ-RPN'
+      : '❌ Échec de prélèvement décès sur ACQ-RPN'
 
   const text =
     type === 'membership'
       ? `
-Bonjour,
+<p>Bonjour,</p>
 
-Votre prélèvement pour la cotisation annuelle a échoué. Votre solde actuel est de ${currentBalance} CAD alors que le montant requis est de ${expectedAmount} CAD.
+<p>Votre prélèvement pour la cotisation annuelle a échoué.</p>
+<p>Votre solde actuel est de ${currentBalance} CAD alors que le montant requis est de ${expectedAmount} CAD.</p>
 
-Merci de renflouer votre compte dès que possible pour régulariser votre situation.
+<p>Merci de renflouer votre compte dès que possible pour régulariser votre situation.</p>
 
-Cordialement,  
-L’équipe MON-RPN.
+<p>Cordialement,</p>
 `
       : `
-Bonjour,
+<p>Bonjour,</p>
 
-Le prélèvement décès de ${expectedAmount} CAD n’a pas pu être effectué car votre solde est de ${currentBalance} CAD.
+<p>Le prélèvement décès de ${expectedAmount} CAD n’a pas pu être effectué car votre solde est de ${currentBalance} CAD.</p>
 
-Merci de recharger votre solde afin de permettre la participation au fonds de solidarité communautaire.
+<p>Merci de recharger votre solde afin de permettre la participation au fonds de solidarité communautaire.</p>
 
-Cordialement,  
-L’équipe MON-RPN.
+<p>Cordialement,</p>
 `
 
   const html = emailTemplate({ content: text.replace(/\n/g, '<br/>') })

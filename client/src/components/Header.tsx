@@ -23,7 +23,7 @@ const Navbar = () => {
     >
       <aside className='flex items-center gap-2'>
         <Link to='/'>
-          <span className='text-xl font-bold'>MON-RPN</span>
+          <span className='text-xl font-bold'>ACQ-RPN</span>
         </Link>
       </aside>
       <nav className='hidden lg:block absolute left-[15%]'>
