@@ -91,7 +91,7 @@ export const processAnnualMembershipPayment = async () => {
 export const processMembershipForUser = async (userId: string) => {
   const user = await UserModel.findById(userId)
   if (!user) {
-    return { status: 'NOT_FOUND', message: labels.USER_NOT_FOUND_FR }
+    return { status: 'NOT_FOUND', message: labels.utilisateur.introuvableFr }
   }
   const settings = await SettingsModel.findOne()
   const MEMBERSHIP_UNIT_AMOUNT = settings?.membershipUnitAmount || 10
@@ -194,7 +194,7 @@ export const desactivateUserAccount = async (userId: string) => {
   const user = await UserModel.findById(userId)
 
   if (!user) {
-    return { status: 'NOT_FOUND', message: labels.USER_NOT_FOUND_FR }
+    return { status: 'NOT_FOUND', message: labels.utilisateur.introuvableFr }
   }
 
   user.subscription.status = 'inactive'
@@ -203,14 +203,14 @@ export const desactivateUserAccount = async (userId: string) => {
   await sendAccountDeactivatedEmail(user.register.email)
   console.log(`🛑 Compte désactivé manuellement pour : ${user.register.email}`)
 
-  return { status: 'SUCCESS', message: labels.ACCOUNT_DEACTIVATED_SUCCESS }
+  return { status: 'SUCCESS', message: labels.compte.desactiveSucces }
 }
 
 export const reactivateUserAccount = async (userId: string) => {
   const user = await UserModel.findById(userId)
 
   if (!user) {
-    return { status: 'NOT_FOUND', message: labels.USER_NOT_FOUND_FR }
+    return { status: 'NOT_FOUND', message: labels.utilisateur.introuvableFr }
   }
 
   user.subscription.status = 'active'
@@ -226,5 +226,5 @@ export const reactivateUserAccount = async (userId: string) => {
 
   console.log(`✅ Compte réactivé pour : ${user.register.email}`)
 
-  return { status: 'SUCCESS', message: labels.ACCOUNT_REACTIVATED_SUCCESS }
+  return { status: 'SUCCESS', message: labels.compte.reactiveSucces }
 }

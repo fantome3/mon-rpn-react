@@ -13,9 +13,9 @@ export const sendDeactivationWarningEmail = async (
       ? 'le non-paiement de votre cotisation annuelle'
       : 'un solde insuffisant pour participer aux prélèvements décès'
 
-  const subject = emailsLabels.DEACTIVATION_WARNING_SUBJECT
+  const subject = emailsLabels.alerteDesactivation.sujet
   const text = StringExtension.format(
-    emailsLabels.DEACTIVATION_WARNING_TEXT,
+    emailsLabels.alerteDesactivation.texte,
     reason,
     deactivationDate.toLocaleDateString()
   )
@@ -24,8 +24,8 @@ export const sendDeactivationWarningEmail = async (
 }
 
 export const sendAccountDeactivatedEmail = async (email: string) => {
-  const subject = emailsLabels.ACCOUNT_DEACTIVATED_SUBJECT
-  const text = emailsLabels.ACCOUNT_DEACTIVATED_TEXT
+  const subject = emailsLabels.compteDesactive.sujet
+  const text = emailsLabels.compteDesactive.texte
   const html = emailTemplate({ content: text.replace(/\n/g, '<br/>') })
   await sendEmail({ to: email, subject, text, html })
 }
@@ -35,9 +35,9 @@ export const sendLowerBanlanceAlertEmail = async (
   balance: number,
   required: number
 ) => {
-  const subject = emailsLabels.LOWER_BALANCE_SUBJECT
+  const subject = emailsLabels.soldeInsuffisant.sujet
   const text = StringExtension.format(
-    emailsLabels.LOWER_BALANCE_TEXT,
+    emailsLabels.soldeInsuffisant.texte,
     balance,
     required
   )

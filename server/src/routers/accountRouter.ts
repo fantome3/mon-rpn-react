@@ -100,12 +100,12 @@ accountRouter.put(
           }
         }
         res.send({
-          message: labels.ACCOUNT_UPDATED,
+          message: labels.compte.misAJour,
           account: updatedAccount,
         })
       } else {
         res.status(404).send({
-          message: labels.ACCOUNT_NOT_FOUND,
+          message: labels.compte.introuvable,
         })
       }
     } catch (error) {
@@ -124,7 +124,7 @@ accountRouter.get(
         res.send(account)
       } else {
         res.status(404).send({
-          message: labels.ACCOUNT_NOT_FOUND,
+          message: labels.compte.introuvable,
         })
       }
     } catch (error) {

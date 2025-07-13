@@ -11,18 +11,18 @@ export const sendPrelevementFailedEmail = async (
 ) => {
   const subject =
     type === 'membership'
-      ? emailsLabels.PRELEVEMENT_FAILED_SUBJECT_MEMBERSHIP
-      : emailsLabels.PRELEVEMENT_FAILED_SUBJECT_BALANCE
+      ? emailsLabels.prelevementEchecCotisation.sujet
+      : emailsLabels.prelevementEchecDeces.sujet
 
   const text =
     type === 'membership'
       ? StringExtension.format(
-          emailsLabels.PRELEVEMENT_FAILED_TEXT_MEMBERSHIP,
+          emailsLabels.prelevementEchecCotisation.texte,
           expectedAmount,
           currentBalance
         )
       : StringExtension.format(
-          emailsLabels.PRELEVEMENT_FAILED_TEXT_BALANCE,
+          emailsLabels.prelevementEchecDeces.texte,
           expectedAmount,
           currentBalance
         )

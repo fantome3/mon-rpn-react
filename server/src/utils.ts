@@ -62,7 +62,7 @@ export const isAuth = async (
   const { authorization } = req.headers
   console.log('AUTH HEADERS:', authorization) // 👈 ici
   if (!authorization) {
-    return res.status(401).json({ message: labels.NO_TOKEN })
+    return res.status(401).json({ message: labels.general.pasDeToken })
   }
 
   const token = authorization?.slice(7, authorization.length)
@@ -92,12 +92,12 @@ export const isAuth = async (
 
     const user = await UserModel.findById(decode._id)
     if (!user) {
-      return res.status(401).json({ message: labels.USER_NOT_FOUND_EN })
+      return res.status(401).json({ message: labels.utilisateur.introuvable })
     }
 
     if (user.subscription?.status === 'inactive') {
       return res.status(403).send({
-        message: labels.COMPTE_INACTIF,
+        message: labels.compte.compteInactif,
       })
     }
 
@@ -107,11 +107,11 @@ export const isAuth = async (
     return next()
   } catch (error: any) {
     if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ message: labels.TOKEN_EXPIRED })
+      return res.status(401).json({ message: labels.general.tokenExpire })
     } else if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({ message: labels.INVALID_TOKEN })
+      return res.status(401).json({ message: labels.general.tokenInvalide })
     } else {
-      return res.status(500).json({ message: labels.UNEXPECTED_ERROR })
+      return res.status(500).json({ message: labels.general.erreurInattendue })
     }
   }
 }
@@ -122,12 +122,12 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
       next()
     } else {
       res.status(401).send({
-        message: labels.INVALID_ADMIN_TOKEN,
+        message: labels.general.tokenAdminInvalide,
       })
     }
   } catch (error) {
     res.status(500).send({
-      message: labels.UNEXPECTED_ERROR_LOWER,
+      message: labels.general.erreurInattendueMin,
     })
   }
 }
@@ -154,7 +154,7 @@ export const generateUniqueReferralCode = async (
     exists = !!existingUser
     attempt++
     if (attempt > 10) {
-      throw new Error(labels.ECHEC_REFERRAL_CODE)
+      throw new Error(labels.parrainage.echecGenerationCode)
     }
   } while (exists)
 

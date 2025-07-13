@@ -8,9 +8,9 @@ export const sendMembershipReminderEmail = async (
   expectedAmount: number,
   currentBalance: number
 ) => {
-  const subject = emailsLabels.MEMBERSHIP_REMINDER_SUBJECT
+  const subject = emailsLabels.rappelCotisation.sujet
   const text = StringExtension.format(
-    emailsLabels.MEMBERSHIP_REMINDER_TEXT,
+    emailsLabels.rappelCotisation.texte,
     expectedAmount,
     currentBalance
   )
@@ -23,9 +23,9 @@ export const sendMembershipSuccessEmail = async (
   amountPaid: number,
   year: number
 ) => {
-  const subject = emailsLabels.MEMBERSHIP_SUCCESS_SUBJECT
+  const subject = emailsLabels.cotisationReussie.sujet
   const text = StringExtension.format(
-    emailsLabels.MEMBERSHIP_SUCCESS_TEXT,
+    emailsLabels.cotisationReussie.texte,
     amountPaid,
     year
   )

@@ -27,7 +27,7 @@ deathAnnouncementRouter.post(
 
       if (!settings || !settings.amountPerDependent) {
         res.status(400).json({
-          message: labels.PRELEVEMENT_AMOUNT_NOT_DEFINED,
+          message: labels.prelevement.montantNonDefini,
         })
         return
       }
@@ -128,7 +128,7 @@ deathAnnouncementRouter.post(
         deathDate: newDeathAnnouncement.deathDate,
       })
       res.send({
-        message: labels.ANNOUNCEMENT_CREATED,
+        message: labels.annonce.cree,
         announcement: newDeathAnnouncement.toObject(),
         errors,
       })
@@ -167,7 +167,7 @@ deathAnnouncementRouter.put(
         Object.assign(deathAnnouncement, req.body)
         const updatedDeathAnnouncement = deathAnnouncement.save()
         res.send({
-          message: labels.ANNOUNCEMENT_UPDATED,
+          message: labels.annonce.misAJour,
           deathAnnouncement: updatedDeathAnnouncement,
         })
       }

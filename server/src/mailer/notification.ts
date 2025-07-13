@@ -15,11 +15,11 @@ export const notifyAllUsers = async ({
 }) => {
   const users = await UserModel.find({ primaryMember: true })
   const subject = StringExtension.format(
-    emailsLabels.NOTIFICATION_SUBJECT,
+    emailsLabels.notificationDeces.sujet,
     firstName
   )
   const text = StringExtension.format(
-    emailsLabels.NOTIFICATION_TEXT,
+    emailsLabels.notificationDeces.texte,
     firstName,
     deathPlace,
     deathDate.toLocaleDateString()

@@ -1,44 +1,61 @@
 {
-  "ACCOUNT_UPDATED": "Accound Updated",
-  "ACCOUNT_NOT_FOUND": "Account Not Found",
-  "USER_UPDATED": "User Updated",
-  "USER_NOT_FOUND": "User Not Found",
-  "USER_NOT_FOUND_FR": "Utilisateur introuvable",
-  "CAN_NOT_DELETE_ADMIN": "Can Not Delete Admin User",
-  "USER_DELETED": "User Deleted",
-  "INVALID_TOKEN": "Invalid token",
-  "ERROR_WITH_TOKEN": "Error with token",
-  "PASSWORD_DO_NOT_MATCH": "Password Do Not Match",
-  "EMAIL_AND_PASSWORD_REQUIRED": "Email and password are required",
-  "EMAIL_EXIST": "L'email existe déjà",
-  "EMAIL_PASSWORD_REQUIRED_FR": "Email et mot de passe requis",
-  "PASSWORD_SENT_SUCCESS": "Mot de passe envoyé avec succès",
-  "EMAIL_SEND_ERROR": "Erreur lors de l’envoi de l’email",
-  "INVALID_EMAIL_OR_PASSWORD": "Invalid email or password",
-  "USER_NOT_FOUND_EN": "User not found",
-  "NO_TOKEN": "No Token",
-  "ACCOUNT_DEACTIVATED_SUCCESS": "Compte désactivé avec succès",
-  "ACCOUNT_REACTIVATED_SUCCESS": "Compte réactivé avec succès",
-  "ERROR_DEACTIVATION": "Erreur lors de la désactivation du compte",
-  "ERROR_REACTIVATION": "Erreur lors de la réactivation du compte",
-  "TOKEN_EXPIRED": "Token Expired",
-  "INVALID_ADMIN_TOKEN": "Invalid Admin Token",
-  "UNEXPECTED_ERROR": "Unexpected Error",
-  "UNEXPECTED_ERROR_LOWER": "Unexpected error",
-  "COMPTE_INACTIF": "Compte inactif. Veuillez contacter l'administrateur.",
-  "PRELEVEMENT_AMOUNT_NOT_DEFINED": "Montant de prélèvement non défini dans les paramètres",
-  "ANNOUNCEMENT_CREATED": "Annonce créée et prélèvements effectués.",
-  "ANNOUNCEMENT_UPDATED": "Announcement Updated",
-  "TRANSACTION_UPDATED": "Transaction updated",
-  "TRANSACTION_NOT_FOUND": "Transaction Not Found",
-  "TRANSACTION_DELETED": "Transaction Deleted",
-  "TRANSACTIONS_DELETED_SUCCESS": "Transactions supprimées avec succès",
-  "ERROR_DELETION": "Erreur lors de la suppression",
-  "RAPPEL_ENVOYE": "Rappels envoyés avec succès",
-  "ERREUR_RAPPEL_ENVOI": "Erreur lors de l’envoi des rappels",
-  "ERREUR_PRELEVEMENT_MANUEL": "Erreur lors du prélèvement manuel",
-  "ERREUR_RAPPEL_MANUEL": "Erreur du rappel manuel du solde",
-  "SETTINGS_UPDATED": "Settings Updated",
-  "AUCUN_PARAMETRE": "Aucun paramètre défini",
-  "ECHEC_REFERRAL_CODE": "Echec génération code parainage unique après 10 essais."
+  "general": {
+    "tokenInvalide": "Invalid token",
+    "erreurJeton": "Error with token",
+    "motsDePasseDifferents": "Password Do Not Match",
+    "emailOuMotPasseRequis": "Email and password are required",
+    "emailExiste": "L'email existe déjà",
+    "emailMotPasseRequisFr": "Email et mot de passe requis",
+    "erreurEnvoiEmail": "Erreur lors de l’envoi de l’email",
+    "emailOuMotPasseInvalide": "Invalid email or password",
+    "tokenExpire": "Token Expired",
+    "pasDeToken": "No Token",
+    "tokenAdminInvalide": "Invalid Admin Token",
+    "erreurInattendue": "Unexpected Error",
+    "erreurInattendueMin": "Unexpected error"
+  },
+  "utilisateur": {
+    "misAJour": "User Updated",
+    "introuvable": "User Not Found",
+    "introuvableFr": "Utilisateur introuvable",
+    "supprime": "User Deleted",
+    "impossibleSupprimerAdmin": "Can Not Delete Admin User",
+    "motDePasseEnvoye": "Mot de passe envoyé avec succès"
+  },
+  "compte": {
+    "misAJour": "Accound Updated",
+    "introuvable": "Account Not Found",
+    "desactiveSucces": "Compte désactivé avec succès",
+    "reactiveSucces": "Compte réactivé avec succès",
+    "erreurDesactivation": "Erreur lors de la désactivation du compte",
+    "erreurReactivation": "Erreur lors de la réactivation du compte",
+    "compteInactif": "Compte inactif. Veuillez contacter l'administrateur."
+  },
+  "prelevement": {
+    "montantNonDefini": "Montant de prélèvement non défini dans les paramètres",
+    "erreurManuel": "Erreur lors du prélèvement manuel"
+  },
+  "transaction": {
+    "misAJour": "Transaction updated",
+    "introuvable": "Transaction Not Found",
+    "supprime": "Transaction Deleted",
+    "supprimeSucces": "Transactions supprimées avec succès",
+    "erreurSuppression": "Erreur lors de la suppression"
+  },
+  "annonce": {
+    "cree": "Annonce créée et prélèvements effectués.",
+    "misAJour": "Announcement Updated"
+  },
+  "rappel": {
+    "envoyeSucces": "Rappels envoyés avec succès",
+    "erreurEnvoi": "Erreur lors de l’envoi des rappels",
+    "erreurManuel": "Erreur du rappel manuel du solde"
+  },
+  "parametres": {
+    "misAJour": "Settings Updated",
+    "aucun": "Aucun paramètre défini"
+  },
+  "parrainage": {
+    "echecGenerationCode": "Echec génération code parainage unique après 10 essais."
+  }
 }

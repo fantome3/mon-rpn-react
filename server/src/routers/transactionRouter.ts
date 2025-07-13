@@ -32,9 +32,9 @@ transactionRouter.post(
   expressAsyncHandler(async (req: Request, res: Response) => {
     try {
       await processAnnualMembershipPayment()
-      res.send({ message: labels.RAPPEL_ENVOYE })
+      res.send({ message: labels.rappel.envoyeSucces })
     } catch (error) {
-      res.status(500).json({ message: labels.ERREUR_RAPPEL_ENVOI })
+      res.status(500).json({ message: labels.rappel.erreurEnvoi })
     }
   })
 )
@@ -124,12 +124,12 @@ transactionRouter.delete(
       const result = await TransactionModel.deleteMany({ status: undefined })
 
       res.send({
-        message: labels.TRANSACTIONS_DELETED_SUCCESS,
+        message: labels.transaction.supprimeSucces,
         deletedCount: result.deletedCount,
       })
     } catch (error) {
       console.error('Erreur suppression transactions amount = 0', error)
-      res.status(500).json({ message: labels.ERROR_DELETION })
+      res.status(500).json({ message: labels.transaction.erreurSuppression })
     }
   })
 )
@@ -164,12 +164,12 @@ transactionRouter.put(
         const transactionUpdated = transaction.save()
 
         res.send({
-          message: labels.TRANSACTION_UPDATED,
+          message: labels.transaction.misAJour,
           transaction: transactionUpdated,
         })
       } else {
         res.status(404).send({
-          message: labels.TRANSACTION_NOT_FOUND,
+          message: labels.transaction.introuvable,
         })
       }
     } catch (error) {
@@ -189,10 +189,10 @@ transactionRouter.delete(
       if (transaction) {
         await transaction.deleteOne()
         res.send({
-          message: labels.TRANSACTION_DELETED,
+          message: labels.transaction.supprime,
         })
       } else {
-        res.status(404).send({ message: labels.TRANSACTION_NOT_FOUND })
+        res.status(404).send({ message: labels.transaction.introuvable })
       }
     } catch (error) {
       res.status(400).json(error)
@@ -212,7 +212,7 @@ transactionRouter.post(
     } catch (error) {
       res
         .status(500)
-        .json({ message: labels.ERREUR_PRELEVEMENT_MANUEL, error })
+        .json({ message: labels.prelevement.erreurManuel, error })
     }
   })
 )
@@ -228,7 +228,7 @@ transactionRouter.post(
       res.status(200).json(result)
     } catch (error) {
       res.status(500).json({
-        message: labels.ERREUR_RAPPEL_MANUEL,
+        message: labels.rappel.erreurManuel,
         error,
       })
     }

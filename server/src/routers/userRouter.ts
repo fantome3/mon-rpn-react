@@ -64,7 +64,7 @@ userRouter.post(
       res.json({ valid: true, decoded })
       return
     } catch (error) {
-      res.status(401).json({ valid: false, message: labels.INVALID_TOKEN })
+      res.status(401).json({ valid: false, message: labels.general.tokenInvalide })
       return
     }
   })
@@ -81,13 +81,13 @@ userRouter.post(
       async (error, decoded) => {
         if (error) {
           res.send({
-            message: labels.ERROR_WITH_TOKEN,
+            message: labels.general.erreurJeton,
           })
           return
         } else {
           if (password !== confirmPassword) {
             res.send({
-              message: labels.PASSWORD_DO_NOT_MATCH,
+              message: labels.general.motsDePasseDifferents,
             })
             return
           }
@@ -105,14 +105,14 @@ userRouter.post(
     try {
       const { email, password } = req.body
       if (!email || !password) {
-        res.status(400).send({ message: labels.EMAIL_PASSWORD_REQUIRED_FR })
+        res.status(400).send({ message: labels.general.emailMotPasseRequisFr })
         return
       }
       await sendPassword({ email, password })
-      res.status(200).send({ message: labels.PASSWORD_SENT_SUCCESS })
+      res.status(200).send({ message: labels.utilisateur.motDePasseEnvoye })
     } catch (error) {
       console.log(error)
-      res.status(500).json({ message: labels.EMAIL_SEND_ERROR })
+      res.status(500).json({ message: labels.general.erreurEnvoiEmail })
     }
   })
 )
@@ -137,7 +137,7 @@ userRouter.post(
         userId: user?._id,
       })
       if (!accountByUserId) {
-        res.status(404).send(labels.ACCOUNT_NOT_FOUND)
+        res.status(404).send(labels.compte.introuvable)
         return
       }
 
@@ -207,7 +207,7 @@ userRouter.post(
         })
         return
       } else {
-        res.status(401).json({ message: labels.INVALID_EMAIL_OR_PASSWORD })
+        res.status(401).json({ message: labels.general.emailOuMotPasseInvalide })
         return
       }
     } catch (error) {
@@ -232,7 +232,7 @@ userRouter.post(
       } = req.body
 
       if (!register || !register.email || !register.password) {
-        res.status(400).json({ message: labels.EMAIL_AND_PASSWORD_REQUIRED })
+        res.status(400).json({ message: labels.general.emailOuMotPasseRequis })
         return
       }
 
@@ -240,7 +240,7 @@ userRouter.post(
         'register.email': register.email,
       })
       if (existingUser) {
-        res.status(409).json({ message: labels.EMAIL_EXIST })
+        res.status(409).json({ message: labels.general.emailExiste })
         return
       }
 
@@ -314,7 +314,7 @@ userRouter.put(
         Object.assign(user, req.body)
         const updatedUser = await user.save()
         res.send({
-          message: labels.USER_UPDATED,
+          message: labels.utilisateur.misAJour,
           user: {
             ...updatedUser.toObject(),
             register: {
@@ -327,7 +327,7 @@ userRouter.put(
         return
       } else {
         res.status(404).send({
-          message: labels.USER_NOT_FOUND,
+          message: labels.utilisateur.introuvable,
         })
         return
       }
@@ -367,7 +367,7 @@ userRouter.get(
         res.send(user)
         return
       } else {
-        res.status(404).send({ message: labels.USER_NOT_FOUND })
+        res.status(404).send({ message: labels.utilisateur.introuvable })
         return
       }
     } catch (error) {
@@ -386,19 +386,19 @@ userRouter.delete(
       if (user) {
         if (user.isAdmin) {
           res.status(400).send({
-            message: labels.CAN_NOT_DELETE_ADMIN,
+            message: labels.utilisateur.impossibleSupprimerAdmin,
           })
           return
         }
         const deletedUser = await user?.deleteOne()
         res.send({
-          message: labels.USER_DELETED,
+          message: labels.utilisateur.supprime,
           user: deletedUser,
         })
         return
       } else {
         res.status(404).send({
-          message: labels.USER_NOT_FOUND,
+          message: labels.utilisateur.introuvable,
         })
         return
       }
@@ -430,7 +430,7 @@ userRouter.put(
       console.log(error)
       res
         .status(500)
-        .json({ message: labels.ERROR_DEACTIVATION })
+        .json({ message: labels.compte.erreurDesactivation })
     }
   })
 )
@@ -455,7 +455,7 @@ userRouter.put(
       console.log(error)
       res
         .status(500)
-        .json({ message: labels.ERROR_REACTIVATION })
+        .json({ message: labels.compte.erreurReactivation })
     }
   })
 )

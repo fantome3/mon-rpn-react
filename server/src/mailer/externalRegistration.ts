@@ -8,9 +8,9 @@ export const sendExternalRegistrationFailureEmail = async (
   error: string
 ) => {
   const adminEmail = process.env.ADMIN_EMAIL || 'paiement.rpn@gmail.com'
-  const subject = emailsLabels.EXTERNAL_REGISTRATION_SUBJECT
+  const subject = emailsLabels.inscriptionExterneEchec.sujet
   const text = StringExtension.format(
-    emailsLabels.EXTERNAL_REGISTRATION_TEXT,
+    emailsLabels.inscriptionExterneEchec.texte,
     memberEmail,
     error
   )

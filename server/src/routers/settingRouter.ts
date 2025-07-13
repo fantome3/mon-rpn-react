@@ -17,7 +17,7 @@ settingRouter.put(
         Object.assign(settings, req.body)
         const updatedSettings = await settings.save()
         res.send({
-          message: labels.SETTINGS_UPDATED,
+          message: labels.parametres.misAJour,
           settings: updatedSettings,
         })
       }
@@ -35,7 +35,7 @@ settingRouter.get(
     try {
       const settings = await SettingsModel.findOne()
       if (!settings) {
-        res.status(404).json({ message: labels.AUCUN_PARAMETRE })
+        res.status(404).json({ message: labels.parametres.aucun })
       } else {
         res.send(settings.toObject())
       }

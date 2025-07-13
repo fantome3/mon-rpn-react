@@ -12,9 +12,9 @@ export const sendForgotPasswordEmail = async ({
   userId: string
   email: string
 }) => {
-  const subject = emailsLabels.FORGOT_PASSWORD_SUBJECT
+  const subject = emailsLabels.motDePasseOublie.sujet
   const text = StringExtension.format(
-    emailsLabels.FORGOT_PASSWORD_TEXT,
+    emailsLabels.motDePasseOublie.texte,
     userId,
     token
   )
@@ -52,9 +52,9 @@ export const sendNewUserNotification = async ({
   paymentMethod: string
   solde: number
 }) => {
-  const subject = emailsLabels.NEW_USER_SUBJECT
+  const subject = emailsLabels.nouvelUtilisateur.sujet
   const text = StringExtension.format(
-    emailsLabels.NEW_USER_TEXT,
+    emailsLabels.nouvelUtilisateur.texte,
     firstName,
     lastName,
     email,
@@ -88,8 +88,8 @@ export const sendPassword = async ({
   password: string
   email: string
 }) => {
-  const subject = emailsLabels.PASSWORD_SUBJECT
-  const text = StringExtension.format(emailsLabels.PASSWORD_TEXT, password)
+  const subject = emailsLabels.envoiMotDePasse.sujet
+  const text = StringExtension.format(emailsLabels.envoiMotDePasse.texte, password)
   const html = emailTemplate({ content: text.replace(/\n/g, '<br/>') })
   try {
     await sendEmail({
