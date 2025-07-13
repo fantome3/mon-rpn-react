@@ -9,6 +9,7 @@ import { AccountModel } from '../models/accountModel'
 import { TransactionModel } from '../models/transactionModel'
 import { notifyAllUsers } from '../mailer'
 import { handleFailedPrelevement } from '../services/subscriptionService'
+import labels from '../common/libelles.json'
 
 export const deathAnnouncementRouter = express.Router()
 
@@ -26,7 +27,7 @@ deathAnnouncementRouter.post(
 
       if (!settings || !settings.amountPerDependent) {
         res.status(400).json({
-          message: 'Montant de prélèvement non défini dans les paramètres',
+          message: labels.PRELEVEMENT_AMOUNT_NOT_DEFINED,
         })
         return
       }
@@ -127,7 +128,7 @@ deathAnnouncementRouter.post(
         deathDate: newDeathAnnouncement.deathDate,
       })
       res.send({
-        message: 'Annonce créée et prélèvements effectués.',
+        message: labels.ANNOUNCEMENT_CREATED,
         announcement: newDeathAnnouncement.toObject(),
         errors,
       })
@@ -166,7 +167,7 @@ deathAnnouncementRouter.put(
         Object.assign(deathAnnouncement, req.body)
         const updatedDeathAnnouncement = deathAnnouncement.save()
         res.send({
-          message: 'Announcement Updated',
+          message: labels.ANNOUNCEMENT_UPDATED,
           deathAnnouncement: updatedDeathAnnouncement,
         })
       }

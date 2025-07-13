@@ -1,5 +1,7 @@
 import { sendEmail } from './core'
 import { emailTemplate } from './templates/emailTemplate'
+import emailsLabels from '../common/emailsLibelles.json'
+import StringExtension from '../common/stringExtension'
 
 export const sendPrelevementFailedEmail = async (
   email: string,
@@ -9,30 +11,21 @@ export const sendPrelevementFailedEmail = async (
 ) => {
   const subject =
     type === 'membership'
-      ? '❌ Échec de cotisation annuelle sur ACQ-RPN'
-      : '❌ Échec de prélèvement décès sur ACQ-RPN'
+      ? emailsLabels.PRELEVEMENT_FAILED_SUBJECT_MEMBERSHIP
+      : emailsLabels.PRELEVEMENT_FAILED_SUBJECT_BALANCE
 
   const text =
     type === 'membership'
-      ? `
-<p>Bonjour,</p>
-
-<p>Votre prélèvement pour la cotisation annuelle a échoué.</p>
-<p>Votre solde actuel est de ${currentBalance} CAD alors que le montant requis est de ${expectedAmount} CAD.</p>
-
-<p>Merci de renflouer votre compte dès que possible pour régulariser votre situation.</p>
-
-<p>Cordialement,</p>
-`
-      : `
-<p>Bonjour,</p>
-
-<p>Le prélèvement décès de ${expectedAmount} CAD n’a pas pu être effectué car votre solde est de ${currentBalance} CAD.</p>
-
-<p>Merci de recharger votre solde afin de permettre la participation au fonds de solidarité communautaire.</p>
-
-<p>Cordialement,</p>
-`
+      ? StringExtension.format(
+          emailsLabels.PRELEVEMENT_FAILED_TEXT_MEMBERSHIP,
+          expectedAmount,
+          currentBalance
+        )
+      : StringExtension.format(
+          emailsLabels.PRELEVEMENT_FAILED_TEXT_BALANCE,
+          expectedAmount,
+          currentBalance
+        )
 
   const html = emailTemplate({ content: text.replace(/\n/g, '<br/>') })
 

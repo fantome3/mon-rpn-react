@@ -3,6 +3,7 @@ import jwt, { JwtPayload } from 'jsonwebtoken'
 import { User, UserModel } from './models/userModel'
 import { caching } from 'cache-manager'
 import { GenerateTokenType } from './types/GenerateTokenType'
+import labels from './common/libelles.json'
 
 interface DecodedUser extends JwtPayload {
   _id: string
@@ -61,7 +62,7 @@ export const isAuth = async (
   const { authorization } = req.headers
   console.log('AUTH HEADERS:', authorization) // 👈 ici
   if (!authorization) {
-    return res.status(401).json({ message: 'No Token' })
+    return res.status(401).json({ message: labels.NO_TOKEN })
   }
 
   const token = authorization?.slice(7, authorization.length)
@@ -91,12 +92,12 @@ export const isAuth = async (
 
     const user = await UserModel.findById(decode._id)
     if (!user) {
-      return res.status(401).json({ message: 'User not found' })
+      return res.status(401).json({ message: labels.USER_NOT_FOUND_EN })
     }
 
     if (user.subscription?.status === 'inactive') {
       return res.status(403).send({
-        message: "Compte inactif. Veuillez contacter l'administrateur.",
+        message: labels.COMPTE_INACTIF,
       })
     }
 
@@ -106,11 +107,11 @@ export const isAuth = async (
     return next()
   } catch (error: any) {
     if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ message: 'Token Expired' })
+      return res.status(401).json({ message: labels.TOKEN_EXPIRED })
     } else if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({ message: 'Invalid Token' })
+      return res.status(401).json({ message: labels.INVALID_TOKEN })
     } else {
-      return res.status(500).json({ message: 'Unexpected Error' })
+      return res.status(500).json({ message: labels.UNEXPECTED_ERROR })
     }
   }
 }
@@ -121,12 +122,12 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
       next()
     } else {
       res.status(401).send({
-        message: 'Invalid Admin Token',
+        message: labels.INVALID_ADMIN_TOKEN,
       })
     }
   } catch (error) {
     res.status(500).send({
-      message: 'Unexpected error',
+      message: labels.UNEXPECTED_ERROR_LOWER,
     })
   }
 }
@@ -153,7 +154,7 @@ export const generateUniqueReferralCode = async (
     exists = !!existingUser
     attempt++
     if (attempt > 10) {
-      throw new Error('Echec génération code parainage unique après 10 essais.')
+      throw new Error(labels.ECHEC_REFERRAL_CODE)
     }
   } while (exists)
 

@@ -1,6 +1,8 @@
 import { UserModel } from '../models/userModel'
 import { sendEmail } from './core'
 import { emailTemplate } from './templates/emailTemplate'
+import emailsLabels from '../common/emailsLibelles.json'
+import StringExtension from '../common/stringExtension'
 
 export const notifyAllUsers = async ({
   firstName,
@@ -12,14 +14,16 @@ export const notifyAllUsers = async ({
   deathDate: Date
 }) => {
   const users = await UserModel.find({ primaryMember: true })
-  const subject = `🕊 Décès annoncé : ${firstName}`
-  const text = `
-  <h2>Avis de décès</h2>
-  <p>Bonjour,</p>
-  <p>Nous vous informons du décès de ${firstName}, survenu à ${deathPlace} le ${deathDate.toLocaleDateString()}.</p>
-  <p>Veuillez consulter la plateforme ACQ-RPN pour plus d'informations.</p>
-  <br/>
-  <p>Cordialement,</p>`
+  const subject = StringExtension.format(
+    emailsLabels.NOTIFICATION_SUBJECT,
+    firstName
+  )
+  const text = StringExtension.format(
+    emailsLabels.NOTIFICATION_TEXT,
+    firstName,
+    deathPlace,
+    deathDate.toLocaleDateString()
+  )
   const html = emailTemplate({ content: text.replace(/\n/g, '<br/>') })
 
   for (const user of users) {

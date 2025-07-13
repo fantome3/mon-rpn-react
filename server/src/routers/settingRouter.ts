@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express'
 import expressAsyncHandler from 'express-async-handler'
 import { isAuth, isAdmin } from '../utils'
 import { SettingsModel } from '../models/settingsModel'
+import labels from '../common/libelles.json'
 
 export const settingRouter = express.Router()
 
@@ -16,7 +17,7 @@ settingRouter.put(
         Object.assign(settings, req.body)
         const updatedSettings = await settings.save()
         res.send({
-          message: 'Settings Updated',
+          message: labels.SETTINGS_UPDATED,
           settings: updatedSettings,
         })
       }
@@ -34,7 +35,7 @@ settingRouter.get(
     try {
       const settings = await SettingsModel.findOne()
       if (!settings) {
-        res.status(404).json({ message: 'Aucun paramètre défini' })
+        res.status(404).json({ message: labels.AUCUN_PARAMETRE })
       } else {
         res.send(settings.toObject())
       }

@@ -3,6 +3,7 @@ import expressAsyncHandler from 'express-async-handler'
 import { AccountModel } from '../models/accountModel'
 import { isAuth } from '../utils'
 import { UserModel } from '../models/userModel'
+import labels from '../common/libelles.json'
 
 export const accountRouter = express.Router()
 
@@ -99,12 +100,12 @@ accountRouter.put(
           }
         }
         res.send({
-          message: 'Accound Updated',
+          message: labels.ACCOUNT_UPDATED,
           account: updatedAccount,
         })
       } else {
         res.status(404).send({
-          message: 'Account Not Found',
+          message: labels.ACCOUNT_NOT_FOUND,
         })
       }
     } catch (error) {
@@ -123,7 +124,7 @@ accountRouter.get(
         res.send(account)
       } else {
         res.status(404).send({
-          message: 'Account Not Found',
+          message: labels.ACCOUNT_NOT_FOUND,
         })
       }
     } catch (error) {

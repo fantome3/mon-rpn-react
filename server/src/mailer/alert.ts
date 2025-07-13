@@ -1,5 +1,7 @@
 import { sendEmail } from './core'
 import { emailTemplate } from './templates/emailTemplate'
+import emailsLabels from '../common/emailsLibelles.json'
+import StringExtension from '../common/stringExtension'
 
 export const sendDeactivationWarningEmail = async (
   email: string,
@@ -11,33 +13,19 @@ export const sendDeactivationWarningEmail = async (
       ? 'le non-paiement de votre cotisation annuelle'
       : 'un solde insuffisant pour participer aux prélèvements décès'
 
-  const subject = '⚠️ Risque de désactivation de votre compte'
-  const text = `
-Bonjour,
-
-Suite à ${reason}, votre compte pourrait être désactivé le ${deactivationDate.toLocaleDateString()}.
-
-Merci de régulariser votre situation.
-
-L'équipe ACQ-RPN.
-  `
+  const subject = emailsLabels.DEACTIVATION_WARNING_SUBJECT
+  const text = StringExtension.format(
+    emailsLabels.DEACTIVATION_WARNING_TEXT,
+    reason,
+    deactivationDate.toLocaleDateString()
+  )
   const html = emailTemplate({ content: text.replace(/\n/g, '<br/>') })
   await sendEmail({ to: email, subject, text, html })
 }
 
 export const sendAccountDeactivatedEmail = async (email: string) => {
-  const subject = '🚫 Votre compte a été désactivé'
-  const text = `
-    <h2>Compte désactivé</h2>
-    <p>Bonjour,</p>
-
-    <p>Votre compte a été désactivé faute de régularisation.</p>
-
-    <p>Contactez l'administration pour le réactiver.</p>
-
-    <p>Cordialement,</p>
-    <p>L'équipe ACQ-RPN.</p>
-  `
+  const subject = emailsLabels.ACCOUNT_DEACTIVATED_SUBJECT
+  const text = emailsLabels.ACCOUNT_DEACTIVATED_TEXT
   const html = emailTemplate({ content: text.replace(/\n/g, '<br/>') })
   await sendEmail({ to: email, subject, text, html })
 }
@@ -47,17 +35,12 @@ export const sendLowerBanlanceAlertEmail = async (
   balance: number,
   required: number
 ) => {
-  const subject = '🚨 Solde insuffisant pour les prélèvements RPN'
-  const text = `
-  Bonjour,
-
-  Votre solde actuel est de ${balance} CAD, alors que le minimum requis pour les prélèvements RPN est de ${required} CAD.
-
-  Veuillez renflouer votre compte pour continuer à bénéficier du service.
-
-  Cordialement,
-  L’équipe ACQ-RPN.
-  `
+  const subject = emailsLabels.LOWER_BALANCE_SUBJECT
+  const text = StringExtension.format(
+    emailsLabels.LOWER_BALANCE_TEXT,
+    balance,
+    required
+  )
 
   const html = emailTemplate({ content: text.replace(/\n/g, '<br/>') })
 
