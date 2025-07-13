@@ -1,5 +1,7 @@
 import { sendEmail } from './core'
 import { emailTemplate } from './templates/emailTemplate'
+import emailsLabels from '../common/emailsLibelles.json'
+import StringExtension from '../common/stringExtension'
 
 export const sendForgotPasswordEmail = async ({
   token,
@@ -10,8 +12,12 @@ export const sendForgotPasswordEmail = async ({
   userId: string
   email: string
 }) => {
-  const subject = 'Réinitialisation de votre mot de passe'
-  const text = `Cliquez sur le lien suivant pour réinitialiser votre mot de passe: http://localhost:5173/reset-password/${userId}/${token}`
+  const subject = emailsLabels.motDePasseOublie.sujet
+  const text = StringExtension.format(
+    emailsLabels.motDePasseOublie.texte,
+    userId,
+    token
+  )
   const html = emailTemplate({ content: `<p>${text}</p>` })
 
   try {
@@ -46,22 +52,18 @@ export const sendNewUserNotification = async ({
   paymentMethod: string
   solde: number
 }) => {
-  const subject = 'Nouvelle inscription sur ACQ-RPN'
-  const text = `
-  <h1 style="font-size: 18px; margin-top: 0;">Nouvel utilisateur inscrit</h1>
-  <p style="line-height: 1.6;">Bonjour,</p>
-  <p style="line-height: 1.6;">Un nouvel utilisateur vient de s'inscrire sur votre plateforme ACQ-RPN. Voici ses informations :</p>
-  <ul style="line-height: 1.6; padding-left: 20px;">
-    <li>Prénom(s) : ${firstName}</li>
-    <li>Nom : ${lastName}</li>
-    <li>Courriel : ${email}</li>
-    <li>Pays d'origine : ${nativeCountry}</li>
-    <li>Pays de résidence : ${residenceCountry}</li>
-    <li>Numéro : ${tel}</li>
-    <li>Méthode de paiement : ${paymentMethod}</li>
-    <li>Solde de départ : ${solde} $</li>
-  </ul>
-  `
+  const subject = emailsLabels.nouvelUtilisateur.sujet
+  const text = StringExtension.format(
+    emailsLabels.nouvelUtilisateur.texte,
+    firstName,
+    lastName,
+    email,
+    nativeCountry,
+    residenceCountry,
+    tel,
+    paymentMethod,
+    solde.toString()
+  )
   const html = emailTemplate({
     content: text.replace(/\n/g, '<br/>'),
   })
@@ -86,23 +88,8 @@ export const sendPassword = async ({
   password: string
   email: string
 }) => {
-  const subject = 'ACQ-RPN - Mot de passe'
-  const text = `
-Votre inscription sur notre plateforme ACQ-RPN
-      s'est déroulée avec succès.
-
-      Voici le mot de passe actuel pour vous
-      connectez à votre compte:
-      <strong>${password}</strong>
-
-      Vous pouvez modifier votre mot de passe à la
-      page profile de votre plateforme ACQ-RPN à
-      tout moment.
-
-      Bienvenue chez vous,
-      
-      L'équipe ACQ-RPN.
-`
+  const subject = emailsLabels.envoiMotDePasse.sujet
+  const text = StringExtension.format(emailsLabels.envoiMotDePasse.texte, password)
   const html = emailTemplate({ content: text.replace(/\n/g, '<br/>') })
   try {
     await sendEmail({

@@ -5,6 +5,8 @@
     "strict": true,
     "module": "commonjs",
     "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   }

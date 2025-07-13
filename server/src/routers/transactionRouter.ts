@@ -7,6 +7,7 @@ import {
   processMembershipForUser,
 } from '../services/membershipService'
 import { sendBalanceReminderIfNeeded } from '../services/checkMinimumBalanceAndSendReminder'
+import labels from '../common/libelles.json'
 
 export const transactionRouter = express.Router()
 
@@ -31,9 +32,9 @@ transactionRouter.post(
   expressAsyncHandler(async (req: Request, res: Response) => {
     try {
       await processAnnualMembershipPayment()
-      res.send({ message: 'Rappels envoyés avec succès' })
+      res.send({ message: labels.rappel.envoyeSucces })
     } catch (error) {
-      res.status(500).json({ message: 'Erreur lors de l’envoi des rappels' })
+      res.status(500).json({ message: labels.rappel.erreurEnvoi })
     }
   })
 )
@@ -123,12 +124,12 @@ transactionRouter.delete(
       const result = await TransactionModel.deleteMany({ status: undefined })
 
       res.send({
-        message: 'Transactions supprimées avec succès',
+        message: labels.transaction.supprimeSucces,
         deletedCount: result.deletedCount,
       })
     } catch (error) {
       console.error('Erreur suppression transactions amount = 0', error)
-      res.status(500).json({ message: 'Erreur lors de la suppression' })
+      res.status(500).json({ message: labels.transaction.erreurSuppression })
     }
   })
 )
@@ -163,12 +164,12 @@ transactionRouter.put(
         const transactionUpdated = transaction.save()
 
         res.send({
-          message: 'Transaction updated',
+          message: labels.transaction.misAJour,
           transaction: transactionUpdated,
         })
       } else {
         res.status(404).send({
-          message: 'Transaction Not Found',
+          message: labels.transaction.introuvable,
         })
       }
     } catch (error) {
@@ -188,10 +189,10 @@ transactionRouter.delete(
       if (transaction) {
         await transaction.deleteOne()
         res.send({
-          message: 'Transaction Deleted',
+          message: labels.transaction.supprime,
         })
       } else {
-        res.status(404).send({ message: 'Transaction Not Found' })
+        res.status(404).send({ message: labels.transaction.introuvable })
       }
     } catch (error) {
       res.status(400).json(error)
@@ -211,7 +212,7 @@ transactionRouter.post(
     } catch (error) {
       res
         .status(500)
-        .json({ message: 'Erreur lors du prélèvement manuel', error })
+        .json({ message: labels.prelevement.erreurManuel, error })
     }
   })
 )
@@ -227,7 +228,7 @@ transactionRouter.post(
       res.status(200).json(result)
     } catch (error) {
       res.status(500).json({
-        message: 'Erreur du rappel manuel du solde',
+        message: labels.rappel.erreurManuel,
         error,
       })
     }
