@@ -1,7 +1,6 @@
 import { sendEmail } from './core'
 import { emailTemplate } from './templates/emailTemplate'
-import emailsLabels from '../common/emailsLibelles.json'
-import StringExtension from '../common/stringExtension'
+import { emailContents } from './templates/LabelsSentEmails'
 
 export const sendPrelevementFailedEmail = async (
   email: string,
@@ -11,21 +10,19 @@ export const sendPrelevementFailedEmail = async (
 ) => {
   const subject =
     type === 'membership'
-      ? emailsLabels.prelevementEchecCotisation.sujet
-      : emailsLabels.prelevementEchecDeces.sujet
+      ? emailContents.prelevementEchecCotisation.sujet
+      : emailContents.prelevementEchecDeces.sujet
 
   const text =
     type === 'membership'
-      ? StringExtension.format(
-          emailsLabels.prelevementEchecCotisation.texte,
-          expectedAmount,
-          currentBalance
-        )
-      : StringExtension.format(
-          emailsLabels.prelevementEchecDeces.texte,
-          expectedAmount,
-          currentBalance
-        )
+      ? emailContents.prelevementEchecCotisation.texte({
+          amount: expectedAmount,
+          current: currentBalance
+        })
+      : emailContents.prelevementEchecDeces.texte({
+          amount: expectedAmount,
+          current: currentBalance
+        })
 
   const html = emailTemplate({ content: text.replace(/\n/g, '<br/>') })
 

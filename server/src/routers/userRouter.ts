@@ -108,7 +108,7 @@ userRouter.post(
         res.status(400).send({ message: labels.general.emailMotPasseRequisFr })
         return
       }
-      await sendPassword({ email, password })
+      await sendPassword({ emailAddress: email, password })
       res.status(200).send({ message: labels.utilisateur.motDePasseEnvoye })
     } catch (error) {
       console.log(error)
@@ -147,9 +147,9 @@ userRouter.post(
         nativeCountry: user?.origines.nativeCountry,
         email: user?.register.email,
         residenceCountry: user?.infos.residenceCountry,
-        tel: user?.infos.tel,
+        contactNumber: user?.infos.tel,
         paymentMethod: accountByUserId?.paymentMethod,
-        solde: accountByUserId?.solde,
+        balanceAmount: accountByUserId?.solde,
       })
     } catch (error) {
       console.log(error)

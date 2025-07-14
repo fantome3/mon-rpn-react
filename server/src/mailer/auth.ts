@@ -1,7 +1,6 @@
 import { sendEmail } from './core'
 import { emailTemplate } from './templates/emailTemplate'
-import emailsLabels from '../common/emailsLibelles.json'
-import StringExtension from '../common/stringExtension'
+import { emailContents } from './templates/LabelsSentEmails'
 
 export const sendForgotPasswordEmail = async ({
   token,
@@ -12,12 +11,11 @@ export const sendForgotPasswordEmail = async ({
   userId: string
   email: string
 }) => {
-  const subject = emailsLabels.motDePasseOublie.sujet
-  const text = StringExtension.format(
-    emailsLabels.motDePasseOublie.texte,
+  const subject = emailContents.motDePasseOublie.sujet
+  const text = emailContents.motDePasseOublie.texte({
     userId,
     token
-  )
+  })
   const html = emailTemplate({ content: `<p>${text}</p>` })
 
   try {
@@ -39,31 +37,30 @@ export const sendNewUserNotification = async ({
   nativeCountry,
   email,
   residenceCountry,
-  tel,
+  contactNumber,
   paymentMethod,
-  solde,
+  balanceAmount,
 }: {
   lastName: string
   firstName: string
   nativeCountry: string
   email: string
   residenceCountry: string
-  tel: string
+  contactNumber: string
   paymentMethod: string
-  solde: number
+  balanceAmount: number
 }) => {
-  const subject = emailsLabels.nouvelUtilisateur.sujet
-  const text = StringExtension.format(
-    emailsLabels.nouvelUtilisateur.texte,
+  const subject = emailContents.nouvelUtilisateur.sujet
+  const text = emailContents.nouvelUtilisateur.texte({
     firstName,
     lastName,
     email,
     nativeCountry,
     residenceCountry,
-    tel,
+    contactNumber,
     paymentMethod,
-    solde.toString()
-  )
+    accountBalance: balanceAmount
+  })
   const html = emailTemplate({
     content: text.replace(/\n/g, '<br/>'),
   })
@@ -83,17 +80,17 @@ export const sendNewUserNotification = async ({
 
 export const sendPassword = async ({
   password,
-  email,
+  emailAddress,
 }: {
   password: string
-  email: string
+  emailAddress: string
 }) => {
-  const subject = emailsLabels.envoiMotDePasse.sujet
-  const text = StringExtension.format(emailsLabels.envoiMotDePasse.texte, password)
+  const subject = emailContents.envoiMotDePasse.sujet
+  const text = emailContents.envoiMotDePasse.texte({ password})
   const html = emailTemplate({ content: text.replace(/\n/g, '<br/>') })
   try {
     await sendEmail({
-      to: email,
+      to: emailAddress,
       subject,
       text,
       html,
