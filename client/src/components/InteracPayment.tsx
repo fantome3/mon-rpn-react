@@ -31,16 +31,20 @@ import { useNewTransactionMutation } from '@/hooks/transactionHooks'
 const formSchema = z.object({
   amountInterac: z
     .number({
-      required_error: 'Le montant ne peut-être inférieur à 25$',
+      required_error: 'Le montant ne peut-être inférieur à 70$',
       invalid_type_error: 'Le montant doit être un nombre.',
     })
-    .gte(25),
+    .gte(70),
   refInterac: z
     .string()
     .min(8, { message: 'Doit avoir au moins 8 charactères.' }),
 })
 
-const InteracPayment = () => {
+type InteracPaymentProps = {
+  total: number
+}
+
+const InteracPayment = ({ total }: InteracPaymentProps) => {
   const [modalVisibility, setModalVisibility] = useState(false)
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { userInfo } = state
@@ -155,9 +159,11 @@ const InteracPayment = () => {
           open={modalVisibility}
           title='Paiement Interac'
           description={
-              `Faire le virement Interac à l'adresse courriel suivante "paiement.rpn@gmail.com" et utiliser le mot de passe suivant "monrpn" si demandé.
-              Par la suite entrez les informations du virement que vous avez effectuer pour renflouer votre compte RPN.(le montant ne peut-être inférieur à 25$)`
-            }
+            <div className="text-justify">
+              Faire le virement Interac à l'adresse courriel suivante <strong>paiement.rpn@gmail.com</strong> et utiliser le mot de passe suivant <strong>monrpn</strong> si demandé.
+              Par la suite entrez les informations du virement que vous avez effectuer pour renflouer votre compte RPN.
+            </div>
+          }
         >
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
@@ -193,8 +199,8 @@ const InteracPayment = () => {
                     <FormLabel className='text-sm'>
                       Numéro de référence du transfert Interac
                       <HoverCard>
-                        <HoverCardTrigger className='cursor-pointer'>
-                          (i)
+                        <HoverCardTrigger className='cursor-pointer italic text-xs hover:underline'>
+                          (où le trouver)
                         </HoverCardTrigger>
                         <HoverCardContent className='font-light text-justify'>
                           Interac vous envoie automatiquement un courriel de

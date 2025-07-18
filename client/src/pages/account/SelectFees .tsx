@@ -1,5 +1,4 @@
 import { useState, useMemo } from "react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -20,6 +19,10 @@ type FeeDetail = {
   isRpnActive: boolean;
 };
 
+type SelectFeesProps = {
+  updateTotal: (total: number) => void; // Callback pour mettre à jour le total
+};
+
 const MONTANT_OBLIGATOIRE = { adult: 60, minor: 10 }; // ACQ + traitement (obligatoire)
 const MONTANT_MINIMUM_RPN = 10;
 
@@ -27,7 +30,7 @@ const defaultFeeDetails: FeeDetail[] = [
   { id: 'me', feeDescription: 'Vous (Adulte)', quantity: 1, type: 'adult', isRpnActive: true },
 ];
 
-export default function SelectFeesWithFamily() {
+export default function SelectFees({ updateTotal }: SelectFeesProps) {
   /* ---------------------- États principaux ---------------------- */
   const [adultCount, setAdultCount] = useState(0); // adultes supplémentaires
   const [minorCount, setMinorCount] = useState(0);
@@ -45,6 +48,10 @@ export default function SelectFeesWithFamily() {
       currentFeeItems.push({ id: 'minors', feeDescription: `${extraMinors} × mineur(s)`, quantity: extraMinors, type: 'minor', isRpnActive: true });
 
     setFeeDetails(currentFeeItems);
+    if (updateTotal) {
+      const total = currentFeeItems.reduce((sum, row) => sum + row.quantity * (MONTANT_OBLIGATOIRE[row.type] + (row.isRpnActive ? MONTANT_MINIMUM_RPN : 0)), 0);
+      updateTotal(total);
+    }
   };
 
   /* ---------------- Handlers de quantité saisie ----------------- */
@@ -60,6 +67,9 @@ export default function SelectFeesWithFamily() {
   /* ---------------------- Toggle case RPN ----------------------- */
   const toggleRpn = (id: string) => {
     setFeeDetails((prev) => prev.map((r) => (r.id === id ? { ...r, isRpnActive: !r.isRpnActive } : r)));
+    // Recalculer le total après modification
+    const total = feeDetails.reduce((sum, row) => sum + row.quantity * (MONTANT_OBLIGATOIRE[row.type] + (row.isRpnActive ? MONTANT_MINIMUM_RPN : 0)), 0);
+    updateTotal(total);
   };
 
   /* ------------------- Calculs sous‑totaux & total -------------- */

@@ -7,6 +7,7 @@ import { Store } from '@/lib/Store'
 import clsx from 'clsx'
 import { useContext } from 'react'
 import { Link } from 'react-router-dom'
+
 const Profil = () => {
   const { state } = useContext(Store)
   const { userInfo } = state

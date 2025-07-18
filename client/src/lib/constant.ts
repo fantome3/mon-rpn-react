@@ -282,7 +282,7 @@ export const countries = [
 
 export const menuItemsDisconnected = [
   { name: 'Accueil', link: '/' },
-  //{ name: 'À Propos', link: '/about' },
+  { name: 'À Propos', link: '/about' },
   //{ name: 'Nous contacter', link: '/contact-us' },
   { name: 'Connexion', link: '/login' },
   { name: "S'incrire", link: '/register' },
@@ -292,7 +292,7 @@ export const menuItemsConnected = [
   { name: 'Accueil', link: '/' },
   { name: 'Sommaire', link: '/summary' },
   { name: 'Profile', link: '/profil' },
-  // { name: 'À Propos', link: '/about' },
+  { name: 'À Propos', link: '/about' },
   // { name: 'Nous contacter', link: '/contact-us' },
 ]
 

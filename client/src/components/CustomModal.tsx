@@ -15,7 +15,7 @@ type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | 'full'
 
 type ModalType = {
   title?: string
-  description?: string
+  description?: string | React.ReactNode
   children: React.ReactNode
   open: boolean
   setOpen: (open: boolean) => void

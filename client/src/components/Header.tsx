@@ -6,6 +6,7 @@ import { Store } from '@/lib/Store'
 import { Button } from './ui/button'
 import clsx from 'clsx'
 import AdminMenu from './AdminMenu'
+import logoAcq from '@/assets/logo-Acq-jpeg.jpg'
 
 const Navbar = () => {
   const { state, logoutHandler } = useContext(Store)
@@ -16,14 +17,23 @@ const Navbar = () => {
   return (
     <div
       className={
-        userInfo
+        userInfo && userInfo.infos
           ? 'bg-primary text-white p-4 flex items-center justify-between'
-          : 'bg-white border-2 border-primary text-zinc-950 p-4 flex items-center justify-between'
+          : 'bg-white border-primary text-zinc-950 p-4 flex items-center justify-between'
       }
     >
-      <aside className='flex items-center gap-2'>
-        <Link to='/'>
-          <span className='text-xl font-bold'>ACQ-RPN</span>
+      <aside className='flex flex-col items-center gap-1'>
+        <Link to='/' className='flex flex-col items-center gap-1 group'>
+          <div className='relative overflow-hidden rounded-full border-2 border-white/20 shadow-lg transition-all duration-300 group-hover:scale-105 group-hover:shadow-xl'>
+            <img
+              src={logoAcq}
+              alt='Association des Camerounais du Québec'
+              className='md:w-16 md:h-16 object-cover transition-transform duration-300 group-hover:scale-110'
+            />
+          </div>
+          <span className='text-xs font-bold'>
+            ACQ-RPN
+          </span>
         </Link>
       </aside>
       <nav className='hidden lg:block absolute left-[15%]'>
@@ -60,7 +70,16 @@ const Navbar = () => {
         ) : (
           <>
             <Link
-              className={clsx('hover:text-secondary hidden lg:flex', {
+              className={clsx('hover:text-secondary hidden lg:flex px-3 py-1 rounded-md transition-colors duration-200', {
+                'hover:text-slate-700': !userInfo,
+                'bg-slate-100 text-slate-800 font-medium': pathname === '/about' && !userInfo,
+              })}
+              to={'/about'}
+            >
+              À propos de nous
+            </Link>
+            <Link
+              className={clsx('hover:text-secondary hidden lg:flex px-3 py-1 rounded-md', {
                 'hover:text-slate-700': !userInfo,
               })}
               to={'/login'}
@@ -70,7 +89,7 @@ const Navbar = () => {
             <Link
               to={'/register'}
               className={clsx(
-                'p-2 px-4 rounded-md hover:text-secondary hidden lg:flex',
+                'px-3 py-1 rounded-md hover:text-secondary hidden lg:flex',
                 {
                   'hover:text-slate-700': !userInfo,
                 }

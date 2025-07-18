@@ -302,7 +302,7 @@ const Infos = () => {
                         defaultValue={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger className='w-[50%]'>
+                          <SelectTrigger className='w-fit min-w-[200px] max-w-full'>
                             <SelectValue placeholder='Sélectionnez votre statut' />
                           </SelectTrigger>
                         </FormControl>
