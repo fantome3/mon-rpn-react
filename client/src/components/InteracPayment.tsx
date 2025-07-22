@@ -10,6 +10,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from './ui/use-toast'
 import { refresh, ToLocaleStringFunc } from '@/lib/utils'
 import { z } from 'zod'
+import { createInteracFormSchema } from '@/lib/createInteracFormSchema'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from './ui/button'
@@ -28,17 +29,8 @@ import { useNewUserNotificationMutation } from '@/hooks/userHooks'
 import { Interac } from '@/types/Account'
 import { useNewTransactionMutation } from '@/hooks/transactionHooks'
 
-const formSchema = z.object({
-  amountInterac: z
-    .number({
-      required_error: 'Le montant ne peut-être inférieur à 70$',
-      invalid_type_error: 'Le montant doit être un nombre.',
-    })
-    .gte(70),
-  refInterac: z
-    .string()
-    .min(8, { message: 'Doit avoir au moins 8 charactères.' }),
-})
+const createSchema = (minAmount: number) =>
+  createInteracFormSchema(minAmount)
 
 type InteracPaymentProps = {
   total: number
@@ -57,11 +49,13 @@ const InteracPayment = ({ total }: InteracPaymentProps) => {
   const redirectInUrl = new URLSearchParams(search).get('redirect')
   const redirect = redirectInUrl ? redirectInUrl : '/summary'
 
+  const formSchema = createSchema(total)
+
   const form = useForm<z.infer<typeof formSchema>>({
     mode: 'onChange',
     resolver: zodResolver(formSchema),
     defaultValues: {
-      amountInterac: 0,
+      amountInterac: total,
       refInterac: '',
     },
   })
@@ -161,7 +155,7 @@ const InteracPayment = ({ total }: InteracPaymentProps) => {
           description={
             <div className="text-justify">
               Faire le virement Interac à l'adresse courriel suivante <strong>paiement.rpn@gmail.com</strong> et utiliser le mot de passe suivant <strong>monrpn</strong> si demandé.
-              Par la suite entrez les informations du virement que vous avez effectuer pour renflouer votre compte RPN.
+              Par la suite entrez les informations du virement que vous avez effectuer pour renflouer votre compte RPN. Le montant minimal est de {total}$.
             </div>
           }
         >
@@ -176,7 +170,7 @@ const InteracPayment = ({ total }: InteracPaymentProps) => {
                     <FormControl>
                       <Input
                         type='text'
-                        placeholder='25'
+                        placeholder={total.toString()}
                         value={ToLocaleStringFunc(field.value)}
                         onChange={(event) => {
                           const rawValue = event.target.value.replace(/\s/g, '')

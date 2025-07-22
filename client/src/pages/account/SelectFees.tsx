@@ -1,6 +1,13 @@
-import { useState, useMemo } from "react";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
+import { useState, useMemo } from 'react'
+import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  calculateSubtotal,
+  calculateTotal,
+  FeeDetail,
+  MONTANT_MINIMUM_RPN,
+  MONTANT_OBLIGATOIRE,
+} from '@/lib/fees'
 
 /**
  * Composant : SelectFeesWithFamily
@@ -11,24 +18,19 @@ import { Checkbox } from "@/components/ui/checkbox";
  *     - Mineur : 20 $ (10 $ traitement + 10 $ RPN)
  */
 
-type FeeDetail = {
-  id: string;
-  feeDescription: string;           // Vous (Adulte), 2 × autres adultes, 3 × mineurs
-  quantity: number;
-  type: 'adult' | 'minor';
-  isRpnActive: boolean;
-};
-
 type SelectFeesProps = {
   updateTotal: (total: number) => void; // Callback pour mettre à jour le total
 };
 
-const MONTANT_OBLIGATOIRE = { adult: 60, minor: 10 }; // ACQ + traitement (obligatoire)
-const MONTANT_MINIMUM_RPN = 10;
-
 const defaultFeeDetails: FeeDetail[] = [
-  { id: 'me', feeDescription: 'Vous (Adulte)', quantity: 1, type: 'adult', isRpnActive: true },
-];
+  {
+    id: 'me',
+    feeDescription: 'Vous (Adulte)',
+    quantity: 1,
+    type: 'adult',
+    isRpnActive: true,
+  },
+]
 
 export default function SelectFees({ updateTotal }: SelectFeesProps) {
   /* ---------------------- États principaux ---------------------- */
@@ -38,21 +40,30 @@ export default function SelectFees({ updateTotal }: SelectFeesProps) {
 
   /* -------------- Synchronisation lignes du tableau ------------- */
   const updateFeeRows = (newAdult: number, newMinor: number) => {
-    const extraAdults = Math.max(0, newAdult);
-    const extraMinors = Math.max(0, newMinor);
+    const extraAdults = Math.max(0, newAdult)
+    const extraMinors = Math.max(0, newMinor)
 
-    const currentFeeItems: FeeDetail[] = [defaultFeeDetails[0]];
+    const currentFeeItems: FeeDetail[] = [defaultFeeDetails[0]]
     if (extraAdults > 0)
-      currentFeeItems.push({ id: 'adults', feeDescription: `${extraAdults} × autre(s) adulte(s)`, quantity: extraAdults, type: 'adult', isRpnActive: true });
+      currentFeeItems.push({
+        id: 'adults',
+        feeDescription: `${extraAdults} × autre(s) adulte(s)`,
+        quantity: extraAdults,
+        type: 'adult',
+        isRpnActive: true,
+      })
     if (extraMinors > 0)
-      currentFeeItems.push({ id: 'minors', feeDescription: `${extraMinors} × mineur(s)`, quantity: extraMinors, type: 'minor', isRpnActive: true });
+      currentFeeItems.push({
+        id: 'minors',
+        feeDescription: `${extraMinors} × mineur(s)`,
+        quantity: extraMinors,
+        type: 'minor',
+        isRpnActive: true,
+      })
 
-    setFeeDetails(currentFeeItems);
-    if (updateTotal) {
-      const total = currentFeeItems.reduce((sum, row) => sum + row.quantity * (MONTANT_OBLIGATOIRE[row.type] + (row.isRpnActive ? MONTANT_MINIMUM_RPN : 0)), 0);
-      updateTotal(total);
-    }
-  };
+    setFeeDetails(currentFeeItems)
+    updateTotal(calculateTotal(currentFeeItems))
+  }
 
   /* ---------------- Handlers de quantité saisie ----------------- */
   const handleAdultsChange = (newAdultCount: number) => {
@@ -66,15 +77,16 @@ export default function SelectFees({ updateTotal }: SelectFeesProps) {
 
   /* ---------------------- Toggle case RPN ----------------------- */
   const toggleRpn = (id: string) => {
-    setFeeDetails((prev) => prev.map((r) => (r.id === id ? { ...r, isRpnActive: !r.isRpnActive } : r)));
-    // Recalculer le total après modification
-    const total = feeDetails.reduce((sum, row) => sum + row.quantity * (MONTANT_OBLIGATOIRE[row.type] + (row.isRpnActive ? MONTANT_MINIMUM_RPN : 0)), 0);
-    updateTotal(total);
-  };
+    const updated = feeDetails.map((r) =>
+      r.id === id ? { ...r, isRpnActive: !r.isRpnActive } : r,
+    )
+    setFeeDetails(updated)
+    updateTotal(calculateTotal(updated))
+  }
 
   /* ------------------- Calculs sous‑totaux & total -------------- */
-  const getSubtotal = (row: FeeDetail) => row.quantity * (MONTANT_OBLIGATOIRE[row.type] + (row.isRpnActive ? MONTANT_MINIMUM_RPN : 0));
-  const total = useMemo(() => feeDetails.reduce((sum, r) => sum + getSubtotal(r), 0), [feeDetails]);
+  const getSubtotal = (row: FeeDetail) => calculateSubtotal(row)
+  const total = useMemo(() => calculateTotal(feeDetails), [feeDetails])
 
   return (
     <div className="container mx-auto my-8 max-w-4xl px-4 space-y-8">
