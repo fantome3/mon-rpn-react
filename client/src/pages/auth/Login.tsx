@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { SearchEngineOptimization } from '@/components/SearchEngineOptimization'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -91,6 +92,7 @@ const Login = () => {
 
   return (
     <>
+      <SearchEngineOptimization title='Connexion' />
       <Header />
       <div className='auth form'>
         <Card className='auth-card '>

@@ -1,10 +1,13 @@
 import { Button } from '@/components/ui/button'
 import { useNavigate } from 'react-router-dom'
+import { SearchEngineOptimization } from '@/components/SearchEngineOptimization'
 
 const Page404 = () => {
   const navigate = useNavigate()
   return (
-    <div className='auth flex h-screen items-center justify-center text-center'>
+    <>
+      <SearchEngineOptimization title='404' />
+      <div className='auth flex h-screen items-center justify-center text-center'>
       <div className='w-[80%]'>
         <h1 className='font-extrabold text-primary md:text-9xl text-4xl'>
           Oops!
@@ -25,6 +28,7 @@ const Page404 = () => {
         </Button>
       </div>
     </div>
+    </>
   )
 }
 

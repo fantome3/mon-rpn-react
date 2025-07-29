@@ -8,6 +8,7 @@ import ManualDeactivateButton from '@/components/ManualDeactivateButton'
 import ManualReactivateButton from '@/components/ManualReactivateButton'
 import ManualUserPaymentButton from '@/components/ManualUserPaymentButton'
 import { Badge } from '@/components/ui/badge'
+import { SearchEngineOptimization } from '@/components/SearchEngineOptimization'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -298,6 +299,7 @@ const Accounts = () => {
 
   return (
     <>
+      <SearchEngineOptimization title='Comptes' />
       <div className='container mt-16'>
         <h1 className='text-2xl font-semibold'>Les Comptes</h1>
       </div>

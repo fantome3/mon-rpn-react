@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { SearchEngineOptimization } from '@/components/SearchEngineOptimization'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   Form,
@@ -144,6 +145,7 @@ const Register = () => {
 
   return (
     <>
+      <SearchEngineOptimization title='Inscription' />
       <Header />
       <div className='auth form'>
         <Card className='auth-card'>

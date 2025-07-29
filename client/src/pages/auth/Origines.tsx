@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { SearchEngineOptimization } from '@/components/SearchEngineOptimization'
 import {
   Form,
   FormControl,
@@ -209,6 +210,7 @@ const Origines = () => {
 
   return (
     <>
+      <SearchEngineOptimization title='Origines' />
       <Header />
       <div className='auth form'>
         <Card className='auth-card '>

@@ -10,6 +10,7 @@ import { Transaction } from '@/types/Transaction'
 import { ColumnDef } from '@tanstack/react-table'
 import { ArrowUpDown } from 'lucide-react'
 import { useContext } from 'react'
+import { SearchEngineOptimization } from '@/components/SearchEngineOptimization'
 
 const TransactionsByUserId = () => {
   const { state } = useContext(Store)
@@ -78,6 +79,7 @@ const TransactionsByUserId = () => {
   ]
   return (
     <>
+      <SearchEngineOptimization title='Mes transactions' />
       <div className='container mt-16'>
         <h1 className='text-2xl font-semibold'>
           Historique de mes transactions

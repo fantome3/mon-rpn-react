@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { SearchEngineOptimization } from '@/components/SearchEngineOptimization'
 import {
   Form,
   FormControl,
@@ -87,6 +88,7 @@ const ResetPassword = () => {
 
   return (
     <>
+      <SearchEngineOptimization title='Réinitialiser mot de passe' />
       <Header />
       <div className='auth'>
         <div className='flex items-center justify-center h-screen'>

@@ -34,6 +34,7 @@ import { ArrowUpDown, CalendarIcon, Pencil, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
+import { SearchEngineOptimization } from '@/components/SearchEngineOptimization'
 
 const formSchema = z.object({
   firstName: z.string(),
@@ -195,6 +196,7 @@ const Announcements = () => {
 
   return (
     <>
+      <SearchEngineOptimization title='Annonces' />
       <div className='container mt-16 flex items-center justify-between'>
         <h1 className='text-2xl font-semibold'>Les Annonces</h1>
         <Button onClick={() => setModalVisibility(true)}>

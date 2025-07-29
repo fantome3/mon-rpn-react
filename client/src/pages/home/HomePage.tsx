@@ -7,10 +7,12 @@ import RejoinsSection from '@/components/RejoinsSection'
 import BannerSection from '@/components/BannerSection'
 import CardsSection from '@/components/CardsSection'
 import Footer from '@/components/Footer'
+import { SearchEngineOptimization } from '@/components/SearchEngineOptimization'
 
 const HomePage = () => {
   return (
     <>
+      <SearchEngineOptimization title='Accueil' />
       <Announcement />
       <Navbar />
       <CarouselPlugin />

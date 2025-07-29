@@ -9,6 +9,7 @@ import TotalDeath from './TotalDeath'
 import { useGetSummaryQuery } from '@/hooks/deathAnnouncementHook'
 import LastAnnouncements from './LastAnnouncements'
 import LastUserTransactions from './LastUserTransactions'
+import { SearchEngineOptimization } from '@/components/SearchEngineOptimization'
 
 const UserHomPage = () => {
   const { state } = useContext(Store)
@@ -17,6 +18,7 @@ const UserHomPage = () => {
 
   return (
     <>
+      <SearchEngineOptimization title='Résumé' />
       <div className='container mb-10'>
         <h1 className='text-center pt-10 mb-2 text-3xl font-semibold'>
           Bienvenue {userInfo?.origines.firstName}

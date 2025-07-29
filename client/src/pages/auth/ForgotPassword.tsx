@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { SearchEngineOptimization } from '@/components/SearchEngineOptimization'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -58,6 +59,7 @@ const ForgotPassword = () => {
 
   return (
     <>
+      <SearchEngineOptimization title='Mot de passe oublié' />
       <Header />
       <div className='auth form'>
         <Card className='auth-card'>

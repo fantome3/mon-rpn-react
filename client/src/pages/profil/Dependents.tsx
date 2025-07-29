@@ -13,6 +13,7 @@ import { FamilyMember } from '@/types/User'
 import { ColumnDef } from '@tanstack/react-table'
 import clsx from 'clsx'
 import { useContext, useEffect, useState } from 'react'
+import { SearchEngineOptimization } from '@/components/SearchEngineOptimization'
 import { Link } from 'react-router-dom'
 import { ArrowUpDown, Pencil, Trash2, Tally1, CalendarIcon } from 'lucide-react'
 import CustomModal from '@/components/CustomModal'
@@ -318,6 +319,7 @@ const Dependents = () => {
 
   return (
     <>
+      <SearchEngineOptimization title='Personnes à charge' />
       <div className='container mb-10'>
         <h1 className='text-center pt-10 mb-2 text-3xl font-semibold'>
           Bienvenue {userInfo?.origines?.firstName}

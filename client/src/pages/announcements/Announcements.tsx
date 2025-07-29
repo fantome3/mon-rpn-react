@@ -7,6 +7,7 @@ import { functionReverse } from '@/lib/utils'
 import { DeathAnnouncement } from '@/types/DeathAnnouncement'
 import { ColumnDef } from '@tanstack/react-table'
 import { ArrowUpDown } from 'lucide-react'
+import { SearchEngineOptimization } from '@/components/SearchEngineOptimization'
 
 const AllAnnouncements = () => {
   const { data: announcements, isPending, error } = useGetAnnouncementsQuery()
@@ -60,6 +61,7 @@ const AllAnnouncements = () => {
 
   return (
     <>
+      <SearchEngineOptimization title='Annonces' />
       <div className='container mt-16 flex items-center justify-between'>
         <h1 className='text-2xl font-semibold'>Historique des annonces</h1>
       </div>

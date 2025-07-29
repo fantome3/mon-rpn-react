@@ -1,11 +1,13 @@
 import CreditCardPayment from '@/components/CreditCardPayment'
 import InteracPayment from '@/components/InteracPayment'
 import SelectFees from './SelectFees '
+import { SearchEngineOptimization } from '@/components/SearchEngineOptimization'
 
 const PaymentMethod = () => {
 
   return (
     <>
+      <SearchEngineOptimization title='Paiement' />
       <SelectFees />
 
       <div className='form flex-col sm:m-0 m-20' id='payment-block' style={{ minHeight: '60vh', justifyContent: 'unset' }}>

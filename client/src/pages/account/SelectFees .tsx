@@ -67,7 +67,8 @@ export default function SelectFeesWithFamily() {
   const total = useMemo(() => feeDetails.reduce((sum, r) => sum + getSubtotal(r), 0), [feeDetails]);
 
   return (
-    <div className="container mx-auto my-8 max-w-4xl px-4 space-y-8">
+    <>
+      <div className="container mx-auto my-8 max-w-4xl px-4 space-y-8">
       <div className="space-y-4 text-center animate-in fade-in slide-in-from-bottom-2">
         <h2 className="text-xl font-semibold">Instructions de sélection des frais</h2>
         <p>
@@ -177,5 +178,6 @@ export default function SelectFeesWithFamily() {
         <p className="text-lg font-bold">Total : {total} $</p>
       </div>
     </div>
+    </>
   );
 }

@@ -7,6 +7,7 @@ import { Store } from '@/lib/Store'
 import clsx from 'clsx'
 import { useContext } from 'react'
 import { Link } from 'react-router-dom'
+import { SearchEngineOptimization } from '@/components/SearchEngineOptimization'
 const Profil = () => {
   const { state } = useContext(Store)
   const { userInfo } = state
@@ -14,6 +15,7 @@ const Profil = () => {
 
   return (
     <>
+      <SearchEngineOptimization title='Profil' />
       <div className='container mb-10'>
         <h1 className='text-center pt-10 mb-2 text-3xl font-semibold'>
           Bienvenue {userInfo?.origines?.firstName}

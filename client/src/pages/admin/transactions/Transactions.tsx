@@ -13,6 +13,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { SearchEngineOptimization } from '@/components/SearchEngineOptimization'
 import {
   Select,
   SelectContent,
@@ -256,6 +257,7 @@ const Transactions = () => {
 
   return (
     <>
+      <SearchEngineOptimization title='Transactions' />
       <div className='container mt-16 flex items-center justify-between'>
         <h1 className='text-2xl font-semibold'>Les Transactions</h1>
         <TransactionPageSubmenu

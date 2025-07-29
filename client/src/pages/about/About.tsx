@@ -1,5 +1,12 @@
+import { SearchEngineOptimization } from '@/components/SearchEngineOptimization'
+
 const About = () => {
-  return <div>About</div>
+  return (
+    <>
+      <SearchEngineOptimization title='About' />
+      <div>About</div>
+    </>
+  )
 }
 
 export default About

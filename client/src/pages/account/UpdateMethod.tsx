@@ -3,6 +3,7 @@ import UpdateInteracPayment from '@/components/UpdateInteracPayment'
 import { useGetAccountsByUserIdQuery } from '@/hooks/accountHooks'
 import { Store } from '@/lib/Store'
 import { useContext } from 'react'
+import { SearchEngineOptimization } from '@/components/SearchEngineOptimization'
 
 const UpdateMethod = () => {
   const { state } = useContext(Store)
@@ -18,6 +19,7 @@ const UpdateMethod = () => {
 
   return (
     <>
+      <SearchEngineOptimization title='Changer mode de paiement' />
       <div className='form flex-col sm:m-0 m-20'>
         <div className='flex md:flex-row flex-col gap-8 text-center'>
           {accountByUserId &&

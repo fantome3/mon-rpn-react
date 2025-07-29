@@ -12,6 +12,7 @@ import clsx from 'clsx'
 import { ArrowUpDown } from 'lucide-react'
 import { useContext } from 'react'
 import { Link } from 'react-router-dom'
+import { SearchEngineOptimization } from '@/components/SearchEngineOptimization'
 const Sponsorship = () => {
   const { state } = useContext(Store)
   const { userInfo } = state
@@ -76,6 +77,7 @@ const Sponsorship = () => {
   ]
   return (
     <>
+      <SearchEngineOptimization title='Parrainage' />
       {error
         ? toast({
             variant: 'destructive',
