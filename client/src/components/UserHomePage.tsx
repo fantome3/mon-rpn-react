@@ -9,6 +9,7 @@ import TotalDeath from './TotalDeath'
 import { useGetSummaryQuery } from '@/hooks/deathAnnouncementHook'
 import LastAnnouncements from './LastAnnouncements'
 import LastUserTransactions from './LastUserTransactions'
+import { SearchEngineOptimization } from './SearchEngine/SearchEngineOptimization'
 
 const UserHomPage = () => {
   const { state } = useContext(Store)
@@ -17,6 +18,10 @@ const UserHomPage = () => {
 
   return (
     <>
+      <SearchEngineOptimization
+        title='Sommaire ACQ'
+        description="Page resumant les activités de l'association des camerounais du Québec ACQ"
+      />
       <div className='container mb-10'>
         <h1 className='text-center pt-10 mb-2 text-3xl font-semibold'>
           Bienvenue {userInfo?.origines.firstName}
@@ -46,7 +51,7 @@ const UserHomPage = () => {
           <CurrentMonthStat
             data={
               summary &&
-              summary?.currentMonthPrevieww[0]?.month[0]?.totalDeaths !==
+                summary?.currentMonthPrevieww[0]?.month[0]?.totalDeaths !==
                 undefined
                 ? summary?.currentMonthPrevieww[0]?.month[0]?.totalDeaths
                 : 0

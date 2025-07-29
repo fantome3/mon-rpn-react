@@ -40,6 +40,7 @@ import {
 } from '@/components/ui/select'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { institutions } from '@/lib/constant'
+import { SearchEngineOptimization } from '@/components/SearchEngine/SearchEngineOptimization'
 
 const formSchema = z.object({
   email: z.string().email({ message: `Email invalide` }),
@@ -144,6 +145,7 @@ const Register = () => {
 
   return (
     <>
+      <SearchEngineOptimization title="Enregistrement" />
       <Header />
       <div className='auth form'>
         <Card className='auth-card'>

@@ -30,6 +30,7 @@ import { useContext, useEffect } from 'react'
 import { Store } from '@/lib/Store'
 import { toast } from '@/components/ui/use-toast'
 import Loading from '@/components/Loading'
+import { SearchEngineOptimization } from '@/components/SearchEngine/SearchEngineOptimization'
 
 const Login = () => {
   const { mutateAsync: login, isPending } = useLoginMutation()
@@ -91,6 +92,7 @@ const Login = () => {
 
   return (
     <>
+      <SearchEngineOptimization title='Connexion' />
       <Header />
       <div className='auth form'>
         <Card className='auth-card '>

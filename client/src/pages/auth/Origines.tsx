@@ -50,6 +50,7 @@ import {
   useVerifyTokenMutation,
 } from '@/hooks/userHooks'
 import { useUploadImageMutation } from '@/hooks/uploadHooks'
+import { SearchEngineOptimization } from '@/components/SearchEngine/SearchEngineOptimization'
 
 const formSchema = z.object({
   firstName: z.string().min(3, { message: 'Au moins 3 caractères' }),
@@ -209,6 +210,7 @@ const Origines = () => {
 
   return (
     <>
+      <SearchEngineOptimization title="Enregistrement Origines" />
       <Header />
       <div className='auth form'>
         <Card className='auth-card '>

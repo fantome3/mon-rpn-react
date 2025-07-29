@@ -53,6 +53,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { SearchEngineOptimization } from '@/components/SearchEngine/SearchEngineOptimization'
 
 const formSchema = z.object({
   residenceCountry: z.string().min(4, { message: 'Champ Obligatoire' }),
@@ -182,6 +183,7 @@ const Infos = () => {
 
   return (
     <>
+      <SearchEngineOptimization title="en savoir plus sur l'utilisateur" />
       <Header />
       <div className='auth form'>
         <Card className='auth-card '>
