@@ -110,18 +110,25 @@ export default function SelectFees({ updateTotal }: SelectFeesProps) {
             </thead>
             <tbody>
               <tr className="text-center">
-                <td className="p-2 border text-left">Adulte (18 ans et +)</td>
+                <td className="p-2 border text-left">Travailleur (18 ans et +)</td>
                 <td className="p-2 border">50 $</td>
-                <td className="p-2 border">10 $</td>
-                <td className="p-2 border">10 $</td>
-                <td className="p-2 border font-semibold">70 $</td>
+                <td className="p-2 border">15 $</td>
+                <td className="p-2 border">20 $</td>
+                <td className="p-2 border font-semibold">85 $</td>
+              </tr>
+              <tr className="text-center">
+                <td className="p-2 border text-left">Étudiant (18 ans et +)</td>
+                <td className="p-2 border">25 $</td>
+                <td className="p-2 border">15 $</td>
+                <td className="p-2 border">20 $</td>
+                <td className="p-2 border font-semibold">60 $</td>
               </tr>
               <tr className="text-center">
                 <td className="p-2 border text-left">Mineur (&lt; 18 ans)</td>
                 <td className="p-2 border">—</td>
+                <td className="p-2 border">15 $</td>
                 <td className="p-2 border">10 $</td>
-                <td className="p-2 border">10 $</td>
-                <td className="p-2 border font-semibold">20 $</td>
+                <td className="p-2 border font-semibold">25 $</td>
               </tr>
             </tbody>
           </table>
@@ -129,7 +136,7 @@ export default function SelectFees({ updateTotal }: SelectFeesProps) {
           <p className="mt-4 text-sm">
             <strong>Comment procéder :</strong><br />
             Indiquez simplement le nombre d’adultes et de mineurs à inscrire. Le montant total se met à jour automatiquement.<br />
-            Exemple : 1 adulte + 2 mineurs = 70 $ + 20 $ + 20 $ = 110 $.
+            Exemple : 1 adulte + 2 mineurs = 85 $ + 25 $ + 25 $ = 135 $.
           </p>
         </div>
       </div>
