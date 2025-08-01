@@ -1,11 +1,11 @@
-import { Helmet } from 'react-helmet'
+import { Helmet } from 'react-helmet-async'
 
-interface SeoProps {
+interface SearchEngineOptimizationProps {
   title?: string
   description?: string
 }
 
-export function SearchEngineOptimization({ title, description }: SeoProps) {
+export function SearchEngineOptimization({ title, description }: SearchEngineOptimizationProps) {
   const pageTitle = title ? `${title} | AQC-RPN` : 'AQC-RPN'
   const pageDescription =
     description || 'Association des Camerounais et Camerounaises du Québec'

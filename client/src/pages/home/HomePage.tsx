@@ -13,7 +13,7 @@ const HomePage = () => {
   return (
     <>
       <SearchEngineOptimization
-        title='Sommaire ACQ'
+        title="Page d'accueil ACQ/RPN"
         description="Page d'accueil de l'association des camerounais du Québec ACQ"
       />
       <Announcement />

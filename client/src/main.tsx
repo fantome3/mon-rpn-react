@@ -40,6 +40,7 @@ import { Toaster } from './components/ui/toaster.tsx'
 import ProtectedRoute from './components/ProtectedRoute.tsx'
 import UserHomPage from './components/UserHomePage.tsx'
 import AdminRoute from './components/AdminRoute.tsx'
+import { HelmetProvider } from 'react-helmet-async'
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -88,13 +89,15 @@ const router = createBrowserRouter(
 const queryClient = new QueryClient()
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <StoreProvider>
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
-        <ReactQueryDevtools initialIsOpen={false} />
+  <HelmetProvider>
+    <React.StrictMode>
+      <StoreProvider>
+        <QueryClientProvider client={queryClient}>
+          <RouterProvider router={router} />
+          <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
       <Toaster />
     </StoreProvider>
   </React.StrictMode>
+</HelmetProvider>
 )

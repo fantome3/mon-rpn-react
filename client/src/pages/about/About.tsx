@@ -1,4 +1,5 @@
 import rejoins_image from '@/assets/rejoins.png'
+import photoPresident from '@/assets/photoPresident.jpeg'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { SearchEngineOptimization } from '@/components/SearchEngine/SearchEngineOptimization'
@@ -31,23 +32,23 @@ const About = () => {
           {/* Président */}
           <section className="flex flex-col md:flex-row items-center text-center md:text-left gap-6 md:gap-10">
             <img
-              src={rejoins_image}
+              src={photoPresident}
               alt="Président de l'association"
               className="w-36 h-36 md:w-48 md:h-48 object-cover rounded-full shadow-lg animate-fade-in"
             />
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Bienvenue</h1>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Bienvenue Chez vous</h1>
               <p className="text-gray-600 text-base md:text-lg max-w-xl">
                 Je vous souhaite la bienvenue au nom de toute l'association. Ensemble,
                 nous construisons une communauté forte, solidaire et ambitieuse.
               </p>
-              <p className="mt-4 font-semibold text-indigo-600">— Pr. Joseph N. DINGA</p>
+              <p className="mt-4 font-semibold text-indigo-600">— Dr. Nguewou DZalli Ghislain Brice</p>
             </div>
           </section>
 
           {/* Équipe */}
           <section>
-            <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-6 text-center">Je suis accompagné dans cette tâche par</h2>
+            <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-6 text-center">Je suis accompagné dans cette tâche par:</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {leaders.map((person) => (
                 <div
