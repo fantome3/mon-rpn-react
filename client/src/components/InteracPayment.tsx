@@ -8,7 +8,11 @@ import { Store } from '@/lib/Store'
 import { useNewAccountMutation } from '@/hooks/accountHooks'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from './ui/use-toast'
-import { refresh, ToLocaleStringFunc } from '@/lib/utils'
+import {
+  refresh,
+  ToLocaleStringFunc,
+  toastAxiosError,
+} from '@/lib/utils'
 import { z } from 'zod'
 import { createInteracFormSchema } from '@/lib/createInteracFormSchema'
 import { useForm } from 'react-hook-form'
@@ -75,11 +79,7 @@ const InteracPayment = ({ total }: InteracPaymentProps) => {
       refresh()
       await newUserNotification(userInfo?.register?.email!)
     } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Oops!',
-        description: 'Quelque chose ne va pas.',
-      })
+      toastAxiosError(error)
     }
   }
 
@@ -121,11 +121,7 @@ const InteracPayment = ({ total }: InteracPaymentProps) => {
       refresh()
       await newUserNotification(userInfo?.register?.email!)
     } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Oops!',
-        description: 'Quelque chose ne va pas.',
-      })
+      toastAxiosError(error)
     }
   }
 

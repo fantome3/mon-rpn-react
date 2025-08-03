@@ -11,6 +11,7 @@ import { ColumnDef } from '@tanstack/react-table'
 import clsx from 'clsx'
 import { ArrowUpDown } from 'lucide-react'
 import { useContext } from 'react'
+import { toastAxiosError } from '@/lib/utils'
 import { Link } from 'react-router-dom'
 const Sponsorship = () => {
   const { state } = useContext(Store)
@@ -76,13 +77,7 @@ const Sponsorship = () => {
   ]
   return (
     <>
-      {error
-        ? toast({
-            variant: 'destructive',
-            title: 'Oops!',
-            description: 'Quelque chose ne va pas.',
-          })
-        : ''}
+      {error ? toastAxiosError(error) : ''}
       <div className='container mb-10'>
         <h1 className='text-center pt-10 mb-2 text-3xl font-semibold'>
           Bienvenue {userInfo?.origines.firstName}

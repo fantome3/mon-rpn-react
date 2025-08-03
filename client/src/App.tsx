@@ -5,6 +5,8 @@ import { Button } from './components/ui/button'
 import { useNavigate } from 'react-router-dom'
 import apiClient from './apiClient'
 import { Store } from './lib/Store'
+import { toast } from './components/ui/use-toast'
+import { toastAxiosError } from './lib/utils'
 
 const App = () => {
   const [showButton, setShowButton] = useState(false)
@@ -18,6 +20,8 @@ const App = () => {
         if (error.response && error.response.status === 401) {
           logoutHandler()
           navigate('/login')
+        } else if (error.response && error.response.status === 403) {
+          toastAxiosError(error)
         }
         return Promise.reject(error)
       }

@@ -6,7 +6,12 @@ import { expiryDateRegex } from '@/lib/constant'
 import { useContext, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { formatCreditCardNumber, isDateInFuture, refresh } from '@/lib/utils'
+import {
+  formatCreditCardNumber,
+  isDateInFuture,
+  refresh,
+  toastAxiosError,
+} from '@/lib/utils'
 import {
   useGetAccountsByUserIdQuery,
   useUpdateAccountMutation,
@@ -98,11 +103,7 @@ const UpdateCreditCardPayment = () => {
         })
       }
     } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Oops!',
-        description: 'Quelque chose ne va pas.',
-      })
+      toastAxiosError(error)
     }
   }
   return (

@@ -2,10 +2,13 @@ import { DataTable } from '@/components/CustomTable'
 import Loading from '@/components/Loading'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { toast } from '@/components/ui/use-toast'
 import { useGetTransactionsByUserIdQuery } from '@/hooks/transactionHooks'
 import { Store } from '@/lib/Store'
-import { formatCurrency, functionReverse } from '@/lib/utils'
+import {
+  formatCurrency,
+  functionReverse,
+  toastAxiosError,
+} from '@/lib/utils'
 import { Transaction } from '@/types/Transaction'
 import { ColumnDef } from '@tanstack/react-table'
 import { ArrowUpDown } from 'lucide-react'
@@ -86,11 +89,7 @@ const TransactionsByUserId = () => {
       {isPending ? (
         <Loading />
       ) : error ? (
-        toast({
-          variant: 'destructive',
-          title: 'Oops!',
-          description: 'Quelque chose ne va pas.',
-        })
+        toastAxiosError(error)
       ) : (
         <>
           <div className='container'>

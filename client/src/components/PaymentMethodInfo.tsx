@@ -22,7 +22,11 @@ import { z } from 'zod'
 import { expiryDateRegex } from '@/lib/constant'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { formatCreditCardNumber, isDateInFuture } from '@/lib/utils'
+import {
+  formatCreditCardNumber,
+  isDateInFuture,
+  toastAxiosError,
+} from '@/lib/utils'
 import { toast } from './ui/use-toast'
 import {
   InputOTP,
@@ -141,11 +145,7 @@ const PaymentMethodInfo = () => {
       refetch()
       setAddEditModalVisibility(false)
     } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Oops!',
-        description: 'Quelque chose ne va pas.',
-      })
+      toastAxiosError(error)
     }
   }
 
@@ -178,11 +178,7 @@ const PaymentMethodInfo = () => {
         })
       }
     } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Oops!',
-        description: 'Quelque chose ne va pas.',
-      })
+      toastAxiosError(error)
     }
   }
 

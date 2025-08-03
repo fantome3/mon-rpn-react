@@ -43,7 +43,7 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { useRegisterMutation, useVerifyTokenMutation } from '@/hooks/userHooks'
 import Loading from '@/components/Loading'
-import { checkPostalCode, checkTel } from '@/lib/utils'
+import { checkPostalCode, checkTel, toastAxiosError } from '@/lib/utils'
 import { User } from '@/types/User'
 import { toast } from '@/components/ui/use-toast'
 import {
@@ -158,11 +158,7 @@ const Infos = () => {
           description: "L'adresse courriel que vous avez entrer existe déjà",
         })
       } else {
-        toast({
-          variant: 'destructive',
-          title: 'Opps!',
-          description: 'Quelque chose ne va pas.',
-        })
+        toastAxiosError(error, 'Opps!')
       }
     }
   }
