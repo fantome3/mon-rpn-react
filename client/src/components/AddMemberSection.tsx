@@ -28,7 +28,7 @@ import {
 } from '@/hooks/userHooks'
 import { toast } from './ui/use-toast'
 import Loading from './Loading'
-import { cn, refresh } from '@/lib/utils'
+import { cn, refresh, toastAxiosError } from '@/lib/utils'
 import { useNavigate } from 'react-router-dom'
 import copy from 'copy-to-clipboard'
 import clsx from 'clsx'
@@ -116,11 +116,7 @@ const AddMemberSection = () => {
       form.reset()
       setModalVisibility(false)
     } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Oops!',
-        description: 'Quelque chose ne va pas.',
-      })
+      toastAxiosError(error)
     }
   }
 

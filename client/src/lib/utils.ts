@@ -1,5 +1,7 @@
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import axios from 'axios'
+import { toast } from '@/components/ui/use-toast'
 
 export const refresh = () => {
   return window.location.reload()
@@ -161,4 +163,22 @@ export const formatCurrency = (amount: number) => {
 export const formatMonth = (month: number, year: number) => {
   const date = new Date(year, month - 1)
   return date.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })
+}
+
+export function extractAxiosErrorMessage(error: unknown): string {
+  if (axios.isAxiosError(error) && error.response && error.response.data) {
+    const message = (error.response.data as { message?: string }).message
+    if (message && String(message).trim().length > 0) {
+      return String(message)
+    }
+  }
+  return 'Quelque chose ne va pas.'
+}
+
+export function toastAxiosError(error: unknown, title = 'Oops!') {
+  toast({
+    variant: 'destructive',
+    title,
+    description: extractAxiosErrorMessage(error),
+  })
 }

@@ -25,7 +25,7 @@ import {
 import { Input } from './ui/input'
 import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card'
 import { useNewTransactionMutation } from '@/hooks/transactionHooks'
-import { ToLocaleStringFunc } from '@/lib/utils'
+import { ToLocaleStringFunc, toastAxiosError } from '@/lib/utils'
 
 const formSchema = z.object({
   amountInterac: z
@@ -97,11 +97,7 @@ const UpdateInteracPayment = ({
       onSuccess(values.amountInterac)
       setModalVisibility(false)
     } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Oops!',
-        description: 'Quelque chose ne va pas.',
-      })
+      toastAxiosError(error)
     }
   }
 

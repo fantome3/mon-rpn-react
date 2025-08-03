@@ -3,7 +3,7 @@ import Loading from '@/components/Loading'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/use-toast'
 import { useGetAnnouncementsQuery } from '@/hooks/deathAnnouncementHook'
-import { functionReverse } from '@/lib/utils'
+import { functionReverse, toastAxiosError } from '@/lib/utils'
 import { DeathAnnouncement } from '@/types/DeathAnnouncement'
 import { ColumnDef } from '@tanstack/react-table'
 import { ArrowUpDown } from 'lucide-react'
@@ -66,11 +66,7 @@ const AllAnnouncements = () => {
       {isPending ? (
         <Loading />
       ) : error ? (
-        toast({
-          variant: 'destructive',
-          title: 'Oops!',
-          description: 'Quelque chose ne va pas.',
-        })
+        toastAxiosError(error)
       ) : (
         <div className='mt-5 container'>
           <DataTable data={announcements} columns={columns} />

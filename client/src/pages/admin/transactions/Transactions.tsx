@@ -27,7 +27,11 @@ import {
   useUpdateTransactionMutation,
 } from '@/hooks/transactionHooks'
 import { transactionStatus, transactionType } from '@/lib/constant'
-import { functionReverse, ToLocaleStringFunc } from '@/lib/utils'
+import {
+  functionReverse,
+  ToLocaleStringFunc,
+  toastAxiosError,
+} from '@/lib/utils'
 import { Transaction } from '@/types/Transaction'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ColumnDef } from '@tanstack/react-table'
@@ -102,11 +106,7 @@ const Transactions = () => {
     : []
 
   if (error) {
-    toast({
-      variant: 'destructive',
-      title: 'Oops!',
-      description: 'Quelque chose ne va pas.',
-    })
+    toastAxiosError(error)
     return null
   }
 

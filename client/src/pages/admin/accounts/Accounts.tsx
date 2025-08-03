@@ -24,7 +24,11 @@ import {
   useUpdateAccountMutation,
 } from '@/hooks/accountHooks'
 import { Store } from '@/lib/Store'
-import { ToLocaleStringFunc, functionReverse } from '@/lib/utils'
+import {
+  ToLocaleStringFunc,
+  functionReverse,
+  toastAxiosError,
+} from '@/lib/utils'
 import { Account } from '@/types/Account'
 import { User } from '@/types/User'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -304,11 +308,7 @@ const Accounts = () => {
       {isPending ? (
         <Loading />
       ) : error ? (
-        toast({
-          variant: 'destructive',
-          title: 'Oops!',
-          description: 'Quelque chose ne va pas.',
-        })
+        toastAxiosError(error)
       ) : (
         <>
           <div className='container'>

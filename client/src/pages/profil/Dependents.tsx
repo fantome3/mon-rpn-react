@@ -49,7 +49,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { cn } from '@/lib/utils'
+import { cn, toastAxiosError } from '@/lib/utils'
 import { format } from 'date-fns'
 import { Calendar } from '@/components/CustomCalendar'
 import IconButtonWithTooltip from '@/components/IconButtonWithTooltip'
@@ -308,11 +308,7 @@ const Dependents = () => {
         refetch()
       }
     } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Oops!',
-        description: 'Quelque chose ne va pas.',
-      })
+      toastAxiosError(error)
     }
   }
 
