@@ -7,6 +7,7 @@ import ManualBalanceReminderButton from '@/components/ManualBalanceReminderButto
 import ManualDeactivateButton from '@/components/ManualDeactivateButton'
 import ManualReactivateButton from '@/components/ManualReactivateButton'
 import ManualUserPaymentButton from '@/components/ManualUserPaymentButton'
+import ManualToggleAdminButton from '@/components/ManualToggleAdminButton'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -244,6 +245,12 @@ const Accounts = () => {
             <ManualBalanceReminderButton
               userId={row.original.userId._id}
               disabled={isInactive}
+            />
+            <div className='font-semibold text-[#b9bdbc] mx-2'>|</div>
+            <ManualToggleAdminButton
+              userId={row.original.userId._id}
+              isAdmin={row.original.userId.isAdmin}
+              refetch={refetch}
             />
             <div className='font-semibold text-[#b9bdbc] mx-2'>|</div>
             {row.original.userId.subscription.status === 'inactive' ? (
