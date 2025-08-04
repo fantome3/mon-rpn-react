@@ -171,6 +171,6 @@ export const useReactivateUserMutation = () =>
 export const useToggleAdminMutation = () =>
   useMutation({
     mutationFn: async (userId: string) =>
-      (await apiClient.put<{ message: string }>(`api/users/admin/${userId}`))
+      (await apiClient.put<{ isAdmin: boolean; message: string }>(`api/users/admin/${userId}`))
         .data,
   })

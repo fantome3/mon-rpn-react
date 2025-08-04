@@ -15,16 +15,16 @@ const ManualToggleAdminButton = ({
   refetch: () => void
 }) => {
   const { mutateAsync: toggleAdmin, isPending } = useToggleAdminMutation()
-  const [currentIsAdmin, setCurrentIsAdmin] = useState(isAdmin)
+  const [isAdminFlag, setAdminFlag] = useState(isAdmin)
 
   useEffect(() => {
-    setCurrentIsAdmin(isAdmin)
+    setAdminFlag(isAdmin)
   }, [isAdmin])
 
   const handleClick = async () => {
     try {
-      const { message } = await toggleAdmin(userId)
-      setCurrentIsAdmin((prev) => !prev)
+      const { isAdmin, message } = await toggleAdmin(userId)
+      setAdminFlag(isAdmin)
       refetch()
       toast({ title: message })
     } catch (error) {
@@ -35,14 +35,14 @@ const ManualToggleAdminButton = ({
   return (
     <IconButtonWithTooltip
       icon={
-        currentIsAdmin ? (
+        isAdminFlag ? (
           <UserMinus size={20} className='text-red-600' />
         ) : (
           <UserPlus size={20} className='text-blue-600' />
         )
       }
       tooltip={
-        currentIsAdmin
+        isAdminFlag
           ? 'Retirer comme administrateur'
           : 'Ajouter comme administrateur'
       }

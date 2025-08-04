@@ -473,9 +473,10 @@ userRouter.put(
     user.isAdmin = !user.isAdmin
     await user.save()
     res.send({
+      isAdmin: user.isAdmin,
       message: user.isAdmin
-        ? "Utilisateur promu administrateur"
-        : "Utilisateur retiré des administrateurs",
+        ? labels.utilisateur.ajouterAdmin
+        : labels.utilisateur.supprimerAdmin,
     })
   })
 )
