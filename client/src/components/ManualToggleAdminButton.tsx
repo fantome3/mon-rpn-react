@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { useToggleAdminMutation } from '@/hooks/userHooks'
 import IconButtonWithTooltip from './IconButtonWithTooltip'
 import { UserPlus, UserMinus } from 'lucide-react'
@@ -14,19 +15,18 @@ const ManualToggleAdminButton = ({
   refetch: () => void
 }) => {
   const { mutateAsync: toggleAdmin, isPending } = useToggleAdminMutation()
+  const [currentIsAdmin, setCurrentIsAdmin] = useState(isAdmin)
+
+  useEffect(() => {
+    setCurrentIsAdmin(isAdmin)
+  }, [isAdmin])
 
   const handleClick = async () => {
     try {
-      await toggleAdmin(userId)
+      const { message } = await toggleAdmin(userId)
+      setCurrentIsAdmin((prev) => !prev)
       refetch()
-      toast({
-        title: isAdmin
-          ? '❎ Administrateur retiré'
-          : '✅ Administrateur ajouté',
-        description: isAdmin
-          ? "L'utilisateur n'est plus administrateur."
-          : "L'utilisateur est désormais administrateur.",
-      })
+      toast({ title: message })
     } catch (error) {
       toastAxiosError(error)
     }
@@ -35,13 +35,17 @@ const ManualToggleAdminButton = ({
   return (
     <IconButtonWithTooltip
       icon={
-        isAdmin ? (
+        currentIsAdmin ? (
           <UserMinus size={20} className='text-red-600' />
         ) : (
           <UserPlus size={20} className='text-blue-600' />
         )
       }
-      tooltip={isAdmin ? 'Retirer comme administrateur' : 'Ajouter comme administrateur'}
+      tooltip={
+        currentIsAdmin
+          ? 'Retirer comme administrateur'
+          : 'Ajouter comme administrateur'
+      }
       onClick={handleClick}
       variant='ghost'
       disabled={isPending}
