@@ -28,7 +28,7 @@ accountRouter.get(
     try {
       const accounts = await AccountModel.find().populate(
         'userId',
-        '_id subscription.status'
+        '_id isAdmin subscription.status'
       )
       res.send(accounts)
     } catch (error) {

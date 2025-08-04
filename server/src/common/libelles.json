@@ -15,16 +15,18 @@
     "erreurInattendueMin": "Unexpected error"
   },
   "utilisateur": {
-    "misAJour": "User Updated",
-    "introuvable": "User Not Found",
+    "misAJour": "Utilisateur mis à jour",
+    "introuvable": "Utilisateur introuvable",
     "introuvableFr": "Utilisateur introuvable",
-    "supprime": "User Deleted",
-    "impossibleSupprimerAdmin": "Can Not Delete Admin User",
-    "motDePasseEnvoye": "Mot de passe envoyé avec succès"
+    "supprime": "Utilisateur supprimé",
+    "impossibleSupprimerAdmin": "Impossible de supprimer un administrateur",
+    "motDePasseEnvoye": "Mot de passe envoyé avec succès",
+    "ajouterAdmin": "L'utilisateur a été ajouté comme administrateur",
+    "supprimerAdmin": "L'utilisateur a été retiré des administrateurs"
   },
   "compte": {
-    "misAJour": "Accound Updated",
-    "introuvable": "Account Not Found",
+    "misAJour": "Compte mis à jour",
+    "introuvable": "Compte introuvable",
     "desactiveSucces": "Compte désactivé avec succès",
     "reactiveSucces": "Compte réactivé avec succès",
     "erreurDesactivation": "Erreur lors de la désactivation du compte",

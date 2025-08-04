@@ -459,3 +459,24 @@ userRouter.put(
     }
   })
 )
+
+userRouter.put(
+  '/admin/:id',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req: Request, res: Response) => {
+    const user = await UserModel.findById(req.params.id)
+    if (!user) {
+      res.status(404).send({ message: labels.utilisateur.introuvableFr })
+      return
+    }
+    user.isAdmin = !user.isAdmin
+    await user.save()
+    res.send({
+      isAdmin: user.isAdmin,
+      message: user.isAdmin
+        ? labels.utilisateur.ajouterAdmin
+        : labels.utilisateur.supprimerAdmin,
+    })
+  })
+)
