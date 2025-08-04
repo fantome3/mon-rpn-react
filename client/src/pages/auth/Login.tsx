@@ -31,6 +31,8 @@ import { Store } from '@/lib/Store'
 import { toast } from '@/components/ui/use-toast'
 import Loading from '@/components/Loading'
 import { SearchEngineOptimization } from '@/components/SearchEngine/SearchEngineOptimization'
+import apiClient from '@/apiClient'
+import { isEnAttentePaiement } from '@/lib/accountUtils'
 
 const Login = () => {
   const { mutateAsync: login, isPending } = useLoginMutation()
@@ -74,7 +76,19 @@ const Login = () => {
         description: 'Connexion réussie',
       })
       localStorage.setItem('userInfo', JSON.stringify(data))
-      navigate(redirect)
+
+      const accountRes = await apiClient.get(`api/accounts/${data._id}/all`)
+      const account = accountRes.data?.[0]
+      if (account) {
+        ctxDispatch({ type: 'ACCOUNT_INFOS', payload: account })
+        localStorage.setItem('accountInfo', JSON.stringify(account))
+      }
+
+      if (isEnAttentePaiement(account)) {
+        navigate('/payment-method?pending=1')
+      } else {
+        navigate(redirect)
+      }
     } catch (error) {
       toast({
         variant: 'destructive',

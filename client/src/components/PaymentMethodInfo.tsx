@@ -134,6 +134,7 @@ const PaymentMethodInfo = () => {
         ...account[0],
         _id: account[0]._id,
         interac: { ...values },
+        enAttentePaiement: false,
       })
       ctxDispatch({ type: 'ACCOUNT_INFOS', payload: data.account })
       localStorage.setItem('accountInfo', JSON.stringify(data.account))
@@ -160,6 +161,7 @@ const PaymentMethodInfo = () => {
           card: {
             ...values,
           },
+          enAttentePaiement: false,
         })
         ctxDispatch({ type: 'ACCOUNT_INFOS', payload: data.account })
         localStorage.setItem('accountInfo', JSON.stringify(data.account))

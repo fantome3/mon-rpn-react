@@ -1,11 +1,25 @@
 import CreditCardPayment from '@/components/CreditCardPayment'
 import InteracPayment from '@/components/InteracPayment'
 import SelectFees from './SelectFees'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { SearchEngineOptimization } from '@/components/SearchEngine/SearchEngineOptimization'
+import { useLocation } from 'react-router-dom'
+import { toast } from '@/components/ui/use-toast'
 
 const PaymentMethod = () => {
   const [totalPayment, setTotalPayment] = useState(70)
+  const { search } = useLocation()
+  const pending = new URLSearchParams(search).get('pending')
+
+  useEffect(() => {
+    if (pending) {
+      toast({
+        variant: 'destructive',
+        title: 'Paiement requis',
+        description: 'veuillez vous aquiter du montant minimum pour être membre',
+      })
+    }
+  }, [pending])
 
   return (
     <>

@@ -44,6 +44,9 @@ export class Account {
   @prop({ required: true })
   public paymentMethod!: string
 
+  @prop({ required: true, default: false })
+  public enAttentePaiement!: boolean
+
   @prop({ type: () => [Card], default: [] })
   public card?: Card[]
 

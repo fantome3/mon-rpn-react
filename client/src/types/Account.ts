@@ -19,6 +19,7 @@ export type Account = {
   userResidenceCountry: string
   solde: number
   paymentMethod: 'credit_card' | 'interac' | string
+  enAttentePaiement: boolean
   card?: CardType[]
   interac?: Interac[]
   userId: string | any

@@ -8,7 +8,7 @@
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "test": "node --test ./test/*.test.js"
+    "test": "node --experimental-strip-types --test ./test/*.test.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",

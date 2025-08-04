@@ -5,7 +5,10 @@ import Loading from './Loading'
 import { ArrowRightLeft } from 'lucide-react'
 import { useContext, useEffect, useState } from 'react'
 import { Store } from '@/lib/Store'
-import { useNewAccountMutation } from '@/hooks/accountHooks'
+import {
+  useNewAccountMutation,
+  useUpdateAccountMutation,
+} from '@/hooks/accountHooks'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from './ui/use-toast'
 import {
@@ -43,8 +46,9 @@ type InteracPaymentProps = {
 const InteracPayment = ({ total }: InteracPaymentProps) => {
   const [modalVisibility, setModalVisibility] = useState(false)
   const { state, dispatch: ctxDispatch } = useContext(Store)
-  const { userInfo } = state
+  const { userInfo, accountInfo } = state
   const { mutateAsync: account, isPending } = useNewAccountMutation()
+  const { mutateAsync: updateAccount } = useUpdateAccountMutation()
   const { mutateAsync: newUserNotification, isPending: notificationPending } =
     useNewUserNotificationMutation()
   const { mutateAsync: newTransaction } = useNewTransactionMutation()
@@ -75,6 +79,20 @@ const InteracPayment = ({ total }: InteracPaymentProps) => {
   ): Promise<void> => {
     e.preventDefault()
     try {
+      const data = await account({
+        firstName: userInfo?.origines.firstName!,
+        lastName: userInfo?.origines.lastName!,
+        userTel: userInfo?.infos.tel!,
+        userResidenceCountry: userInfo?.infos.residenceCountry!,
+        solde: 0,
+        paymentMethod: 'enAttentePaiement',
+        enAttentePaiement: true,
+        userId: userInfo?._id!,
+      })
+
+      ctxDispatch({ type: 'ACCOUNT_INFOS', payload: data })
+      localStorage.setItem('accountInfo', JSON.stringify(data))
+
       navigate(redirect)
       refresh()
       await newUserNotification(userInfo?.register?.email!)
@@ -85,22 +103,37 @@ const InteracPayment = ({ total }: InteracPaymentProps) => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      const existingInteracTransactions: Interac[] = []
+      const existingInteracTransactions: Interac[] =
+        accountInfo?.interac ? [...accountInfo.interac] : []
       const newInteracTransaction = { ...values }
       const updatedInteracTransactions = [
         ...existingInteracTransactions,
         newInteracTransaction,
       ]
-      const data = await account({
-        firstName: userInfo?.origines.firstName!,
-        lastName: userInfo?.origines.lastName!,
-        userTel: userInfo?.infos.tel!,
-        userResidenceCountry: userInfo?.infos.residenceCountry!,
-        solde: values.amountInterac,
-        paymentMethod: 'interac',
-        userId: userInfo?._id!,
-        interac: updatedInteracTransactions,
-      })
+
+      let data
+      if (accountInfo && accountInfo._id) {
+        const result = await updateAccount({
+          ...accountInfo,
+          solde: values.amountInterac,
+          paymentMethod: 'interac',
+          interac: updatedInteracTransactions,
+          enAttentePaiement: false,
+        })
+        data = result.account
+      } else {
+        data = await account({
+          firstName: userInfo?.origines.firstName!,
+          lastName: userInfo?.origines.lastName!,
+          userTel: userInfo?.infos.tel!,
+          userResidenceCountry: userInfo?.infos.residenceCountry!,
+          solde: values.amountInterac,
+          paymentMethod: 'interac',
+          enAttentePaiement: false,
+          userId: userInfo?._id!,
+          interac: updatedInteracTransactions,
+        })
+      }
 
       await newTransaction({
         userId: userInfo?._id,

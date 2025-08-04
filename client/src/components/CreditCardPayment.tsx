@@ -93,6 +93,7 @@ const CreditCardPayment = () => {
           userResidenceCountry: userInfo?.infos.residenceCountry!,
           solde: 0,
           paymentMethod: 'credit_card',
+          enAttentePaiement: false,
           userId: userInfo?._id!,
           card: updatedCreditCardTransactions,
         })
