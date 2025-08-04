@@ -45,7 +45,6 @@ import { useRegisterMutation, useVerifyTokenMutation } from '@/hooks/userHooks'
 import Loading from '@/components/Loading'
 import { checkPostalCode, checkTel, toastAxiosError } from '@/lib/utils'
 import { User } from '@/types/User'
-import { toast } from '@/components/ui/use-toast'
 import {
   Dialog,
   DialogContent,
@@ -108,8 +107,7 @@ const Infos = () => {
     try {
       const tempToken = JSON.parse(localStorage.getItem('tempToken') || '')
       if (!tempToken) {
-        toast({
-          variant: 'destructive',
+        toastAxiosError({
           title: 'Token not found',
           description: 'Please try again later.',
         })
@@ -118,8 +116,7 @@ const Infos = () => {
 
       const VerifyToken = await verifyToken(tempToken!)
       if (!VerifyToken.valid) {
-        toast({
-          variant: 'destructive',
+        toastAxiosError({
           title: 'Invalid Token',
           description: 'Please try again later.',
         })
@@ -152,11 +149,9 @@ const Infos = () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       if (error.response && error.response.status === 409) {
-        toast({
-          variant: 'destructive',
-          title: "Changer l'adresse courriel",
-          description: "L'adresse courriel que vous avez entrer existe déjà",
-        })
+        const title = "Changer l'adresse courriel";
+        const description = "L'adresse courriel que vous avez entrer existe déjà";
+        toastAxiosError(description, title)
       } else {
         toastAxiosError(error, 'Opps!')
       }

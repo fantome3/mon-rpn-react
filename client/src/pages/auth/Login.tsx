@@ -38,7 +38,7 @@ const Login = () => {
   const navigate = useNavigate()
   const { search } = useLocation()
   const redirectInUrl = new URLSearchParams(search).get('redirect')
-  const redirect = redirectInUrl ? redirectInUrl : '/profil'
+  const redirect = redirectInUrl ? redirectInUrl : '/summary'
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { userInfo } = state
 

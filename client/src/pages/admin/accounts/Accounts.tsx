@@ -219,7 +219,7 @@ const Accounts = () => {
     },
     {
       accessorKey: 'action',
-      header: 'Action',
+      header: () => <div className="text-center w-full">Action</div>,
       enableHiding: false,
       cell: ({ row }) => {
         const isInactive =
