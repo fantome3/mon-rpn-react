@@ -93,7 +93,7 @@ const CreditCardPayment = () => {
           userResidenceCountry: userInfo?.infos.residenceCountry!,
           solde: 0,
           paymentMethod: 'credit_card',
-          enAttentePaiement: false,
+          isAwaitingFirstPayment: false, // pour la carte de crédit on s'en fou de savoir si c'est le premier paiement
           userId: userInfo?._id!,
           card: updatedCreditCardTransactions,
         })

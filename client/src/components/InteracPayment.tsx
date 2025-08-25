@@ -85,8 +85,8 @@ const InteracPayment = ({ total }: InteracPaymentProps) => {
         userTel: userInfo?.infos.tel!,
         userResidenceCountry: userInfo?.infos.residenceCountry!,
         solde: 0,
-        paymentMethod: 'enAttentePaiement',
-        enAttentePaiement: true,
+        paymentMethod: 'interac',
+        isAwaitingFirstPayment: true,
         userId: userInfo?._id!,
       })
 
@@ -118,7 +118,7 @@ const InteracPayment = ({ total }: InteracPaymentProps) => {
           solde: values.amountInterac,
           paymentMethod: 'interac',
           interac: updatedInteracTransactions,
-          enAttentePaiement: false,
+          isAwaitingFirstPayment: false,
         })
         data = result.account
       } else {
@@ -129,7 +129,7 @@ const InteracPayment = ({ total }: InteracPaymentProps) => {
           userResidenceCountry: userInfo?.infos.residenceCountry!,
           solde: values.amountInterac,
           paymentMethod: 'interac',
-          enAttentePaiement: false,
+          isAwaitingFirstPayment: false,
           userId: userInfo?._id!,
           interac: updatedInteracTransactions,
         })

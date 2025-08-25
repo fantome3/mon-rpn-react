@@ -83,7 +83,7 @@ const UpdateCreditCardPayment = () => {
           userResidenceCountry: accountByUserId[0]?.userResidenceCountry ?? '',
           solde: accountByUserId[0]?.solde ?? 0,
           paymentMethod: 'credit_card',
-          enAttentePaiement: false,
+          isAwaitingFirstPayment: false,
           userId: accountByUserId[0]?.userId ?? '',
           _id: accountByUserId[0]?._id ?? '',
           card: updatedCardTransactions,

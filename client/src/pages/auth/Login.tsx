@@ -32,7 +32,7 @@ import { toast } from '@/components/ui/use-toast'
 import Loading from '@/components/Loading'
 import { SearchEngineOptimization } from '@/components/SearchEngine/SearchEngineOptimization'
 import apiClient from '@/apiClient'
-import { isEnAttentePaiement } from '@/lib/accountUtils'
+import { isAccountPendingPayment } from '@/lib/accountValidation'
 
 const Login = () => {
   const { mutateAsync: login, isPending } = useLoginMutation()
@@ -84,7 +84,7 @@ const Login = () => {
         localStorage.setItem('accountInfo', JSON.stringify(account))
       }
 
-      if (isEnAttentePaiement(account)) {
+      if (isAccountPendingPayment(account)) {
         navigate('/payment-method?pending=1')
       } else {
         navigate(redirect)
