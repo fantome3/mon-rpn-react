@@ -9,6 +9,7 @@ import {
 import { Store } from '@/lib/Store'
 import { useGetAccountsByUserIdQuery } from '@/hooks/accountHooks'
 import { refresh, ToLocaleStringFunc } from '@/lib/utils'
+import { getAccountStatusLabel } from '@/lib/accountValidation'
 import { Button } from './ui/button'
 import UpdateInteracPayment from './UpdateInteracPayment'
 import UpdateCreditCardPayment from './UpdateCreditCardPayment'
@@ -21,30 +22,24 @@ const UserAccountInfo = () => {
   const { data: account } = useGetAccountsByUserIdQuery(userId)
   const { data: transactions } = useGetTransactionsByUserIdQuery(userId)
   const [modalVisibility, setModalVisibility] = useState(false)
-  const [currentSolde, setCurrentSolde] = useState<number | null>(null)
-
-  const paymentMethod = account && account[0]?.paymentMethod
-
-  const isLastTransactionPending =
-    transactions && transactions.length > 0
-      ? transactions[0].status === 'pending'
-      : false
+  const [currentSolde, setCurrentSolde] = useState<number>(0)
+  const accountInfo = account?.[0]
+  const paymentMethod = accountInfo?.paymentMethod
+  const lastTransactionStatus = transactions?.[0]?.status
+  const statusLabel = getAccountStatusLabel(accountInfo, lastTransactionStatus)
 
   const handleTransactionSuccess = async (amount: number) => {
-    setCurrentSolde((prevSolde) =>
-      prevSolde !== null && prevSolde !== undefined
-        ? prevSolde + amount
-        : amount
-    )
+    setCurrentSolde((prevSolde) => prevSolde + amount)
     setModalVisibility(false)
     refresh()
   }
 
   useEffect(() => {
-    if (account && account[0]?.solde !== undefined) {
-      setCurrentSolde(account?.[0]?.solde)
+    console.log('Account info :', accountInfo)
+    if (accountInfo?.solde !== undefined) {
+      setCurrentSolde(accountInfo.solde)
     }
-  }, [account])
+  }, [accountInfo])
 
   const handleClickOutside = (event: React.MouseEvent<HTMLDivElement>) => {
     if (event.target === event.currentTarget) {
@@ -62,13 +57,13 @@ const UserAccountInfo = () => {
           <div className='flex justify-between items-center'>
             <div
               className={`text-3xl font-bold ${
-                isLastTransactionPending ? 'text-gray-300 italic' : ''
+                statusLabel ? 'text-gray-300 italic' : ''
               }`}
             >
-              $&nbsp;{ToLocaleStringFunc(currentSolde ?? 0)}
-              {isLastTransactionPending && (
+              $&nbsp;{ToLocaleStringFunc(currentSolde)}
+              {statusLabel && (
                 <span className='ml-1 text-xs text-muted-foreground'>
-                  (en attente approbation)
+                  {statusLabel + currentSolde}
                 </span>
               )}
             </div>

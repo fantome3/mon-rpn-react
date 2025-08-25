@@ -10,6 +10,7 @@ import MonthlyPreview from './MonthlyPreview'
 import TransactionStatus from './TransactionStatus'
 import MonthlyTransactionNber from './MonthlyTransactionNber'
 import StatusTransactionDetail from './StatusTransactionDetail'
+import { transactionStatus } from '@/lib/constant'
 
 export default function BilanTransactions() {
   const { data: summary, isPending } = useGetTransactionSummaryQuery()
@@ -34,12 +35,7 @@ export default function BilanTransactions() {
   // Préparer les données pour le graphique de statut
   const statusChartData = summary.statusSummary
     ? summary.statusSummary.map((item: any) => ({
-        name:
-          item._id === 'pending'
-            ? 'En attente'
-            : item._id === 'completed'
-            ? 'Complété'
-            : 'Échoué',
+        name: transactionStatus.find(status => status.status === item._id)?.value || 'Échoué',
         value: item.count,
       }))
     : []

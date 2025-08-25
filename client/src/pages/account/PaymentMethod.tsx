@@ -16,7 +16,7 @@ const PaymentMethod = () => {
       toast({
         variant: 'destructive',
         title: 'Paiement requis',
-        description: 'veuillez vous aquiter du montant minimum pour être membre',
+        description: 'veuillez vous aquiter du montant minimum pour être membre, sinon des pénalités vous seront appliquées.',
       })
     }
   }, [pending])

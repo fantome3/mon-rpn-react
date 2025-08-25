@@ -116,7 +116,6 @@ const InteracPayment = ({ total }: InteracPaymentProps) => {
         const result = await updateAccount({
           ...accountInfo,
           solde: values.amountInterac,
-          paymentMethod: 'interac',
           interac: updatedInteracTransactions,
           isAwaitingFirstPayment: false,
         })
@@ -133,6 +132,7 @@ const InteracPayment = ({ total }: InteracPaymentProps) => {
           userId: userInfo?._id!,
           interac: updatedInteracTransactions,
         })
+        console.log('Updated Account Data 2 :', data)
       }
 
       await newTransaction({
