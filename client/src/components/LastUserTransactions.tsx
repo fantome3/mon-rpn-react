@@ -57,7 +57,7 @@ const LastUserTransactions = () => {
                         )
                       : 'Date inconnue'}
                   </TableCell>
-                  <TableCell className='capitalize'>{tx.type}</TableCell>
+                  <TableCell className='capitalize'>{tx.type === 'credit' ? 'recharge' : 'dépense'}</TableCell>
                   <TableCell
                     className={
                       tx.type === 'credit' ? 'text-green-600' : 'text-red-600'

@@ -9,7 +9,7 @@ import {
 import { Store } from '@/lib/Store'
 import { useGetAccountsByUserIdQuery } from '@/hooks/accountHooks'
 import { refresh, ToLocaleStringFunc } from '@/lib/utils'
-import { getAccountDisplayStatus } from '@/lib/accountUtils'
+import { getAccountStatusLabel } from '@/lib/accountUtils'
 import { Button } from './ui/button'
 import UpdateInteracPayment from './UpdateInteracPayment'
 import UpdateCreditCardPayment from './UpdateCreditCardPayment'
@@ -25,13 +25,10 @@ const UserAccountInfo = () => {
   const [currentSolde, setCurrentSolde] = useState<number | null>(null)
 
   const paymentMethod = account && account[0]?.paymentMethod
-
+  
   const lastTransaction =
     transactions && transactions.length > 0 ? transactions[0] : undefined
-  const { awaitingPayment, lastTransactionPending } = getAccountDisplayStatus(
-    account?.[0],
-    lastTransaction,
-  )
+  const statusLabel = getAccountStatusLabel(account?.[0], lastTransaction?.status)
 
   const handleTransactionSuccess = async (amount: number) => {
     setCurrentSolde((prevSolde) =>
@@ -65,18 +62,13 @@ const UserAccountInfo = () => {
           <div className='flex justify-between items-center'>
             <div
               className={`text-3xl font-bold ${
-                lastTransactionPending ? 'text-gray-300 italic' : ''
+                statusLabel ? 'text-gray-300 italic' : ''
               }`}
             >
-              {awaitingPayment && (
-                <span className='mr-1 text-xs text-muted-foreground'>
-                  (en attente paiement)
-                </span>
-              )}
               $&nbsp;{ToLocaleStringFunc(currentSolde ?? 0)}
-              {lastTransactionPending && (
+              {statusLabel && (
                 <span className='ml-1 text-xs text-muted-foreground'>
-                  (en attente approbation)
+                  {statusLabel}
                 </span>
               )}
             </div>
