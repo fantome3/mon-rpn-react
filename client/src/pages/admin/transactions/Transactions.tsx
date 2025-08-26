@@ -152,7 +152,7 @@ const Transactions = () => {
         if (status === 'pending') {
           return (
             <Badge className='bg-yellow-500 text-white text-xs'>
-              En attente
+              En attente approbation
             </Badge>
           )
         }

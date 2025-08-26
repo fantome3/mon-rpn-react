@@ -81,7 +81,7 @@ const LastUserTransactions = () => {
                       {tx.status === 'completed'
                         ? 'Réussie'
                         : tx.status === 'pending'
-                        ? 'En attente'
+                        ? 'En attente approbation'
                         : tx.status === 'awaiting_payment'
                         ? 'En attente paiement'
                         : 'Échouée'}

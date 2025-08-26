@@ -374,7 +374,7 @@ export const transactionStatus = [
   },
   {
     status: 'pending',
-    value: 'En attente',
+    value: 'En attente approbation',
   },
   {
     status: 'awaiting_payment',
@@ -385,7 +385,7 @@ export const transactionStatus = [
 // Couleurs pour le graphique de statut
 export const STATUS_COLOR_MAP: Record<string, string> = {
   Complété: '#34d399',
-  'En attente': '#3b82f6',
+  'En attente approbation': '#3b82f6',
   'En attente paiement': '#f59e0b',
   Échoué: '#f43f5e',
 }
