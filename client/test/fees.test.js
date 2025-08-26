@@ -1,4 +1,5 @@
-import { test, equal } from 'node:test'
+import { test } from 'node:test'
+import { equal } from 'node:assert/strict'
 import { calculateTotal, calculateSubtotal } from '../src/lib/fees.ts'
 
 const sampleRows = [

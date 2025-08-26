@@ -1,4 +1,5 @@
-import { test, strictEqual, ok } from 'node:test';
+import { test } from 'node:test';
+import { strictEqual, ok } from 'node:assert/strict';
 import { sendExternalRegistrationFailureEmail } from '../src/mailer/externalRegistration';
 import * as core from '../src/mailer/core';
 

@@ -70,15 +70,16 @@ const PaymentMethodInfo = () => {
   const [isDisabled] = useState(true)
 
   const [addEditModalVisibility, setAddEditModalVisibility] = useState(false)
+  const latestAccount = account?.[account.length - 1]
 
   const lastAccountInterac =
-    account && account.length > 0 && account[0].interac?.length
-      ? account[0].interac[account[0].interac.length - 1].amountInterac
+    latestAccount?.interac?.length
+      ? latestAccount.interac[latestAccount.interac.length - 1].amountInterac
       : 0
 
   const lastTransactionRef =
-    account && account.length > 0 && account[0].interac?.length
-      ? account[0].interac[account[0].interac.length - 1].refInterac
+    latestAccount?.interac?.length
+      ? latestAccount.interac[latestAccount.interac.length - 1].refInterac
       : ''
 
   const interacForm = useForm<z.infer<typeof interacFormSchema>>({
@@ -86,9 +87,9 @@ const PaymentMethodInfo = () => {
     resolver: zodResolver(interacFormSchema),
     defaultValues: {
       amountInterac:
-        account && account[0]?.interac ? account[0]?.interac.amountInterac : '',
+        latestAccount?.interac ? latestAccount.interac.amountInterac : '',
       refInterac:
-        account && account[0]?.interac ? account[0]?.interac.refInterac : '',
+        latestAccount?.interac ? latestAccount.interac.refInterac : '',
     },
   })
 
@@ -96,43 +97,44 @@ const PaymentMethodInfo = () => {
     mode: 'onChange',
     resolver: zodResolver(creditCardFormSchema),
     defaultValues: {
-      network: account && account[0]?.card ? account[0]?.card.network : '',
-      cvv: account && account[0]?.card ? account[0]?.card.cvv : '',
-      expiry_date:
-        account && account[0]?.card ? account[0]?.card.expiry_date : '',
-      card_holder_name:
-        account && account[0]?.card ? account[0]?.card.card_holder_name : '',
-      credit_card_number:
-        account && account[0]?.card ? account[0]?.card.credit_card_number : '',
+      network: latestAccount?.card ? latestAccount.card.network : '',
+      cvv: latestAccount?.card ? latestAccount.card.cvv : '',
+      expiry_date: latestAccount?.card ? latestAccount.card.expiry_date : '',
+      card_holder_name: latestAccount?.card
+        ? latestAccount.card.card_holder_name
+        : '',
+      credit_card_number: latestAccount?.card
+        ? latestAccount.card.credit_card_number
+        : '',
     },
   })
 
   useEffect(() => {
-    if (account && account.length && account[0]?.interac) {
+    if (latestAccount?.interac) {
       interacForm.reset({
         amountInterac: lastAccountInterac,
         refInterac: lastTransactionRef,
       })
     }
-  }, [account, interacForm, lastAccountInterac, lastTransactionRef])
+  }, [latestAccount, interacForm, lastAccountInterac, lastTransactionRef])
 
   useEffect(() => {
-    if (account && account.length && account[0]?.card) {
+    if (latestAccount?.card) {
       creditCardForm.reset({
-        network: account[0]?.card.network,
-        cvv: account[0]?.card.cvv,
-        expiry_date: account[0]?.card.expiry_date,
-        card_holder_name: account[0]?.card.card_holder_name,
-        credit_card_number: account[0]?.card.credit_card_number,
+        network: latestAccount.card.network,
+        cvv: latestAccount.card.cvv,
+        expiry_date: latestAccount.card.expiry_date,
+        card_holder_name: latestAccount.card.card_holder_name,
+        credit_card_number: latestAccount.card.credit_card_number,
       })
     }
-  }, [account, creditCardForm])
+  }, [latestAccount, creditCardForm])
 
   const interacOnSubmit = async (values: z.infer<typeof interacFormSchema>) => {
     try {
       const data = await updateAccount({
-        ...account[0],
-        _id: account[0]._id,
+        ...latestAccount!,
+        _id: latestAccount!._id,
         interac: { ...values },
       })
       ctxDispatch({ type: 'ACCOUNT_INFOS', payload: data.account })
@@ -155,8 +157,8 @@ const PaymentMethodInfo = () => {
     try {
       if (isDateInFuture(values.expiry_date) === true) {
         const data = await updateAccount({
-          ...account[0],
-          _id: account[0]._id,
+          ...latestAccount!,
+          _id: latestAccount!._id,
           card: {
             ...values,
           },
@@ -199,13 +201,13 @@ const PaymentMethodInfo = () => {
             <div className='space-y-1'>
               <p className='text-sm font-medium leading-none'>Paiement par</p>
               <p className='text-sm text-muted-foreground'>
-                {account && account[0]?.paymentMethod === 'interac'
+                {latestAccount?.paymentMethod === 'interac'
                   ? 'Interac'
                   : 'Carte de crédit'}
               </p>
             </div>
           </div>
-          {account && account[0]?.paymentMethod === 'interac' ? (
+          {latestAccount?.paymentMethod === 'interac' ? (
             <>
               <div className='mb-4 grid items-start pb-4 last:mb-0 last:pb-0'>
                 <div className='space-y-1'>
@@ -236,7 +238,7 @@ const PaymentMethodInfo = () => {
                     N° de carte
                   </p>
                   <p className='text-sm text-muted-foreground'>
-                    {account ? account[0]?.card?.credit_card_number : ''}
+                    {latestAccount?.card?.credit_card_number || ''}
                   </p>
                 </div>
               </div>
@@ -245,7 +247,7 @@ const PaymentMethodInfo = () => {
                   <div className='space-y-1'>
                     <p className='text-sm font-medium leading-none'>CVV</p>
                     <p className='text-sm text-muted-foreground'>
-                      {account ? account[0]?.card?.cvv : ''}
+                      {latestAccount?.card?.cvv || ''}
                     </p>
                   </div>
                 </div>
@@ -255,11 +257,9 @@ const PaymentMethodInfo = () => {
                       Expire le
                     </p>
                     <p className='text-sm text-muted-foreground'>
-                      {account
-                        ? `${
-                            account && account[0]?.card?.expiry_date.slice(0, 2)
-                          } /
-                      ${account && account[0]?.card?.expiry_date.slice(2, 4)}`
+                      {latestAccount?.card?.expiry_date
+                        ? `${latestAccount.card.expiry_date.slice(0, 2)} /
+                      ${latestAccount.card.expiry_date.slice(2, 4)}`
                         : ''}
                     </p>
                   </div>
@@ -304,7 +304,7 @@ const PaymentMethodInfo = () => {
           title='Modifications'
           description='Modifier vos données de paiement'
         >
-          {account[0].paymentMethod === 'interac' ? (
+          {latestAccount?.paymentMethod === 'interac' ? (
             <>
               <Form {...interacForm}>
                 <form

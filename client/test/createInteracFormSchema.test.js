@@ -1,4 +1,5 @@
-import { test, ok } from 'node:test'
+import { test } from 'node:test'
+import { ok } from 'node:assert/strict'
 import { createInteracFormSchema } from '../src/lib/createInteracFormSchema.ts'
 
 test('amount must be greater than min value', () => {
