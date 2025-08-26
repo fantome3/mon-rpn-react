@@ -289,7 +289,7 @@ const Infos = () => {
                   name='residenceCountryStatus'
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className='text-sm'>Statut</FormLabel>
+                      <FormLabel className='text-sm'>Statut de résidence</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}

@@ -268,11 +268,15 @@ userRouter.post(
       registerUserOnExternalApp({ register, origines, infos }).catch((err) => {
         console.error('External registration failed:', err)
       })
+
+      const isStudent = user?.register?.occupation === 'student' && user?.register?.studentStatus === 'full-time'
+
       res.send({
         ...user.toObject(),
         register: {
           email: user.register.email,
           conditions: user.register.conditions,
+          occupation: isStudent ? 'student' : user.register.occupation,
         },
         token: generateToken(user),
       })

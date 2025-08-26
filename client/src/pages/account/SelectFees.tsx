@@ -19,19 +19,20 @@ import { Store } from '@/lib/Store'
  */
 
 type SelectFeesProps = {
-  updateTotal: (total: number) => void // Callback pour mettre à jour le total
+  updateTotal: (total: number) => void
 }
 
 export default function SelectFees({ updateTotal }: SelectFeesProps) {
   const { state } = useContext(Store)
   const { userInfo } = state
-
+  const isStudent = userInfo?.register?.occupation === 'student'
+  
   const defaultFeeDetails: FeeDetail[] = [
     {
       id: 'me',
-      feeDescription: 'Vous (Adulte)',
+      feeDescription: isStudent ? 'Vous (Étudiant-e)' : 'Vous (Travailleur-se)',
       quantity: 1,
-      type: userInfo?.register?.occupation === 'student' ? 'student' : 'worker',
+      type: isStudent ? 'student' : 'worker',
       isRpnActive: true,
     },
   ]
@@ -116,14 +117,14 @@ export default function SelectFees({ updateTotal }: SelectFeesProps) {
             </thead>
             <tbody>
               <tr className="text-center">
-                <td className="p-2 border text-left">Travailleur (18 ans et +)</td>
+                <td className="p-2 border text-left">Travailleur(se) (18 ans et +)</td>
                 <td className="p-2 border">50 $</td>
                 <td className="p-2 border">15 $</td>
                 <td className="p-2 border">20 $</td>
                 <td className="p-2 border font-semibold">85 $</td>
               </tr>
               <tr className="text-center">
-                <td className="p-2 border text-left">Étudiant (18 ans et +)</td>
+                <td className="p-2 border text-left">Étudiant(e)</td>
                 <td className="p-2 border">25 $</td>
                 <td className="p-2 border">15 $</td>
                 <td className="p-2 border">20 $</td>
@@ -180,8 +181,8 @@ export default function SelectFees({ updateTotal }: SelectFeesProps) {
                 <span className="block sm:inline">adhésion</span>
               </th>
               <th className="p-2 border whitespace-normal sm:whitespace-nowrap">
-                <span className="block sm:inline">Transition </span>
-                <span className="block sm:inline">numérique</span>
+                <span className="block sm:inline">Frais </span>
+                <span className="block sm:inline">traitement</span>
               </th>
               <th className="p-2 border whitespace-normal sm:whitespace-nowrap">RPN</th>
               <th className="p-2 border whitespace-nowrap">Sous‑total</th>

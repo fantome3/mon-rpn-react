@@ -62,13 +62,13 @@ const UserAccountInfo = () => {
           <div className='flex justify-between items-center'>
             <div
               className={`text-3xl font-bold ${
-                isLastTransactionPending ? 'text-gray-400 italic' : ''
+                isLastTransactionPending ? 'text-gray-300 italic' : ''
               }`}
             >
               $&nbsp;{ToLocaleStringFunc(currentSolde ?? 0)}
               {isLastTransactionPending && (
-                <span className='ml-2 text-sm text-muted-foreground'>
-                  (en attente)
+                <span className='ml-1 text-xs text-muted-foreground'>
+                  (en attente approbation)
                 </span>
               )}
             </div>

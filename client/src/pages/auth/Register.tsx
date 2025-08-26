@@ -70,15 +70,15 @@ const Register = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: userInfo?.register.email || '',
-      password: userInfo?.register.password || '',
-      conditions: userInfo?.register.conditions || false,
-      occupation: userInfo?.register.occupation || undefined,
-      institution: userInfo?.register.institution || undefined,
-      otherInstitution: userInfo?.register.otherInstitution || '',
-      studentNumber: userInfo?.register.studentNumber || '',
-      studentStatus: userInfo?.register.studentStatus || undefined,
-      workField: userInfo?.register.workField || '',
+      email: userInfo?.register?.email || '',
+      password: userInfo?.register?.password || '',
+      conditions: userInfo?.register?.conditions || false,
+      occupation: userInfo?.register?.occupation || undefined,
+      institution: userInfo?.register?.institution || undefined,
+      otherInstitution: userInfo?.register?.otherInstitution || '',
+      studentNumber: userInfo?.register?.studentNumber || '',
+      studentStatus: userInfo?.register?.studentStatus || undefined,
+      workField: userInfo?.register?.workField || '',
     },
   })
 
@@ -93,6 +93,7 @@ const Register = () => {
       setConditionsError(true)
     } else {
       const newPassword = PasswordGenerator()
+
       ctxDispatch({
         type: 'USER_REGISTER',
         payload: {
@@ -100,31 +101,22 @@ const Register = () => {
           password: newPassword,
         },
       })
-      localStorage.setItem(
-        'userInfo',
-        JSON.stringify({
-          ...userInfo,
-          register: { ...values, password: newPassword },
-          registerTime: new Date(),
-        })
-      )
 
       const GenerateToken = await generateToken(values.email)
       localStorage.setItem('tempToken', JSON.stringify(GenerateToken.token))
-
-      localStorage.setItem(
-        'userInfo',
-        JSON.stringify({
-          ...userInfo,
-          register: {
-            ...values,
-            password: PasswordGenerator(),
-          },
-          registerTime: new Date(),
-          token: JSON.stringify(GenerateToken.token),
-        })
-      )
-
+      
+      const updatedUserInfo = {
+        ...userInfo,
+        register: { 
+          ...values, 
+          password: newPassword
+        },
+        registerTime: new Date().toISOString(),
+        token: JSON.stringify(GenerateToken.token),
+      }
+      
+      localStorage.setItem('userInfo', JSON.stringify(updatedUserInfo))
+      
       if (params && Object.keys(params).length > 0) {
         localStorage.setItem('referralId', params.id!)
         localStorage.setItem('referralCode', params.ref!)
