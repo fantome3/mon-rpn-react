@@ -199,6 +199,12 @@ export class User {
   @prop({ ref: User, required: false }) // Reference to another User document
   public referredBy?: Ref<User>
 
+  @prop()
+  public deletedAt?: Date
+
+  @prop()
+  public deletedBy?: string
+
   @prop({ default: Date.now })
   public registerTime?: Date
 

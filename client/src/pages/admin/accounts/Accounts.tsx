@@ -8,6 +8,7 @@ import ManualDeactivateButton from '@/components/ManualDeactivateButton'
 import ManualReactivateButton from '@/components/ManualReactivateButton'
 import ManualUserPaymentButton from '@/components/ManualUserPaymentButton'
 import ManualToggleAdminButton from '@/components/ManualToggleAdminButton'
+import ManualDeleteUserButton from '@/components/ManualDeleteUserButton'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -264,6 +265,12 @@ const Accounts = () => {
                 refetch={refetch}
               />
             )}
+            <div className='font-semibold text-[#b9bdbc] mx-2'>|</div>
+            <ManualDeleteUserButton
+              userId={row.original.userId._id}
+              refetch={refetch}
+              disabled={row.original.userId.isAdmin}
+            />
           </div>
         )
       },
