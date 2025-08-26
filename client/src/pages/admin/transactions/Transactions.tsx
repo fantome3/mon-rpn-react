@@ -51,7 +51,7 @@ const formSchema = z.object({
   amount: z.number().min(0, { message: 'Le montant doit être positif' }),
   type: z.enum(['debit', 'credit']),
   reason: z.string().min(1, { message: 'La raison est requise' }),
-  status: z.enum(['completed', 'failed', 'pending']),
+  status: z.enum(['completed', 'failed', 'pending', 'awaiting_payment']),
 })
 
 const Transactions = () => {
@@ -153,6 +153,13 @@ const Transactions = () => {
           return (
             <Badge className='bg-yellow-500 text-white text-xs'>
               En attente
+            </Badge>
+          )
+        }
+        if (status === 'awaiting_payment') {
+          return (
+            <Badge className='bg-blue-500 text-white text-xs'>
+              En attente paiement
             </Badge>
           )
         }

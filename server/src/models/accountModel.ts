@@ -50,6 +50,9 @@ export class Account {
   @prop({ type: () => Interac, default: [] })
   public interac?: Interac[]
 
+  @prop({ default: false })
+  public isAwaitingFirstPayment?: boolean
+
   @prop({ required: true })
   public firstName!: string
 

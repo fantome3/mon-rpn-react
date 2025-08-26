@@ -39,6 +39,8 @@ export default function BilanTransactions() {
             ? 'En attente'
             : item._id === 'completed'
             ? 'Complété'
+            : item._id === 'awaiting_payment'
+            ? 'En attente paiement'
             : 'Échoué',
         value: item.count,
       }))

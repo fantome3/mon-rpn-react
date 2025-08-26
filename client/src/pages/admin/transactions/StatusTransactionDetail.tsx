@@ -40,6 +40,7 @@ const StatusTransactionDetail = ({
                     className={cn(
                       'mr-2 h-4 w-4 rounded-full',
                       status.name === 'En attente' && 'bg-blue-500',
+                      status.name === 'En attente paiement' && 'bg-amber-500',
                       status.name === 'Complété' && 'bg-emerald-500',
                       status.name === 'Échoué' && 'bg-rose-500'
                     )}

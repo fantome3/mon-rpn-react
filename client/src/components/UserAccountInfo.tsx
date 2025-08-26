@@ -9,6 +9,7 @@ import {
 import { Store } from '@/lib/Store'
 import { useGetAccountsByUserIdQuery } from '@/hooks/accountHooks'
 import { refresh, ToLocaleStringFunc } from '@/lib/utils'
+import { getAccountDisplayStatus } from '@/lib/accountUtils'
 import { Button } from './ui/button'
 import UpdateInteracPayment from './UpdateInteracPayment'
 import UpdateCreditCardPayment from './UpdateCreditCardPayment'
@@ -25,10 +26,12 @@ const UserAccountInfo = () => {
 
   const paymentMethod = account && account[0]?.paymentMethod
 
-  const isLastTransactionPending =
-    transactions && transactions.length > 0
-      ? transactions[0].status === 'pending'
-      : false
+  const lastTransaction =
+    transactions && transactions.length > 0 ? transactions[0] : undefined
+  const { awaitingPayment, lastTransactionPending } = getAccountDisplayStatus(
+    account?.[0],
+    lastTransaction,
+  )
 
   const handleTransactionSuccess = async (amount: number) => {
     setCurrentSolde((prevSolde) =>
@@ -62,11 +65,16 @@ const UserAccountInfo = () => {
           <div className='flex justify-between items-center'>
             <div
               className={`text-3xl font-bold ${
-                isLastTransactionPending ? 'text-gray-300 italic' : ''
+                lastTransactionPending ? 'text-gray-300 italic' : ''
               }`}
             >
+              {awaitingPayment && (
+                <span className='mr-1 text-xs text-muted-foreground'>
+                  (en attente paiement)
+                </span>
+              )}
               $&nbsp;{ToLocaleStringFunc(currentSolde ?? 0)}
-              {isLastTransactionPending && (
+              {lastTransactionPending && (
                 <span className='ml-1 text-xs text-muted-foreground'>
                   (en attente approbation)
                 </span>

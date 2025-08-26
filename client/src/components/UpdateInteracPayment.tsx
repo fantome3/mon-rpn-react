@@ -77,6 +77,7 @@ const UpdateInteracPayment = ({
         ...accountByUserId?.[0],
         solde: newSolde,
         interac: updatedInteracTransactions,
+        isAwaitingFirstPayment: false,
       })
 
       await newTransaction({

@@ -73,6 +73,8 @@ const LastUserTransactions = () => {
                           ? 'bg-green-500'
                           : tx.status === 'pending'
                           ? 'bg-yellow-500'
+                          : tx.status === 'awaiting_payment'
+                          ? 'bg-blue-500'
                           : 'bg-red-500'
                       }`}
                     >
@@ -80,6 +82,8 @@ const LastUserTransactions = () => {
                         ? 'Réussie'
                         : tx.status === 'pending'
                         ? 'En attente'
+                        : tx.status === 'awaiting_payment'
+                        ? 'En attente paiement'
                         : 'Échouée'}
                     </Badge>
                   </TableCell>
