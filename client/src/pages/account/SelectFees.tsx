@@ -1,42 +1,44 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useContext, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   calculateSubtotal,
   calculateTotal,
   FeeDetail,
-  MONTANT_MINIMUM_RPN,
-  MONTANT_OBLIGATOIRE,
 } from '@/lib/fees'
+import { Store } from '@/lib/Store'
 
 /**
  * Composant : SelectFeesWithFamily
  * --------------------------------------------------
  * • L’utilisateur saisit le **nombre d’adultes** (≥ 1) et de **mineurs** (≥ 0).
  * • Barème fixe :
- *     - Adulte : 70 $ (50 $ ACQ + 10 $ traitement + 10 $ RPN)
- *     - Mineur : 20 $ (10 $ traitement + 10 $ RPN)
+ *     - Travailleur : 85 $ (50 $ ACQ + 15 $ traitement + 20 $ RPN)
+ *     - Étudiant : 60 $ (25 $ ACQ + 15 $ traitement + 20 $ RPN)
+ *     - Mineur : 25 $ (15 $ traitement + 10 $ RPN)
  */
 
 type SelectFeesProps = {
-  updateTotal: (total: number) => void; // Callback pour mettre à jour le total
-};
-
-const defaultFeeDetails: FeeDetail[] = [
-  {
-    id: 'me',
-    feeDescription: 'Vous (Adulte)',
-    quantity: 1,
-    type: 'adult',
-    isRpnActive: true,
-  },
-]
+  updateTotal: (total: number) => void // Callback pour mettre à jour le total
+}
 
 export default function SelectFees({ updateTotal }: SelectFeesProps) {
+  const { state } = useContext(Store)
+  const { userInfo } = state
+
+  const defaultFeeDetails: FeeDetail[] = [
+    {
+      id: 'me',
+      feeDescription: 'Vous (Adulte)',
+      quantity: 1,
+      type: userInfo?.register?.occupation === 'student' ? 'student' : 'worker',
+      isRpnActive: true,
+    },
+  ]
   /* ---------------------- États principaux ---------------------- */
   const [adultCount, setAdultCount] = useState(0); // adultes supplémentaires
   const [minorCount, setMinorCount] = useState(0);
-  const [feeDetails, setFeeDetails] = useState<FeeDetail[]>(defaultFeeDetails);
+  const [feeDetails, setFeeDetails] = useState<FeeDetail[]>(defaultFeeDetails)
 
   /* -------------- Synchronisation lignes du tableau ------------- */
   const updateFeeRows = (newAdult: number, newMinor: number) => {
@@ -49,7 +51,7 @@ export default function SelectFees({ updateTotal }: SelectFeesProps) {
         id: 'adults',
         feeDescription: `${extraAdults} × autre(s) adulte(s)`,
         quantity: extraAdults,
-        type: 'adult',
+        type: 'worker',
         isRpnActive: true,
       })
     if (extraMinors > 0)
@@ -87,6 +89,10 @@ export default function SelectFees({ updateTotal }: SelectFeesProps) {
   /* ------------------- Calculs sous‑totaux & total -------------- */
   const getSubtotal = (row: FeeDetail) => calculateSubtotal(row)
   const total = useMemo(() => calculateTotal(feeDetails), [feeDetails])
+
+  useEffect(() => {
+    updateTotal(total)
+  }, [total, updateTotal])
 
   return (
     <div className="container mx-auto my-8 max-w-4xl px-4 space-y-8">
@@ -187,7 +193,7 @@ export default function SelectFees({ updateTotal }: SelectFeesProps) {
                 <td className="p-2 border text-left font-medium whitespace-nowrap">{row.feeDescription}</td>
                 {/* ACQ obligatoire adultes */}
                 <td className="p-2 border">
-                  {row.type === 'adult' ? <Checkbox checked disabled /> : '—'}
+                  {row.type === 'minor' ? '—' : <Checkbox checked disabled />}
                 </td>
                 {/* Traitement obligatoire */}
                 <td className="p-2 border">

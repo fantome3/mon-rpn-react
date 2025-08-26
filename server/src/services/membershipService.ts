@@ -1,8 +1,9 @@
-import { UserModel } from '../models/userModel'
+import { UserModel, User } from '../models/userModel'
 import { TransactionModel } from '../models/transactionModel'
 import { AccountModel } from '../models/accountModel'
 import { SettingsModel } from '../models/settingsModel'
 import { calculateTotalPersons } from '../utils'
+import { DocumentType } from '@typegoose/typegoose'
 import {
   sendAccountDeactivatedEmail,
   sendDeactivationWarningEmail,
@@ -12,10 +13,38 @@ import {
 import labels from '../common/libelles.json'
 import { handleFailedPrelevement } from './subscriptionService'
 
+const calculateMembershipAmount = (
+  user: DocumentType<User>,
+  workerAmount: number,
+  studentAmount: number,
+): number => {
+  const currentYear = new Date().getFullYear()
+  let total = 0
+
+  const userAge = currentYear - new Date(user.origines.birthDate).getFullYear()
+  if (userAge >= 18) {
+    total +=
+      user.register.occupation === 'student' ? studentAmount : workerAmount
+  }
+
+  for (const member of user.familyMembers || []) {
+    const age = currentYear - new Date(member.birthDate).getFullYear()
+    if (age >= 18 && member.status === 'active') {
+      total +=
+        member.residenceCountryStatus === 'student'
+          ? studentAmount
+          : workerAmount
+    }
+  }
+
+  return total
+}
+
 export const processAnnualMembershipPayment = async () => {
   const users = await UserModel.find()
   const settings = await SettingsModel.findOne()
-  const MEMBERSHIP_UNIT_AMOUNT = settings?.membershipUnitAmount || 10
+  const MEMBERSHIP_WORKER_AMOUNT = settings?.membershipUnitAmount || 50
+  const MEMBERSHIP_STUDENT_AMOUNT = 25
   const maxMissed = settings?.maxMissedReminders || 3
   const currentYear = new Date().getFullYear()
 
@@ -30,7 +59,11 @@ export const processAnnualMembershipPayment = async () => {
 
     //Calcul du nombre de personnes à charge + user (18+)
     const totalPersons = calculateTotalPersons(user)
-    const totalToDeduct = totalPersons * MEMBERSHIP_UNIT_AMOUNT
+    const totalToDeduct = calculateMembershipAmount(
+      user,
+      MEMBERSHIP_WORKER_AMOUNT,
+      MEMBERSHIP_STUDENT_AMOUNT,
+    )
 
     //Chercher le compte lié à l'utilisateur
     const account = await AccountModel.findOne({ userId: user._id })
@@ -94,7 +127,8 @@ export const processMembershipForUser = async (userId: string) => {
     return { status: 'NOT_FOUND', message: labels.utilisateur.introuvableFr }
   }
   const settings = await SettingsModel.findOne()
-  const MEMBERSHIP_UNIT_AMOUNT = settings?.membershipUnitAmount || 10
+  const MEMBERSHIP_WORKER_AMOUNT = settings?.membershipUnitAmount || 50
+  const MEMBERSHIP_STUDENT_AMOUNT = 25
   const maxMissed = settings?.maxMissedReminders || 3
   const currentYear = new Date().getFullYear()
 
@@ -106,7 +140,11 @@ export const processMembershipForUser = async (userId: string) => {
   }
 
   const totalPersons = calculateTotalPersons(user)
-  const totalToDeduct = totalPersons * MEMBERSHIP_UNIT_AMOUNT
+  const totalToDeduct = calculateMembershipAmount(
+    user,
+    MEMBERSHIP_WORKER_AMOUNT,
+    MEMBERSHIP_STUDENT_AMOUNT,
+  )
 
   const account = await AccountModel.findOne({ userId })
 
