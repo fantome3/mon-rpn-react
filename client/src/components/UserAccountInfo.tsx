@@ -22,8 +22,9 @@ const UserAccountInfo = () => {
   const { data: transactions } = useGetTransactionsByUserIdQuery(userId)
   const [modalVisibility, setModalVisibility] = useState(false)
   const [currentSolde, setCurrentSolde] = useState<number | null>(null)
+  const latestAccount = account?.[account.length - 1]
 
-  const paymentMethod = account && account[0]?.paymentMethod
+  const paymentMethod = latestAccount?.paymentMethod
 
   const isLastTransactionPending =
     transactions && transactions.length > 0
@@ -41,10 +42,10 @@ const UserAccountInfo = () => {
   }
 
   useEffect(() => {
-    if (account && account[0]?.solde !== undefined) {
-      setCurrentSolde(account?.[0]?.solde)
+    if (latestAccount?.solde !== undefined) {
+      setCurrentSolde(latestAccount.solde)
     }
-  }, [account])
+  }, [latestAccount])
 
   const handleClickOutside = (event: React.MouseEvent<HTMLDivElement>) => {
     if (event.target === event.currentTarget) {
