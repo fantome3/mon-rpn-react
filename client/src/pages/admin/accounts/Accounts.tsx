@@ -193,7 +193,7 @@ const Accounts = () => {
     },
     {
       accessorKey: 'paymentMethod',
-      header: 'Méthode de paiement',
+      header: 'Méthode paiement',
       cell: ({ row }) => {
         const paymentMethod = row.original.paymentMethod
         const status = row.original.userId.subscription.status
