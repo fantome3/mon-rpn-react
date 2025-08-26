@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { SearchEngineOptimization } from '@/components/SearchEngine/SearchEngineOptimization'
 
 const PaymentMethod = () => {
-  const [totalPayment, setTotalPayment] = useState(70)
+  const [totalPayment, setTotalPayment] = useState(0)
 
   return (
     <>
