@@ -22,6 +22,7 @@ import {
   reactivateUserAccount,
 } from '../services/membershipService'
 import { registerUserOnExternalApp } from '../services/externalRegistrationService'
+import { softDeleteUser } from '../services/userService'
 
 export const userRouter = express.Router()
 
@@ -384,29 +385,28 @@ userRouter.get(
 userRouter.delete(
   '/:id',
   isAuth,
+  isAdmin,
   expressAsyncHandler(async (req: Request, res: Response) => {
     try {
-      const user = await UserModel.findById(req.params.id)
-      if (user) {
-        if (user.isAdmin) {
-          res.status(400).send({
-            message: labels.utilisateur.impossibleSupprimerAdmin,
-          })
-          return
-        }
-        const deletedUser = await user?.deleteOne()
-        res.send({
-          message: labels.utilisateur.supprime,
-          user: deletedUser,
+      const user = await softDeleteUser(req.params.id, (req.user as any)._id)
+      res.send({
+        message: labels.utilisateur.supprime,
+        user,
+      })
+      return
+    } catch (error: any) {
+      if (error.message === 'Cannot delete admin') {
+        res.status(400).send({
+          message: labels.utilisateur.impossibleSupprimerAdmin,
         })
         return
-      } else {
+      }
+      if (error.message === 'User not found') {
         res.status(404).send({
           message: labels.utilisateur.introuvable,
         })
         return
       }
-    } catch (error) {
       res.status(400).json(error)
       return
     }

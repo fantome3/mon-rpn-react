@@ -69,4 +69,6 @@ export type User = {
   registerTime?: Date
   originesTime?: Date
   infosTime?: Date
+  deletedAt?: Date
+  deletedBy?: string
 }
