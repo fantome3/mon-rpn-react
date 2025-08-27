@@ -88,9 +88,9 @@ const InteracPayment = ({ total }: InteracPaymentProps) => {
 
       await newTransaction({
         userId: userInfo?._id,
-        amount: total,
+        amount: 0,
         type: 'credit',
-        reason: 'Renfouement via Interac',
+        reason: 'L\'utilisateur n\'a pas encore effectué de paiement Interac',
         status: 'awaiting_payment',
       })
 
@@ -127,7 +127,7 @@ const InteracPayment = ({ total }: InteracPaymentProps) => {
         userId: userInfo?._id,
         amount: values.amountInterac,
         type: 'credit',
-        reason: 'Renfouement via Interac',
+        reason: 'premier paiement via Interac',
         status: 'pending',
       })
 
