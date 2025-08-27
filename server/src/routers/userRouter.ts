@@ -277,7 +277,7 @@ userRouter.post(
         register: {
           email: user.register.email,
           conditions: user.register.conditions,
-          occupation: isStudent ? 'student' : user.register.occupation,
+          occupation: isStudent ? user.register.occupation : 'worker',
         },
         token: generateToken(user),
       })
