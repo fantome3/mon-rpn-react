@@ -9,20 +9,21 @@ import useAwaitingFirstPaymentRedirect from '@/hooks/useAwaitingFirstPaymentRedi
 
 const ProtectedRoute = () => {
   const {
-    state: { userInfo },
+    state: { userInfo, accountInfo },
     dispatch: ctxDispatch,
   } = useContext(Store)
 
   const { data: accounts } = useGetAccountsByUserIdQuery(userInfo?._id)
-  const account = accounts?.[0]
-  useAwaitingFirstPaymentRedirect(account)
+  const fetchedAccount = accounts?.[accounts.length - 1]
+
+  useAwaitingFirstPaymentRedirect(accountInfo)
 
   useEffect(() => {
-    if (account) {
-      ctxDispatch({ type: 'ACCOUNT_INFOS', payload: account })
-      localStorage.setItem('accountInfo', JSON.stringify(account))
+    if (fetchedAccount) {
+      ctxDispatch({ type: 'ACCOUNT_INFOS', payload: fetchedAccount })
+      localStorage.setItem('accountInfo', JSON.stringify(fetchedAccount))
     }
-  }, [account, ctxDispatch])
+  }, [fetchedAccount, ctxDispatch])
 
   if (!userInfo) return <Navigate to='/login' />
   if (userInfo?.subscription?.status === 'inactive') {

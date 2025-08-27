@@ -78,13 +78,8 @@ const UpdateInteracPayment = ({ onSuccess, minAmount = 25 }: UpdateInteracPaymen
 
       ctxDispatch({ type: 'ACCOUNT_INFOS', payload: data.account })
       localStorage.setItem('accountInfo', JSON.stringify(data.account))
-      toast({
-        variant: 'default',
-        title: 'Moyen de paiement',
-        description: `N'oubliez pas de faire le transfert Interac.`,
-      })
+      
       onSuccess(values.amountInterac)
-      navigate('/summary')
       setModalVisibility(false)
     } catch (error) {
       toastAxiosError(error)

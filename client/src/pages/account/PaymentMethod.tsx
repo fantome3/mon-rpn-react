@@ -30,8 +30,8 @@ const PaymentMethod = () => {
   const { data: accounts } = useGetAccountsByUserIdQuery(userInfo?._id)
   const account = accounts?.[0]
 
-  const handleSuccess = async (amount: number) =>  {
-    console.log(`Payment successful: ${amount}`);
+  const handleSuccess = () =>  {
+    console.log(`Payment successful: ${totalPayment}`);
     navigate('/summary')
   }
 
