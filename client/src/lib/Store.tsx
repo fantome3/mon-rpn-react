@@ -71,10 +71,10 @@ function userInfoReducer(state: User, action: Action) {
   }
 }
 
-function rootReducer(state: AppState, action: Action) {
+function rootReducer(state: AppState, action: Action): AppState {
   return {
     userInfo: userInfoReducer(state.userInfo!, action),
-    accountInfoReducer: accountInfoReducer(state.accountInfo!, action),
+    accountInfo: accountInfoReducer(state.accountInfo!, action),
   }
 }
 
