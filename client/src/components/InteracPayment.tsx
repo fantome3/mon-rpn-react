@@ -213,7 +213,7 @@ const InteracPayment = ({ total }: InteracPaymentProps) => {
                     <FormLabel className='text-sm'>
                       Numéro de référence du transfert Interac
                       <HoverCard>
-                        <HoverCardTrigger className='cursor-pointer italic text-xs hover:underline'>
+                        <HoverCardTrigger className="cursor-pointer italic text-xs hover:underline ml-1 animate-pulse">
                           (où le trouver)
                         </HoverCardTrigger>
                         <HoverCardContent className='font-light text-justify'>
