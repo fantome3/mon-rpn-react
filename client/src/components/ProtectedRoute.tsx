@@ -1,14 +1,28 @@
 import { Store } from '@/lib/Store'
-import { useContext } from 'react'
+import { useContext, useEffect } from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
 import Header from './Header'
 import Footer from './Footer'
 import Announcement from './Announcement'
+import { useGetAccountsByUserIdQuery } from '@/hooks/accountHooks'
+import useAwaitingFirstPaymentRedirect from '@/hooks/useAwaitingFirstPaymentRedirect'
 
 const ProtectedRoute = () => {
   const {
     state: { userInfo },
+    dispatch: ctxDispatch,
   } = useContext(Store)
+
+  const { data: accounts } = useGetAccountsByUserIdQuery(userInfo?._id)
+  const account = accounts?.[0]
+  useAwaitingFirstPaymentRedirect(account)
+
+  useEffect(() => {
+    if (account) {
+      ctxDispatch({ type: 'ACCOUNT_INFOS', payload: account })
+      localStorage.setItem('accountInfo', JSON.stringify(account))
+    }
+  }, [account, ctxDispatch])
 
   if (!userInfo) return <Navigate to='/login' />
   if (userInfo?.subscription?.status === 'inactive') {

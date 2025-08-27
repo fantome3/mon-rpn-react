@@ -13,6 +13,7 @@ export const useGetAccountsByUserIdQuery = (userId?: string) =>
     queryKey: ['accountsByUserId', userId],
     queryFn: async () =>
       (await apiClient.get(`api/accounts/${userId}/all`)).data,
+    enabled: !!userId,
   })
 
 export const useGetAccountsQuery = () =>
