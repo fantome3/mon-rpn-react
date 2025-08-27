@@ -75,6 +75,27 @@ const InteracPayment = ({ total }: InteracPaymentProps) => {
   ): Promise<void> => {
     e.preventDefault()
     try {
+      const data = await account({
+        firstName: userInfo?.origines.firstName!,
+        lastName: userInfo?.origines.lastName!,
+        userTel: userInfo?.infos.tel!,
+        userResidenceCountry: userInfo?.infos.residenceCountry!,
+        solde: 0,
+        paymentMethod: 'interac',
+        userId: userInfo?._id!,
+        isAwaitingFirstPayment: true,
+      })
+
+      await newTransaction({
+        userId: userInfo?._id,
+        amount: 0,
+        type: 'credit',
+        reason: 'L\'utilisateur n\'a pas encore effectué de paiement Interac',
+        status: 'awaiting_payment',
+      })
+
+      ctxDispatch({ type: 'ACCOUNT_INFOS', payload: data })
+      localStorage.setItem('accountInfo', JSON.stringify(data))
       navigate(redirect)
       refresh()
       await newUserNotification(userInfo?.register?.email!)
@@ -106,7 +127,7 @@ const InteracPayment = ({ total }: InteracPaymentProps) => {
         userId: userInfo?._id,
         amount: values.amountInterac,
         type: 'credit',
-        reason: 'Renfouement via Interac',
+        reason: 'premier paiement via Interac',
         status: 'pending',
       })
 

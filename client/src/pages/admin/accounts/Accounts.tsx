@@ -20,6 +20,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
 import { toast } from '@/components/ui/use-toast'
 import {
   useGetAccountsQuery,
@@ -48,6 +49,7 @@ const formSchema = z.object({
   solde: z.number(),
   paymentMethod: z.string(),
   userId: z.string().optional(),
+  isAwaitingFirstPayment: z.boolean().optional(),
 })
 
 const Accounts = () => {
@@ -72,6 +74,9 @@ const Accounts = () => {
       solde: editingAccount ? editingAccount.solde : 0,
       paymentMethod: editingAccount ? editingAccount.paymentMethod : '',
       userId: editingAccount?.userId || '',
+      isAwaitingFirstPayment: editingAccount
+        ? editingAccount.isAwaitingFirstPayment
+        : false,
     },
   })
 
@@ -85,6 +90,7 @@ const Accounts = () => {
         solde: editingAccount.solde || 0,
         paymentMethod: editingAccount.paymentMethod || '',
         userId: editingAccount.userId,
+        isAwaitingFirstPayment: editingAccount.isAwaitingFirstPayment || false,
       })
     }
   }, [editingAccount, form])
@@ -188,6 +194,19 @@ const Accounts = () => {
           <div className={status === 'inactive' ? 'text-gray-400' : ''}>
             {' '}
             {ToLocaleStringFunc(solde)}{' '}
+          </div>
+        )
+      },
+    },
+    {
+      accessorKey: 'isAwaitingFirstPayment',
+      header: 'En attente paiement',
+      cell: ({ row }) => {
+        const awaiting: boolean = row.getValue('isAwaitingFirstPayment')
+        const status = row.original.userId.subscription.status
+        return (
+          <div className={status === 'inactive' ? 'text-gray-400' : ''}>
+            {awaiting ? 'Oui' : 'Non'}
           </div>
         )
       },
@@ -430,6 +449,23 @@ const Accounts = () => {
                       />
                     </FormControl>
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name='isAwaitingFirstPayment'
+                render={({ field }) => (
+                  <FormItem className='flex flex-row items-start space-x-3 space-y-0'>
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormLabel className='text-sm'>
+                      En attente 1er paiement
+                    </FormLabel>
                   </FormItem>
                 )}
               />

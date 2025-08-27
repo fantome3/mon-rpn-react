@@ -22,4 +22,5 @@ export type Account = {
   card?: CardType[]
   interac?: Interac[]
   userId: string | any
+  isAwaitingFirstPayment?: boolean
 }
