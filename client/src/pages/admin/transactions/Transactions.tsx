@@ -165,13 +165,12 @@ const Transactions = () => {
         }
       },
     },
-
     {
-      accessorKey: 'reason',
-      header: 'Raison',
+      accessorKey: 'refInterac',
+      header: 'RefInterac',
       cell: ({ row }) => {
-        const reason: string = row.getValue('reason')
-        return <div> {reason} </div>
+        const ref: string | undefined = row.getValue('refInterac')
+        return <div> {ref ?? '-'} </div>
       },
     },
     {

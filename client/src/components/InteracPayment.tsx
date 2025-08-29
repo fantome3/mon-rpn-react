@@ -128,6 +128,7 @@ const InteracPayment = ({ total }: InteracPaymentProps) => {
         amount: values.amountInterac,
         type: 'credit',
         reason: 'premier paiement via Interac',
+        refInterac: values.refInterac,
         status: 'pending',
       })
 
