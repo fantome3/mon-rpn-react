@@ -13,7 +13,7 @@ export const checkMinimumBalanceAndSendReminder = async () => {
   const MINIMUM_UNIT = settings?.minimumBalanceRPN || 50
   const MAX_MISSED = settings?.maxMissedReminders || 3
 
-  const users = await UserModel.find()
+  const users = await UserModel.find({ deletedAt: { $exists: false } })
   for (const user of users) {
     const totalPersons = calculateTotalPersons(user)
 
