@@ -41,7 +41,7 @@ const calculateMembershipAmount = (
 }
 
 export const processAnnualMembershipPayment = async () => {
-  const users = await UserModel.find()
+  const users = await UserModel.find({ deletedAt: { $exists: false } })
   const settings = await SettingsModel.findOne()
   const MEMBERSHIP_WORKER_AMOUNT = settings?.membershipUnitAmount || 50
   const MEMBERSHIP_STUDENT_AMOUNT = 25
@@ -212,6 +212,7 @@ export const processInactiveUsers = async () => {
     'subscription.scheduledDeactivationDate': {
       $lte: today,
     },
+    deletedAt: { $exists: false },
   })
 
   for (const user of usersToDeactivate) {

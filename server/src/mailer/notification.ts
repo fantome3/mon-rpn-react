@@ -12,7 +12,10 @@ export const notifyAllUsers = async ({
   deathPlace: string
   deathDate: Date
 }) => {
-  const users = await UserModel.find({ primaryMember: true })
+  const users = await UserModel.find({
+    primaryMember: true,
+    deletedAt: { $exists: false },
+  })
   const subject = emailContents.notificationDeces.sujet({ name: firstName })
   const text = emailContents.notificationDeces.texte({
     name: firstName,
