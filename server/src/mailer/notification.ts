@@ -22,7 +22,7 @@ export const notifyAllUsers = async ({
     place: deathPlace,
     date: deathDate.toLocaleDateString()
   })
-  const html = emailTemplate({ content: text.replace(/\n/g, '<br/>') })
+  const html = emailTemplate({ content: text })
 
   for (const user of users) {
     try {

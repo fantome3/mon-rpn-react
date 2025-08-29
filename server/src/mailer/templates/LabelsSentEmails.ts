@@ -18,6 +18,7 @@ export const emailContents = {
       <p>Nous avons reçu une demande de réinitialisation de mot de passe pour votre compte ACQ-RPN.</p>
       <p>Pour créer un nouveau mot de passe, cliquez sur le lien ci-dessous&nbsp;:</p>
       <p><a href="http://localhost:5173/reset-password/${userId}/${token}" style="color:#1a73e8;">Réinitialiser mon mot de passe</a></p>
+      <br/>
       <p>Si vous n’êtes pas à l’origine de cette demande, ignorez simplement ce courriel.</p>
       <p style="margin-top:20px;">Cordialement,</p>`
   },
@@ -49,8 +50,7 @@ export const emailContents = {
     texte: ({ password }: PassTempParams) => `
       <p>Bonjour,</p>
       <p>Bienvenue sur la plateforme ACQ-RPN&nbsp;!</p>
-      <p>Voici votre mot de passe temporaire&nbsp;:</p>
-      <p style="font-weight:bold;font-size:16px;color:#e67e22;">${password}</p>
+      <p>Voici votre mot de passe temporaire&nbsp;: <span style="font-weight:bold;font-size:16px;color:#e67e22;">${password}</span></p>
       <p>Pour des raisons de sécurité, changez-le dès votre première connexion.</p>
       <p style="margin-top:20px;">Au plaisir de vous accompagner,</p>`
   },
@@ -139,12 +139,7 @@ export const emailContents = {
   }
 } as const;
 
-/* -------------------------------------------------------------------------- */
-/* Exemple d’utilisation ---------------------------------------------------- */
-/*
-import { emailTemplates } from './emails/templates';
-import { emailTemplate }  from './emails/emailTemplate'; // ta fonction existante
-
+/* -------------------------------------------------------------------------- 
 const htmlContent = emailTemplates.nouvelUtilisateur.texte({
   firstName: 'Marie',
   lastName: 'Dupont',

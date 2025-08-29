@@ -24,7 +24,7 @@ export const sendPrelevementFailedEmail = async (
           current: currentBalance
         })
 
-  const html = emailTemplate({ content: text.replace(/\n/g, '<br/>') })
+  const html = emailTemplate({ content: text })
 
   try {
     await sendEmail({

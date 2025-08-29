@@ -13,18 +13,18 @@ export const sendDeactivationWarningEmail = async (
       : 'un solde insuffisant pour participer aux prélèvements décès'
 
   const subject = emailContents.alerteDesactivation.sujet
-  const text = emailContents.alerteDesactivation.texte({ raison : reason, dateLimite : deactivationDate.toLocaleDateString()})
-  const html = emailTemplate({ content: text.replace(/\n/g, '<br/>') })
+  const disactivationReasonText = emailContents.alerteDesactivation.texte({ raison : reason, dateLimite : deactivationDate.toLocaleDateString()})
+  const html = emailTemplate({ content: disactivationReasonText })
 
-  await sendEmail({ to: email, subject, text, html })
+  await sendEmail({ to: email, subject, text: disactivationReasonText, html })
 }
 
 export const sendAccountDeactivatedEmail = async (email: string) => {
   const subject = emailContents.compteDesactive.sujet
-  const text = emailContents.compteDesactive.texte()
-  const html = emailTemplate({ content: text.replace(/\n/g, '<br/>') })
+  const accountDeactivationMessage = emailContents.compteDesactive.texte()
+  const html = emailTemplate({ content: accountDeactivationMessage })
 
-  await sendEmail({ to: email, subject, text, html })
+  await sendEmail({ to: email, subject, text: accountDeactivationMessage, html })
 }
 
 export const sendLowerBanlanceAlertEmail = async (
@@ -34,7 +34,7 @@ export const sendLowerBanlanceAlertEmail = async (
 ) => {
   const subject = emailContents.soldeInsuffisant.sujet
   const hmtlBody = emailContents.soldeInsuffisant.texte({ current: balance, minimumRequiredBalance: required})
-  const html = emailTemplate({ content: hmtlBody.replace(/\n/g, '<br/>') })
+  const html = emailTemplate({ content: hmtlBody })
 
   try {
     await sendEmail({ to: email, subject, text: hmtlBody, html })

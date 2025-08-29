@@ -8,12 +8,12 @@ export const sendMembershipReminderEmail = async (
   currentBalance: number
 ) => {
   const subject = emailContents.rappelCotisation.sujet
-  const text = emailContents.rappelCotisation.texte({
+  const reminderEmailBody = emailContents.rappelCotisation.texte({
     minimumRequiredBalance: expectedAmount,
     current: currentBalance
   })
-  const html = emailTemplate({ content: text.replace(/\n/g, '<br/>') })
-  await sendEmail({ to: email, subject, text, html })
+  const html = emailTemplate({ content: reminderEmailBody })
+  await sendEmail({ to: email, subject, text: reminderEmailBody, html })
 }
 
 export const sendMembershipSuccessEmail = async (
@@ -26,6 +26,6 @@ export const sendMembershipSuccessEmail = async (
     amount: amountPaid,
     year: year.toString()
   })
-  const html = emailTemplate({ content: text.replace(/\n/g, '<br/>') })
+  const html = emailTemplate({ content: text })
   await sendEmail({ to: email, subject, text, html })
 }

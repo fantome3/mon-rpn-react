@@ -12,7 +12,7 @@ export const sendExternalRegistrationFailureEmail = async (
     member: memberEmail,
     detail: error
   })
-  const html = emailTemplate({ content: text.replace(/\n/g, '<br/>') })
+  const html = emailTemplate({ content: text })
 
   try {
     await sendEmail({ to: adminEmail, subject, text, html })

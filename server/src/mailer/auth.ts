@@ -51,7 +51,7 @@ export const sendNewUserNotification = async ({
   balanceAmount: number
 }) => {
   const subject = emailContents.nouvelUtilisateur.sujet
-  const text = emailContents.nouvelUtilisateur.texte({
+  const newUserEmailContent = emailContents.nouvelUtilisateur.texte({
     firstName,
     lastName,
     email,
@@ -62,17 +62,16 @@ export const sendNewUserNotification = async ({
     accountBalance: balanceAmount
   })
   const html = emailTemplate({
-    content: text.replace(/\n/g, '<br/>'),
+    content: newUserEmailContent,
   })
   
   try {
     await sendEmail({
-      to: 'djokojires@gmail.com',
+      to: 'djokojires@gmail.com, acq.quebec@gmail.com',
       subject,
-      text,
+      text: newUserEmailContent,
       html,
     })
-    console.log(`📨 info sur l'abonnée envoyé à jires djoko`)
   } catch (error) {
     console.error(`❌ Erreur envoi mail`, error)
   }
@@ -86,16 +85,15 @@ export const sendPassword = async ({
   emailAddress: string
 }) => {
   const subject = emailContents.envoiMotDePasse.sujet
-  const text = emailContents.envoiMotDePasse.texte({ password})
-  const html = emailTemplate({ content: text.replace(/\n/g, '<br/>') })
+  const passwordEmailText = emailContents.envoiMotDePasse.texte({ password})
+  const html = emailTemplate({ content: passwordEmailText })
   try {
     await sendEmail({
       to: emailAddress,
       subject,
-      text,
+      text: passwordEmailText,
       html,
     })
-    console.log(`📨 Mot de passe envoyé`)
   } catch (error) {
     console.error(`❌ Erreur envoi mail`, error)
   }
