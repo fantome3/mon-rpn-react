@@ -36,7 +36,7 @@ export default function BilanTransactions() {
     ? summary.statusSummary.map((item: any) => ({
         name:
           item._id === 'pending'
-            ? 'En attente approbation'
+            ? 'En approbation'
             : item._id === 'completed'
             ? 'Complété'
             : item._id === 'awaiting_payment'

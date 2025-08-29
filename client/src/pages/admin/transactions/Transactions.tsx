@@ -152,7 +152,7 @@ const Transactions = () => {
         if (status === 'pending') {
           return (
             <Badge className='bg-yellow-500 text-white text-xs'>
-              En attente approbation
+              En approbation
             </Badge>
           )
         }
@@ -163,6 +163,14 @@ const Transactions = () => {
             </Badge>
           )
         }
+      },
+    },
+    {
+      accessorKey: 'reason',
+      header: 'Raison',
+      cell: ({ row }) => {
+        const reason: string = row.getValue('reason')
+        return <div> {reason} </div>
       },
     },
     {
