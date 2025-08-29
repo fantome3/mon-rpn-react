@@ -32,7 +32,10 @@ deathAnnouncementRouter.post(
         return
       }
       const amountPerPerson = settings.amountPerDependent
-      const users = await UserModel.find({ primaryMember: true }).lean()
+      const users = await UserModel.find({
+        primaryMember: true,
+        deletedAt: { $exists: false },
+      }).lean()
       const errors: any[] = []
 
       for (const user of users) {

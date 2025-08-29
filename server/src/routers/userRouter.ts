@@ -295,8 +295,10 @@ userRouter.get(
   isAdmin,
   expressAsyncHandler(async (req: Request, res: Response) => {
     try {
-      const users = await UserModel.find()
-      const countUsers = await UserModel.countDocuments()
+      const users = await UserModel.find({ deletedAt: { $exists: false } })
+      const countUsers = await UserModel.countDocuments({
+        deletedAt: { $exists: false },
+      })
       res.send({
         users,
         countUsers,
@@ -350,6 +352,7 @@ userRouter.get(
     try {
       const users = await UserModel.find({
         referredBy: req.params.referredBy,
+        deletedAt: { $exists: false },
       })
         .populate('referredBy', '_id origines.firstName origines.lastName')
         .sort({ createdAt: -1 })
