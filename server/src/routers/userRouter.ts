@@ -266,9 +266,10 @@ userRouter.post(
       const user = await newUser.save()
 
       // Enregistrement simultané sur la plateforme externe
-      registerUserOnExternalApp({ register, origines, infos }).catch((err) => {
-        console.error('External registration failed:', err)
-      })
+      // débrancher puppeter pour le moment
+      // registerUserOnExternalApp({ register, origines, infos }).catch((err) => {
+      //   console.error('External registration failed:', err)
+      // })
 
       const isStudent = user?.register?.occupation === 'student' && user?.register?.studentStatus === 'full-time'
 
