@@ -73,6 +73,7 @@ const UpdateInteracPayment = ({ onSuccess, minAmount = 25 }: UpdateInteracPaymen
         amount: values.amountInterac,
         type: 'credit',
         reason: 'Renflouement via Interac',
+        refInterac: values.refInterac,
         status: 'pending',
       })
 

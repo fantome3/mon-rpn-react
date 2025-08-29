@@ -5,6 +5,7 @@ export type Transaction = {
   amount: number
   type: 'debit' | 'credit'
   reason: string
+  refInterac?: string
   status: 'completed' | 'failed' | 'pending' | 'awaiting_payment'
   createdAt?: Date
 }

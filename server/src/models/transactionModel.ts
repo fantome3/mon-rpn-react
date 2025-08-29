@@ -21,6 +21,9 @@ export class Transaction {
   @prop({ required: true })
   public reason!: string //e.g "Prélèvement décès"
 
+  @prop()
+  public refInterac?: string
+
   @prop({ required: true, default: 'completed' })
   public status!: 'completed' | 'failed' | 'pending' | 'awaiting_payment'
 }
