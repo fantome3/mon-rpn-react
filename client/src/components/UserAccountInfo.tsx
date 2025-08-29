@@ -61,7 +61,7 @@ const UserAccountInfo = () => {
         <CardContent>
           <div className='flex justify-between items-center'>
             <div
-              className={`text-3xl font-bold ${
+              className={`text-2xl font-bold ${
                 statusLabel ? 'text-gray-300 italic' : ''
               }`}
             >
