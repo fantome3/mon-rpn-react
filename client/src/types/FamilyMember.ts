@@ -1,6 +1,8 @@
+import { FamilyMemberState } from '../../../src/domain/familyMember/FamilyMemberState'
+
 export type FamilyMember = {
   firstName: string
   lastName: string
   relationship: string
-  status: 'active' | 'inactive' | 'deleted'
+  state: FamilyMemberState
 }

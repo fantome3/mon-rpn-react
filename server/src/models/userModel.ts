@@ -5,6 +5,8 @@ import {
   Ref,
   Severity,
 } from '@typegoose/typegoose'
+import { FamilyMemberState } from '../../../src/domain/familyMember/FamilyMemberState'
+import { stateFromName } from '../../../src/domain/familyMember/states'
 
 class Infos {
   @prop({ required: true })
@@ -102,8 +104,12 @@ class FamilyMember {
   @prop({ required: true })
   public relationship!: string
 
-  @prop({ required: true, default: 'active' })
-  public status!: string //Active, Deleted,
+  @prop({
+    required: true,
+    type: () => Object,
+    default: () => stateFromName('active'),
+  })
+  public state!: FamilyMemberState //Active, Deleted,
 
   @prop({
     required: true,

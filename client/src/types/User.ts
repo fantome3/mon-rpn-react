@@ -1,3 +1,5 @@
+import { FamilyMemberState } from '../../../src/domain/familyMember/FamilyMemberState'
+
 export type Register = {
   email: string
   password: string
@@ -37,7 +39,7 @@ export type FamilyMember = {
   firstName: string
   lastName: string
   relationship: string
-  status: string
+  state: FamilyMemberState
   residenceCountryStatus:
     | 'student'
     | 'worker'
