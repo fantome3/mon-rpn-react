@@ -5,6 +5,8 @@ import {
   Ref,
   Severity,
 } from '@typegoose/typegoose'
+import { SubscriptionState } from '../../../src/domain/subscription/SubscriptionState'
+import { RegisteredState } from '../../../src/domain/subscription/states/RegisteredState'
 
 class Infos {
   @prop({ required: true })
@@ -133,12 +135,8 @@ class Subscription {
   @prop({ required: true, default: Date.now })
   public startDate!: Date
 
-  @prop({
-    required: true,
-    default: 'registered',
-    enum: ['registered', 'active', 'inactive', 'expired'],
-  })
-  public status!: 'registered' | 'active' | 'inactive' | 'expired'
+  @prop({ required: true, default: () => new RegisteredState() })
+  public state!: SubscriptionState
 
   @prop({ default: undefined })
   public endDate?: Date

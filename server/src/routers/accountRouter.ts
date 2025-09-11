@@ -28,7 +28,7 @@ accountRouter.get(
     try {
       const accounts = await AccountModel.find().populate(
         'userId',
-        '_id isAdmin subscription.status deletedAt'
+        '_id isAdmin subscription.state deletedAt'
       )
       const activeAccounts = accounts.filter(
         (account) => !(account as any).userId?.deletedAt
@@ -49,7 +49,7 @@ accountRouter.get(
       const accountsByUserId = await AccountModel.find({
         userId: req.params.userId,
       })
-        .populate('userId', '_id infos origines subscription.status')
+        .populate('userId', '_id infos origines subscription.state')
         .exec()
       res.send(accountsByUserId)
     } catch (error) {

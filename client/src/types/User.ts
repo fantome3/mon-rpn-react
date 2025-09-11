@@ -1,3 +1,5 @@
+import { SubscriptionState } from '../../../src/domain/subscription/SubscriptionState'
+
 export type Register = {
   email: string
   password: string
@@ -50,7 +52,7 @@ export type FamilyMember = {
 
 export type Subscription = {
   startDate: Date
-  status: string
+  state: SubscriptionState
 }
 
 export type User = {

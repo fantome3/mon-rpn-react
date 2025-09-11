@@ -88,8 +88,7 @@ export const processAnnualMembershipPayment = async () => {
         totalToDeduct,
         currentYear
       )
-
-      user.subscription.status = 'active'
+      user.subscription.state = user.subscription.state.onPayment()
       user.subscription.lastMembershipPaymentYear = currentYear
       user.subscription.membershipPaidThisYear = true
       user.subscription.startDate = new Date()
@@ -164,7 +163,7 @@ export const processMembershipForUser = async (userId: string) => {
 
     user!.subscription.lastMembershipPaymentYear = currentYear
     user!.subscription.membershipPaidThisYear = true
-    user!.subscription.status = 'active'
+    user!.subscription.state = user!.subscription.state.onPayment()
     user!.subscription.startDate = new Date()
     user!.subscription.endDate = new Date(
       new Date().setFullYear(currentYear + 1)
@@ -208,25 +207,26 @@ export const processMembershipForUser = async (userId: string) => {
 export const processInactiveUsers = async () => {
   const today = new Date()
   const usersToDeactivate = await UserModel.find({
-    'subscription.status': { $in: ['active', 'registered'] },
     'subscription.scheduledDeactivationDate': {
       $lte: today,
     },
     deletedAt: { $exists: false },
   })
 
+  let count = 0
   for (const user of usersToDeactivate) {
-    user.subscription.status = 'inactive'
-    user.subscription.scheduledDeactivationDate = undefined
-    await user.save()
+    if (user.subscription.state.canAccess()) {
+      user.subscription.state = user.subscription.state.deactivate()
+      user.subscription.scheduledDeactivationDate = undefined
+      await user.save()
 
-    await sendAccountDeactivatedEmail(user.register.email)
-    console.log(`🛑 Compte désactivé : ${user.register.email}`)
+      await sendAccountDeactivatedEmail(user.register.email)
+      console.log(`🛑 Compte désactivé : ${user.register.email}`)
+      count++
+    }
   }
 
-  console.log(
-    `✅ ${usersToDeactivate.length} comptes désactivés automatiquement.`
-  )
+  console.log(`✅ ${count} comptes désactivés automatiquement.`)
 }
 
 export const desactivateUserAccount = async (userId: string) => {
@@ -236,7 +236,7 @@ export const desactivateUserAccount = async (userId: string) => {
     return { status: 'NOT_FOUND', message: labels.utilisateur.introuvableFr }
   }
 
-  user.subscription.status = 'inactive'
+  user.subscription.state = user.subscription.state.deactivate()
   user.subscription.scheduledDeactivationDate = undefined
   await user.save()
   await sendAccountDeactivatedEmail(user.register.email)
@@ -252,7 +252,7 @@ export const reactivateUserAccount = async (userId: string) => {
     return { status: 'NOT_FOUND', message: labels.utilisateur.introuvableFr }
   }
 
-  user.subscription.status = 'active'
+  user.subscription.state = user.subscription.state.reactivate()
   user.subscription.missedRemindersCount = 0
   user.subscription.membershipPaidThisYear = true
   user.subscription.lastMembershipPaymentYear = new Date().getFullYear()
