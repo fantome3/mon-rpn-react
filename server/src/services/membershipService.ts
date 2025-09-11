@@ -1,5 +1,9 @@
 import { UserModel, User } from '../models/userModel'
 import { TransactionModel } from '../models/transactionModel'
+import {
+  CompletedState,
+  FailedState,
+} from '../domain/transaction/states'
 import { AccountModel } from '../models/accountModel'
 import { SettingsModel } from '../models/settingsModel'
 import { calculateTotalPersons } from '../utils'
@@ -80,7 +84,7 @@ export const processAnnualMembershipPayment = async () => {
         amount: totalToDeduct,
         reason: 'Cotisation annuelle',
         type: 'debit',
-        status: 'completed',
+        state: new CompletedState(),
       })
 
       await sendMembershipSuccessEmail(
@@ -106,7 +110,7 @@ export const processAnnualMembershipPayment = async () => {
         amount: totalToDeduct,
         reason: 'Cotisation annuelle',
         type: 'debit',
-        status: 'failed',
+        state: new FailedState(),
       })
 
       await handleFailedPrelevement({
@@ -159,7 +163,7 @@ export const processMembershipForUser = async (userId: string) => {
       amount: totalToDeduct,
       reason: 'Cotisation annuelle',
       type: 'debit',
-      status: 'completed',
+      state: new CompletedState(),
     })
 
     user!.subscription.lastMembershipPaymentYear = currentYear
@@ -185,7 +189,7 @@ export const processMembershipForUser = async (userId: string) => {
       amount: totalToDeduct,
       reason: 'Cotisation annuelle',
       type: 'debit',
-      status: 'failed',
+      state: new FailedState(),
     })
 
     await handleFailedPrelevement({
