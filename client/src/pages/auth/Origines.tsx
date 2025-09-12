@@ -380,8 +380,8 @@ const Origines = () => {
                   )}
                 />
 
-                {/* Image */}
-                <FormField
+                {/* Image pièce d'identité */}
+                {/* <FormField
                   control={form.control}
                   name='id_image'
                   render={() => (
@@ -411,7 +411,7 @@ const Origines = () => {
                       <FormMessage />
                     </FormItem>
                   )}
-                />
+                /> */}
                 <div>
                   <Button className='mr-4' type='submit'>
                     {t('enregistrement.suivant')}
