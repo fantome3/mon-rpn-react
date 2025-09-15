@@ -26,7 +26,7 @@ import {
 } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { CalendarIcon, Upload } from 'lucide-react'
+import { CalendarIcon } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { z } from 'zod'
@@ -39,7 +39,7 @@ import {
 } from '@/components/ui/select'
 import { countries } from '@/lib/constant'
 import { useTranslation } from 'react-i18next'
-import { useContext, useEffect, useRef, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { Store } from '@/lib/Store'
 import clsx from 'clsx'
 import Header from '@/components/Header'
@@ -49,7 +49,6 @@ import {
   useSendPasswordMutation,
   useVerifyTokenMutation,
 } from '@/hooks/userHooks'
-import { useUploadImageMutation } from '@/hooks/uploadHooks'
 import { SearchEngineOptimization } from '@/components/SearchEngine/SearchEngineOptimization'
 
 const formSchema = z.object({
@@ -69,9 +68,8 @@ const Origines = () => {
   const origines = userInfo?.origines || null
   const { mutateAsync: sendPasswordToUser } = useSendPasswordMutation()
   const { mutateAsync: verifyToken } = useVerifyTokenMutation()
-  const { mutateAsync: upload, isPending: uploadPending } =
-    useUploadImageMutation()
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  // const { mutateAsync: upload, isPending: uploadPending } = useUploadImageMutation()
+  // const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [idImage, setIdImage] = useState<string>('')
 
@@ -108,34 +106,35 @@ const Origines = () => {
     }
   }, [origines])
 
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        return toast({
-          description: "La taille de l'image doit être plus petite que 5Mo",
-          variant: 'destructive',
-        })
-      }
-      await upload(file, {
-        onSuccess: (image_url) => {
-          console.log(image_url)
-          setIdImage(image_url)
-          toast({
-            variant: 'default',
-            description: 'Image téléchargée avec succès',
-          })
-        },
-        onError: (error) => {
-          console.log(error)
-          toast({
-            description: "Echec du téléchargement de l'image",
-            variant: 'destructive',
-          })
-        },
-      })
-    }
-  }
+  // pièce d'identité: cette logique de téléchargement d'image est commentée pour l'instant
+  // const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = e.target.files?.[0]
+  //   if (file) {
+  //     if (file.size > 5 * 1024 * 1024) {
+  //       return toast({
+  //         description: "La taille de l'image doit être plus petite que 5Mo",
+  //         variant: 'destructive',
+  //       })
+  //     }
+  //     await upload(file, {
+  //       onSuccess: (image_url) => {
+  //         console.log(image_url)
+  //         setIdImage(image_url)
+  //         toast({
+  //           variant: 'default',
+  //           description: 'Image téléchargée avec succès',
+  //         })
+  //       },
+  //       onError: (error) => {
+  //         console.log(error)
+  //         toast({
+  //           description: "Echec du téléchargement de l'image",
+  //           variant: 'destructive',
+  //         })
+  //       },
+  //     })
+  //   }
+  // }
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
@@ -187,9 +186,10 @@ const Origines = () => {
     }
   }
 
-  const handleButtonClick = () => {
-    fileInputRef.current?.click()
-  }
+  // pièce d'identité: cette logique de téléchargement d'image est commentée pour l'instant
+  // const handleButtonClick = () => {
+  //   fileInputRef.current?.click()
+  // }
 
   const handlePreviousClick = () => {
     const currentValues = form.getValues()

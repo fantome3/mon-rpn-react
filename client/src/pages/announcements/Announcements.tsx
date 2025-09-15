@@ -1,7 +1,6 @@
 import { DataTable } from '@/components/CustomTable'
 import Loading from '@/components/Loading'
 import { Button } from '@/components/ui/button'
-import { toast } from '@/components/ui/use-toast'
 import { useGetAnnouncementsQuery } from '@/hooks/deathAnnouncementHook'
 import { functionReverse, toastAxiosError } from '@/lib/utils'
 import { DeathAnnouncement } from '@/types/DeathAnnouncement'

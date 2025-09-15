@@ -8,7 +8,6 @@ import {
   useGetAccountsByUserIdQuery,
   useUpdateAccountMutation,
 } from '@/hooks/accountHooks'
-import { toast } from './ui/use-toast'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -29,7 +28,6 @@ import { ToLocaleStringFunc, toastAxiosError } from '@/lib/utils'
 
 // 👇 utilise le même générateur de schéma que InteracPayment pour un rendu/validation identiques
 import { createInteracFormSchema } from '@/lib/createInteracFormSchema'
-import { useNavigate } from 'react-router-dom'
 
 type UpdateInteracPaymentProps = {
   onSuccess: (amount: number) => void
@@ -39,7 +37,7 @@ type UpdateInteracPaymentProps = {
 const UpdateInteracPayment = ({ onSuccess, minAmount = 25 }: UpdateInteracPaymentProps) => {
   const [modalVisibility, setModalVisibility] = useState(false)
   const { state, dispatch: ctxDispatch } = useContext(Store)
-    const navigate = useNavigate()
+
   const { userInfo } = state
   const { data: accountByUserId } = useGetAccountsByUserIdQuery(userInfo?._id ?? '')
   const { mutateAsync: updateAccount, isPending } = useUpdateAccountMutation()
