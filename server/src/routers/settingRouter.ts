@@ -35,7 +35,8 @@ settingRouter.get(
     try {
       const settings = await SettingsModel.findOne()
       if (!settings) {
-        res.status(404).json({ message: labels.parametres.aucun })
+        const newSettings = await SettingsModel.create({})
+        res.send(newSettings.toObject())
       } else {
         res.send(settings.toObject())
       }
