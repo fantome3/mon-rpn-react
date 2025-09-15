@@ -28,7 +28,10 @@ const UserAccountInfo = () => {
   
   const lastTransaction =
     transactions && transactions.length > 0 ? transactions[0] : undefined
-  const statusLabel = getAccountStatusLabel(account?.[0], lastTransaction?.status)
+  const statusLabel = getAccountStatusLabel(
+    account?.[0],
+    lastTransaction?.state.status,
+  )
 
   const handleTransactionSuccess = async (amount: number) => {
     setCurrentSolde((prevSolde) =>

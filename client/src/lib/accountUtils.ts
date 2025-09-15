@@ -8,7 +8,7 @@ export const getAccountDisplayStatus = (
 ) => {
   const awaitingPayment = Boolean(account?.isAwaitingFirstPayment)
   const lastTransactionPending =
-    !awaitingPayment && lastTransaction?.status === 'pending'
+    !awaitingPayment && lastTransaction?.state.status === 'pending'
 
   return { awaitingPayment, lastTransactionPending }
 }

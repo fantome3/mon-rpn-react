@@ -2,6 +2,8 @@
 
 import { prop, getModelForClass, modelOptions, Ref } from '@typegoose/typegoose'
 import { User } from './userModel'
+import { TransactionState } from '../domain/transaction/TransactionState'
+import { CompletedState } from '../domain/transaction/states'
 
 @modelOptions({
   schemaOptions: { timestamps: true },
@@ -24,8 +26,8 @@ export class Transaction {
   @prop()
   public refInterac?: string
 
-  @prop({ required: true, default: 'completed' })
-  public status!: 'completed' | 'failed' | 'pending' | 'awaiting_payment'
+  @prop({ type: () => Object, required: true, default: () => new CompletedState() })
+  public state!: TransactionState
 }
 
 export const TransactionModel = getModelForClass(Transaction)

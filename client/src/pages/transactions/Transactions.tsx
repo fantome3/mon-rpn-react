@@ -13,6 +13,7 @@ import { Transaction } from '@/types/Transaction'
 import { ColumnDef } from '@tanstack/react-table'
 import { ArrowUpDown } from 'lucide-react'
 import { useContext } from 'react'
+import { TransactionState } from '@/domain/transaction/TransactionState'
 
 const TransactionsByUserId = () => {
   const { state } = useContext(Store)
@@ -63,19 +64,11 @@ const TransactionsByUserId = () => {
       },
     },
     {
-      accessorKey: 'status',
+      accessorKey: 'state',
       header: 'Statut',
       cell: ({ row }) => {
-        const status: string = row.getValue('status')
-        return (
-          <Badge
-            className={`text-xs ${
-              status === 'completed' ? 'bg-green-500' : 'bg-red-500'
-            }`}
-          >
-            {status === 'completed' ? 'Réussie' : 'Échouée'}
-          </Badge>
-        )
+        const state = row.getValue('state') as TransactionState
+        return <Badge className={state.applyStyle()}>{state.getLabel()}</Badge>
       },
     },
   ]

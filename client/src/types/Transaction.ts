@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { TransactionState } from '@/domain/transaction/TransactionState'
+
 export type Transaction = {
   _id?: string
   userId: string | any
@@ -6,6 +8,6 @@ export type Transaction = {
   type: 'debit' | 'credit'
   reason: string
   refInterac?: string
-  status: 'completed' | 'failed' | 'pending' | 'awaiting_payment'
+  state: TransactionState
   createdAt?: Date
 }

@@ -83,7 +83,7 @@ transactionRouter.get(
       const statusSummary = await TransactionModel.aggregate([
         {
           $group: {
-            _id: '$status',
+            _id: '$state.status',
             count: { $sum: 1 },
           },
         },
@@ -121,7 +121,7 @@ transactionRouter.delete(
   //isAdmin,
   expressAsyncHandler(async (req: Request, res: Response) => {
     try {
-      const result = await TransactionModel.deleteMany({ status: undefined })
+      const result = await TransactionModel.deleteMany({ state: undefined })
 
       res.send({
         message: labels.transaction.supprimeSucces,

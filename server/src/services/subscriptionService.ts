@@ -3,6 +3,7 @@ import {
   sendPrelevementFailedEmail,
 } from '../mailer'
 import { TransactionModel } from '../models/transactionModel'
+import { FailedState } from '../domain/transaction/states'
 import { User } from '../models/userModel'
 import { DocumentType } from '@typegoose/typegoose'
 
@@ -30,7 +31,7 @@ export const handleFailedPrelevement = async ({
         ? 'Cotisation annuelle'
         : `Prélèvement décès pour ${totalPersons} personnes`,
     type: 'debit',
-    status: 'failed',
+    state: new FailedState(),
   })
 
   //Compteur de rappels

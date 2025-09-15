@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import apiClient from '@/apiClient'
 import { Transaction } from '@/types/Transaction'
+import { createTransactionState } from '@/domain/transaction/states'
 
 export const useNewTransactionMutation = () =>
   useMutation({
@@ -34,8 +35,13 @@ export const useSendManualRemindersMutation = () =>
 export const useGetAllTransactionsQuery = () =>
   useQuery({
     queryKey: ['transactions'],
-    queryFn: async () =>
-      (await apiClient.get<Transaction[]>(`api/transactions/all`)).data,
+    queryFn: async () => {
+      const data = (await apiClient.get<any[]>(`api/transactions/all`)).data
+      return data.map((tx) => ({
+        ...tx,
+        state: createTransactionState(tx.state?.status ?? tx.state),
+      })) as Transaction[]
+    },
   })
 
 export const useGetTransactionSummaryQuery = () =>
@@ -47,9 +53,15 @@ export const useGetTransactionSummaryQuery = () =>
 export const useGetTransactionsByUserIdQuery = (userId?: string) =>
   useQuery({
     queryKey: ['transactions', userId],
-    queryFn: async () =>
-      (await apiClient.get<Transaction[]>(`api/transactions/${userId}/all`))
-        .data,
+    queryFn: async () => {
+      const data = (
+        await apiClient.get<any[]>(`api/transactions/${userId}/all`)
+      ).data
+      return data.map((tx) => ({
+        ...tx,
+        state: createTransactionState(tx.state?.status ?? tx.state),
+      })) as Transaction[]
+    },
     enabled: !!userId,
   })
 

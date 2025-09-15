@@ -45,13 +45,15 @@ import TransactionPageSubmenu from './TransactionPageSubmenu'
 import ManualUserPaymentButton from '@/components/ManualUserPaymentButton'
 import ManualBalanceReminderButton from '@/components/ManualBalanceReminderButton'
 import IconButtonWithTooltip from '@/components/IconButtonWithTooltip'
+import { TransactionState } from '@/domain/transaction/TransactionState'
+import { createTransactionState } from '@/domain/transaction/states'
 
 const formSchema = z.object({
   userId: z.union([z.string(), z.any()]),
   amount: z.number().min(0, { message: 'Le montant doit être positif' }),
   type: z.enum(['debit', 'credit']),
   reason: z.string().min(1, { message: 'La raison est requise' }),
-  status: z.enum(['completed', 'failed', 'pending', 'awaiting_payment']),
+  state: z.enum(['completed', 'failed', 'pending', 'awaiting_payment']),
 })
 
 const Transactions = () => {
@@ -80,7 +82,9 @@ const Transactions = () => {
       amount: editingTransaction ? editingTransaction.amount : 0,
       type: editingTransaction ? editingTransaction.type : 'debit',
       reason: editingTransaction ? editingTransaction.reason : '',
-      status: editingTransaction ? editingTransaction.status : 'completed',
+      state: editingTransaction
+        ? editingTransaction.state.status
+        : 'completed',
     },
   })
 
@@ -91,7 +95,7 @@ const Transactions = () => {
         amount: editingTransaction.amount || 0,
         type: editingTransaction.type || 'debit',
         reason: editingTransaction.reason || '',
-        status: editingTransaction.status || 'completed',
+        state: editingTransaction.state.status || 'completed',
       })
     }
   }, [editingTransaction, form])
@@ -125,7 +129,7 @@ const Transactions = () => {
       cell: ({ row }) => <div>{row.getValue('fullName')}</div>,
     },
     {
-      accessorKey: 'status',
+      accessorKey: 'state',
       header: ({ column }) => {
         return (
           <Button
@@ -138,31 +142,10 @@ const Transactions = () => {
         )
       },
       cell: ({ row }) => {
-        const status: string = row.getValue('status')
-        if (status === 'completed') {
-          return (
-            <Badge className='bg-green-500 text-white text-xs'>Réussie</Badge>
-          )
-        }
-        if (status === 'failed') {
-          return (
-            <Badge className='bg-red-500 text-white text-xs'>Echouée</Badge>
-          )
-        }
-        if (status === 'pending') {
-          return (
-            <Badge className='bg-yellow-500 text-white text-xs'>
-              En approbation
-            </Badge>
-          )
-        }
-        if (status === 'awaiting_payment') {
-          return (
-            <Badge className='bg-blue-500 text-white text-xs'>
-              En attente paiement
-            </Badge>
-          )
-        }
+        const state = row.getValue('state') as TransactionState
+        return (
+          <Badge className={state.applyStyle()}>{state.getLabel()}</Badge>
+        )
       },
     },
     {
@@ -248,6 +231,7 @@ const Transactions = () => {
     try {
       await updateTransaction({
         ...values,
+        state: createTransactionState(values.state),
         userId: editingTransaction?.userId,
         _id: editingTransaction?._id,
       })
@@ -389,7 +373,7 @@ const Transactions = () => {
 
               <FormField
                 control={form.control}
-                name='status'
+                name='state'
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Statut</FormLabel>
