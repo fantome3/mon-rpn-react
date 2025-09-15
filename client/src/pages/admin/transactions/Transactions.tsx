@@ -27,7 +27,11 @@ import {
   useUpdateTransactionMutation,
 } from '@/hooks/transactionHooks'
 import { transactionStatus, transactionType } from '@/lib/constant'
-import { functionReverse, ToLocaleStringFunc } from '@/lib/utils'
+import {
+  functionReverse,
+  ToLocaleStringFunc,
+  toastAxiosError,
+} from '@/lib/utils'
 import { Transaction } from '@/types/Transaction'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ColumnDef } from '@tanstack/react-table'
@@ -47,7 +51,7 @@ const formSchema = z.object({
   amount: z.number().min(0, { message: 'Le montant doit être positif' }),
   type: z.enum(['debit', 'credit']),
   reason: z.string().min(1, { message: 'La raison est requise' }),
-  status: z.enum(['completed', 'failed', 'pending']),
+  status: z.enum(['completed', 'failed', 'pending', 'awaiting_payment']),
 })
 
 const Transactions = () => {
@@ -102,11 +106,7 @@ const Transactions = () => {
     : []
 
   if (error) {
-    toast({
-      variant: 'destructive',
-      title: 'Oops!',
-      description: 'Quelque chose ne va pas.',
-    })
+    toastAxiosError(error)
     return null
   }
 
@@ -152,19 +152,33 @@ const Transactions = () => {
         if (status === 'pending') {
           return (
             <Badge className='bg-yellow-500 text-white text-xs'>
-              En attente
+              En approbation
+            </Badge>
+          )
+        }
+        if (status === 'awaiting_payment') {
+          return (
+            <Badge className='bg-blue-500 text-white text-xs'>
+              En attente paiement
             </Badge>
           )
         }
       },
     },
-
     {
       accessorKey: 'reason',
       header: 'Raison',
       cell: ({ row }) => {
         const reason: string = row.getValue('reason')
         return <div> {reason} </div>
+      },
+    },
+    {
+      accessorKey: 'refInterac',
+      header: 'RefInterac',
+      cell: ({ row }) => {
+        const ref: string | undefined = row.getValue('refInterac')
+        return <div> {ref ?? '-'} </div>
       },
     },
     {

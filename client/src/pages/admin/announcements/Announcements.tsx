@@ -24,7 +24,7 @@ import {
   useNewDeathAnnouncementMutation,
   useUpdateAnnouncementMutation,
 } from '@/hooks/deathAnnouncementHook'
-import { cn, functionReverse } from '@/lib/utils'
+import { cn, functionReverse, toastAxiosError } from '@/lib/utils'
 import { DeathAnnouncement } from '@/types/DeathAnnouncement'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ColumnDef } from '@tanstack/react-table'
@@ -204,11 +204,7 @@ const Announcements = () => {
       {isPending ? (
         <Loading />
       ) : error ? (
-        toast({
-          variant: 'destructive',
-          title: 'Oops!',
-          description: 'Quelque chose ne va pas.',
-        })
+        toastAxiosError(error)
       ) : (
         <div className='mt-5 container'>
           <DataTable data={announcements} columns={columns} />

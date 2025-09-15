@@ -43,9 +43,8 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { useRegisterMutation, useVerifyTokenMutation } from '@/hooks/userHooks'
 import Loading from '@/components/Loading'
-import { checkPostalCode, checkTel } from '@/lib/utils'
+import { checkPostalCode, checkTel, toastAxiosError } from '@/lib/utils'
 import { User } from '@/types/User'
-import { toast } from '@/components/ui/use-toast'
 import {
   Dialog,
   DialogContent,
@@ -53,6 +52,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { SearchEngineOptimization } from '@/components/SearchEngine/SearchEngineOptimization'
 
 const formSchema = z.object({
   residenceCountry: z.string().min(4, { message: 'Champ Obligatoire' }),
@@ -107,8 +107,7 @@ const Infos = () => {
     try {
       const tempToken = JSON.parse(localStorage.getItem('tempToken') || '')
       if (!tempToken) {
-        toast({
-          variant: 'destructive',
+        toastAxiosError({
           title: 'Token not found',
           description: 'Please try again later.',
         })
@@ -117,8 +116,7 @@ const Infos = () => {
 
       const VerifyToken = await verifyToken(tempToken!)
       if (!VerifyToken.valid) {
-        toast({
-          variant: 'destructive',
+        toastAxiosError({
           title: 'Invalid Token',
           description: 'Please try again later.',
         })
@@ -151,27 +149,32 @@ const Infos = () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       if (error.response && error.response.status === 409) {
-        toast({
-          variant: 'destructive',
-          title: "Changer l'adresse courriel",
-          description: "L'adresse courriel que vous avez entrer existe déjà",
-        })
+        const title = "Changer l'adresse courriel";
+        const description = "L'adresse courriel que vous avez entrer existe déjà";
+        toastAxiosError(description, title)
       } else {
-        toast({
-          variant: 'destructive',
-          title: 'Opps!',
-          description: 'Quelque chose ne va pas.',
-        })
+        toastAxiosError(error, 'Opps!')
       }
     }
   }
 
   const handlePreviousClick = () => {
+    const currentValues = form.getValues()
+    ctxDispatch({ type: 'USER_INFOS', payload: currentValues })
+    localStorage.setItem(
+      'userInfo',
+      JSON.stringify({
+        ...userInfo,
+        infos: currentValues,
+        infosTime: new Date(),
+      })
+    )
     navigate(-1)
   }
 
   return (
     <>
+      <SearchEngineOptimization title="en savoir plus sur l'utilisateur" />
       <Header />
       <div className='auth form'>
         <Card className='auth-card '>
@@ -286,13 +289,13 @@ const Infos = () => {
                   name='residenceCountryStatus'
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className='text-sm'>Statut</FormLabel>
+                      <FormLabel className='text-sm'>Statut de résidence</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger className='w-[50%]'>
+                          <SelectTrigger className='w-fit min-w-[200px] max-w-full'>
                             <SelectValue placeholder='Sélectionnez votre statut' />
                           </SelectTrigger>
                         </FormControl>

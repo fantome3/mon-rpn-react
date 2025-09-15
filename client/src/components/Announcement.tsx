@@ -1,6 +1,6 @@
 import { X } from 'lucide-react'
 import { Button } from './ui/button'
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useState } from 'react'
 import { Store } from '@/lib/Store'
 
 const Announcement = () => {
@@ -9,9 +9,10 @@ const Announcement = () => {
 
   //Calculer dynamiquement si l'annonce doit être affichée ou non
   const [show, setShow] = useState(() => {
-    return !(userInfo?.familyMembers && userInfo?.familyMembers.length > 0)
+    return false
+    //!(userInfo?.familyMembers && userInfo?.familyMembers.length > 0)
   })
-
+/*
   useEffect(() => {
     const hasFamilyMembers =
       userInfo?.familyMembers && userInfo?.familyMembers.length > 0
@@ -19,7 +20,7 @@ const Announcement = () => {
       setShow(!hasFamilyMembers) //Cache l'annonce si familyMembers n'est pas vide
     }
   }, [userInfo?.familyMembers])
-
+*/
   if (!show) return null
 
   return (

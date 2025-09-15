@@ -1,23 +1,19 @@
 import { sendEmail } from './core'
+import { emailTemplate } from './templates/emailTemplate'
+import { emailContents } from './templates/LabelsSentEmails'
 
 export const sendMembershipReminderEmail = async (
   email: string,
   expectedAmount: number,
   currentBalance: number
 ) => {
-  const subject = '❌ Échec de cotisation annuelle sur MON-RPN'
-  const text = `
-Bonjour,
-
-Votre prélèvement de ${expectedAmount} CAD pour la cotisation annuelle a échoué.
-Votre solde actuel est de ${currentBalance} CAD.
-
-Veuillez renflouer votre compte pour régulariser votre situation.
-
-Cordialement,  
-L'équipe MON-RPN.
-  `
-  await sendEmail({ to: email, subject, text })
+  const subject = emailContents.rappelCotisation.sujet
+  const reminderEmailBody = emailContents.rappelCotisation.texte({
+    minimumRequiredBalance: expectedAmount,
+    current: currentBalance
+  })
+  const html = emailTemplate({ content: reminderEmailBody })
+  await sendEmail({ to: email, subject, text: reminderEmailBody, html })
 }
 
 export const sendMembershipSuccessEmail = async (
@@ -25,15 +21,11 @@ export const sendMembershipSuccessEmail = async (
   amountPaid: number,
   year: number
 ) => {
-  const subject = '✅ Cotisation annuelle réglée avec succès'
-  const text = `
-Bonjour,
-
-Votre cotisation annuelle pour ${year} a bien été réglée : ${amountPaid} CAD.
-
-Merci pour votre engagement.
-
-L'équipe MON-RPN.
-  `
-  await sendEmail({ to: email, subject, text })
+  const subject = emailContents.cotisationReussie.sujet({ year: year.toString() })
+  const text = emailContents.cotisationReussie.texte({
+    amount: amountPaid,
+    year: year.toString()
+  })
+  const html = emailTemplate({ content: text })
+  await sendEmail({ to: email, subject, text, html })
 }

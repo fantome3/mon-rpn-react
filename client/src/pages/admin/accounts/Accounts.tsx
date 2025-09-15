@@ -7,6 +7,8 @@ import ManualBalanceReminderButton from '@/components/ManualBalanceReminderButto
 import ManualDeactivateButton from '@/components/ManualDeactivateButton'
 import ManualReactivateButton from '@/components/ManualReactivateButton'
 import ManualUserPaymentButton from '@/components/ManualUserPaymentButton'
+import ManualToggleAdminButton from '@/components/ManualToggleAdminButton'
+import ManualDeleteUserButton from '@/components/ManualDeleteUserButton'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -18,13 +20,18 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
 import { toast } from '@/components/ui/use-toast'
 import {
   useGetAccountsQuery,
   useUpdateAccountMutation,
 } from '@/hooks/accountHooks'
 import { Store } from '@/lib/Store'
-import { ToLocaleStringFunc, functionReverse } from '@/lib/utils'
+import {
+  ToLocaleStringFunc,
+  functionReverse,
+  toastAxiosError,
+} from '@/lib/utils'
 import { Account } from '@/types/Account'
 import { User } from '@/types/User'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -42,6 +49,7 @@ const formSchema = z.object({
   solde: z.number(),
   paymentMethod: z.string(),
   userId: z.string().optional(),
+  isAwaitingFirstPayment: z.boolean().optional(),
 })
 
 const Accounts = () => {
@@ -66,6 +74,9 @@ const Accounts = () => {
       solde: editingAccount ? editingAccount.solde : 0,
       paymentMethod: editingAccount ? editingAccount.paymentMethod : '',
       userId: editingAccount?.userId || '',
+      isAwaitingFirstPayment: editingAccount
+        ? editingAccount.isAwaitingFirstPayment
+        : false,
     },
   })
 
@@ -79,6 +90,7 @@ const Accounts = () => {
         solde: editingAccount.solde || 0,
         paymentMethod: editingAccount.paymentMethod || '',
         userId: editingAccount.userId,
+        isAwaitingFirstPayment: editingAccount.isAwaitingFirstPayment || false,
       })
     }
   }, [editingAccount, form])
@@ -187,8 +199,21 @@ const Accounts = () => {
       },
     },
     {
+      accessorKey: 'isAwaitingFirstPayment',
+      header: 'En attente paiement',
+      cell: ({ row }) => {
+        const awaiting: boolean = row.getValue('isAwaitingFirstPayment')
+        const status = row.original.userId.subscription.status
+        return (
+          <div className={status === 'inactive' ? 'text-gray-400' : ''}>
+            {awaiting ? 'Oui' : 'Non'}
+          </div>
+        )
+      },
+    },
+    {
       accessorKey: 'paymentMethod',
-      header: 'Méthode de paiement',
+      header: 'Méthode paiement',
       cell: ({ row }) => {
         const paymentMethod = row.original.paymentMethod
         const status = row.original.userId.subscription.status
@@ -215,7 +240,7 @@ const Accounts = () => {
     },
     {
       accessorKey: 'action',
-      header: 'Action',
+      header: () => <div className="text-center w-full">Action</div>,
       enableHiding: false,
       cell: ({ row }) => {
         const isInactive =
@@ -242,6 +267,12 @@ const Accounts = () => {
               disabled={isInactive}
             />
             <div className='font-semibold text-[#b9bdbc] mx-2'>|</div>
+            <ManualToggleAdminButton
+              userId={row.original.userId._id}
+              isAdmin={row.original.userId.isAdmin}
+              refetch={refetch}
+            />
+            <div className='font-semibold text-[#b9bdbc] mx-2'>|</div>
             {row.original.userId.subscription.status === 'inactive' ? (
               <ManualReactivateButton
                 userId={row.original.userId._id}
@@ -253,6 +284,12 @@ const Accounts = () => {
                 refetch={refetch}
               />
             )}
+            <div className='font-semibold text-[#b9bdbc] mx-2'>|</div>
+            <ManualDeleteUserButton
+              userId={row.original.userId._id}
+              refetch={refetch}
+              disabled={row.original.userId.isAdmin}
+            />
           </div>
         )
       },
@@ -304,11 +341,7 @@ const Accounts = () => {
       {isPending ? (
         <Loading />
       ) : error ? (
-        toast({
-          variant: 'destructive',
-          title: 'Oops!',
-          description: 'Quelque chose ne va pas.',
-        })
+        toastAxiosError(error)
       ) : (
         <>
           <div className='container'>
@@ -416,6 +449,23 @@ const Accounts = () => {
                       />
                     </FormControl>
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name='isAwaitingFirstPayment'
+                render={({ field }) => (
+                  <FormItem className='flex flex-row items-start space-x-3 space-y-0'>
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormLabel className='text-sm'>
+                      En attente 1er paiement
+                    </FormLabel>
                   </FormItem>
                 )}
               />

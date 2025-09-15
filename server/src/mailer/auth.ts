@@ -1,4 +1,6 @@
 import { sendEmail } from './core'
+import { emailTemplate } from './templates/emailTemplate'
+import { emailContents } from './templates/LabelsSentEmails'
 
 export const sendForgotPasswordEmail = async ({
   token,
@@ -9,14 +11,19 @@ export const sendForgotPasswordEmail = async ({
   userId: string
   email: string
 }) => {
-  const subject = 'Réinitialisation de votre mot de passe'
-  const text = `Cliquez sur le lien suivant pour réinitialiser votre mot de passe: http://localhost:5173/reset-password/${userId}/${token}`
+  const subject = emailContents.motDePasseOublie.sujet
+  const text = emailContents.motDePasseOublie.texte({
+    userId,
+    token
+  })
+  const html = emailTemplate({ content: `<p>${text}</p>` })
 
   try {
     await sendEmail({
       to: email,
       subject,
       text,
+      html,
     })
     console.log(`📨 Mot de passe envoyé`)
   } catch (error) {
@@ -30,37 +37,41 @@ export const sendNewUserNotification = async ({
   nativeCountry,
   email,
   residenceCountry,
-  tel,
+  contactNumber,
   paymentMethod,
-  solde,
+  balanceAmount,
 }: {
   lastName: string
   firstName: string
   nativeCountry: string
   email: string
   residenceCountry: string
-  tel: string
+  contactNumber: string
   paymentMethod: string
-  solde: number
+  balanceAmount: number
 }) => {
-  const subject = 'Nouvelle inscription sur MON-RPN'
-  const text = `
-  Un nouvel utilisateur vient de s'inscrire sur votre plateforme MON-RPN. Voici ses informations: 
-        Nom et Prénoms: ${lastName} ${firstName},
-        Courriel: ${email},
-        Pays d'origine: ${nativeCountry},
-        Pays de résidence: ${residenceCountry},
-        Numéro: ${tel},
-        Méthode de paiement: ${paymentMethod},
-        Solde: ${solde} $
-  `
+  const subject = emailContents.nouvelUtilisateur.sujet
+  const newUserEmailContent = emailContents.nouvelUtilisateur.texte({
+    firstName,
+    lastName,
+    email,
+    nativeCountry,
+    residenceCountry,
+    contactNumber,
+    paymentMethod,
+    accountBalance: balanceAmount
+  })
+  const html = emailTemplate({
+    content: newUserEmailContent,
+  })
+  
   try {
     await sendEmail({
-      to: 'djokojires@gmail.com',
+      to: 'djokojires@gmail.com, acq.quebec@gmail.com',
       subject,
-      text,
+      text: newUserEmailContent,
+      html,
     })
-    console.log(`📨 Mot de passe envoyé`)
   } catch (error) {
     console.error(`❌ Erreur envoi mail`, error)
   }
@@ -68,36 +79,21 @@ export const sendNewUserNotification = async ({
 
 export const sendPassword = async ({
   password,
-  email,
+  emailAddress,
 }: {
   password: string
-  email: string
+  emailAddress: string
 }) => {
-  const subject = 'MON-RPN - Mot de passe'
-  const text = `
-Votre inscription sur notre plateforme MON-RPN
-      s'est déroulée avec succès.
-
-      Voici le mot de passe actuel pour vous
-      connectez à votre compte:
-      ${password}
-
-      Vous pouvez modifier votre mot de passe à la
-      page profile de votre plateforme MON-RPN à
-      tout moment.
-
-      Bienvenue chez vous,
-      
-      L'équipe MON-RPN.
-`
+  const subject = emailContents.envoiMotDePasse.sujet
+  const passwordEmailText = emailContents.envoiMotDePasse.texte({ password})
+  const html = emailTemplate({ content: passwordEmailText })
   try {
     await sendEmail({
-      to: email,
+      to: emailAddress,
       subject,
-      text,
+      text: passwordEmailText,
+      html,
     })
-
-    console.log(`📨 Mot de passe envoyé`)
   } catch (error) {
     console.error(`❌ Erreur envoi mail`, error)
   }

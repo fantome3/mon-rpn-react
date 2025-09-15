@@ -18,10 +18,9 @@ export function CarouselPlugin() {
       <CarouselContent>
         {carousel_images.map((img) => (
           <CarouselItem key={img}>
-            <Card className='md:h-[700px]  h-[300px]'>
+            <Card className='md:h-[500px]  h-[300px]'>
               <img
-                className='w-full object-cover md:h-[700px] 
-                 h-[300px]'
+                className='w-full object-cover md:h-[500px] h-[300px]'
                 src={img}
               />
             </Card>

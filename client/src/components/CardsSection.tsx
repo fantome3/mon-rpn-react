@@ -9,7 +9,7 @@ const CardsSection = () => {
     <div className='container md:pt-16 pt-8 md:pb-16 pb-8 flex md:flex-row flex-col justify-center items-center'>
       {cardContent.map((content) => (
         <motion.div whileHover={{ scale: 1.2 }} key={content.id}>
-          <Card className='w-[380px] h-[400px] mt-4 md:mt-0 bg-slate-100'>
+            <Card className='w-[360px] h-[400px] mt-4 md:mt-0 bg-slate-100 m-4'>
             <CardHeader className='flex items-center'>
               <content.headerIcon className='text-primary' size={45} />
               <h3 className='font-semibold text-primary text-xl'>

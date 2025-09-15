@@ -50,6 +50,9 @@ export class Account {
   @prop({ type: () => Interac, default: [] })
   public interac?: Interac[]
 
+  @prop({ default: false })
+  public isAwaitingFirstPayment?: boolean
+
   @prop({ required: true })
   public firstName!: string
 
@@ -66,4 +69,5 @@ export class Account {
   public userId?: Ref<User>
 }
 
+// AccountModel defini les principaux membres actifs de l'application (excluant les personnes à charge)
 export const AccountModel = getModelForClass(Account)

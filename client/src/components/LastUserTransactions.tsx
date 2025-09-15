@@ -57,7 +57,7 @@ const LastUserTransactions = () => {
                         )
                       : 'Date inconnue'}
                   </TableCell>
-                  <TableCell className='capitalize'>{tx.type}</TableCell>
+                  <TableCell className='capitalize'>{tx.type === 'credit' ? 'recharge' : 'dépense'}</TableCell>
                   <TableCell
                     className={
                       tx.type === 'credit' ? 'text-green-600' : 'text-red-600'
@@ -73,13 +73,17 @@ const LastUserTransactions = () => {
                           ? 'bg-green-500'
                           : tx.status === 'pending'
                           ? 'bg-yellow-500'
+                          : tx.status === 'awaiting_payment'
+                          ? 'bg-blue-500'
                           : 'bg-red-500'
                       }`}
                     >
                       {tx.status === 'completed'
                         ? 'Réussie'
                         : tx.status === 'pending'
-                        ? 'En attente'
+                        ? 'En approbation'
+                        : tx.status === 'awaiting_payment'
+                        ? 'En attente paiement'
                         : 'Échouée'}
                     </Badge>
                   </TableCell>

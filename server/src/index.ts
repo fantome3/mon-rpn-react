@@ -14,12 +14,8 @@ import './cron/membershipReminder'
 dotenv.config({ path: path.join(__dirname, '../.env') })
 mongoose.set('strictQuery', true)
 
-const MONGODB_URI =
-  process.env.MONGODB_URI ||
-  'mongodb+srv://mory:mory@cluster0.hpxrt.mongodb.net/monrpn'
-
 mongoose
-  .connect(MONGODB_URI!)
+  .connect(process.env.MONGODB_URI!)
   .then(() => {
     console.log('Connected to MongoDB')
   })
@@ -51,6 +47,12 @@ app.get('/api/ping', (_req, res) => {
 })
 
 app.use(express.static(path.join(__dirname, '../dist')))
+app.get('/robots.txt', (_req: Request, res: Response) =>
+  res.sendFile(path.join(__dirname, '../dist/robots.txt'))
+)
+app.get('/sitemap.xml', (_req: Request, res: Response) =>
+  res.sendFile(path.join(__dirname, '../dist/sitemap.xml'))
+)
 app.get('*', (req: Request, res: Response) =>
   res.sendFile(path.join(__dirname, '../dist/index.html'))
 )

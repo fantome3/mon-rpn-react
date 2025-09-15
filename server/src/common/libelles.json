@@ -1,0 +1,63 @@
+{
+  "general": {
+    "tokenInvalide": "Invalid token",
+    "erreurJeton": "Error with token",
+    "motsDePasseDifferents": "Password Do Not Match",
+    "emailOuMotPasseRequis": "Email and password are required",
+    "emailExiste": "L'email existe déjà",
+    "emailMotPasseRequisFr": "Email et mot de passe requis",
+    "erreurEnvoiEmail": "Erreur lors de l’envoi de l’email",
+    "emailOuMotPasseInvalide": "Invalid email or password",
+    "tokenExpire": "Token Expired",
+    "pasDeToken": "No Token",
+    "tokenAdminInvalide": "Invalid Admin Token",
+    "erreurInattendue": "Unexpected Error",
+    "erreurInattendueMin": "Unexpected error"
+  },
+  "utilisateur": {
+    "misAJour": "Utilisateur mis à jour",
+    "introuvable": "Utilisateur introuvable",
+    "introuvableFr": "Utilisateur introuvable",
+    "supprime": "Utilisateur supprimé",
+    "impossibleSupprimerAdmin": "Impossible de supprimer un administrateur",
+    "motDePasseEnvoye": "Mot de passe envoyé avec succès",
+    "ajouterAdmin": "L'utilisateur a été ajouté comme administrateur",
+    "supprimerAdmin": "L'utilisateur a été retiré des administrateurs"
+  },
+  "compte": {
+    "misAJour": "Compte mis à jour",
+    "introuvable": "Compte introuvable",
+    "desactiveSucces": "Compte désactivé avec succès",
+    "reactiveSucces": "Compte réactivé avec succès",
+    "erreurDesactivation": "Erreur lors de la désactivation du compte",
+    "erreurReactivation": "Erreur lors de la réactivation du compte",
+    "compteInactif": "Compte inactif. Veuillez contacter l'administrateur."
+  },
+  "prelevement": {
+    "montantNonDefini": "Montant de prélèvement non défini dans les paramètres",
+    "erreurManuel": "Erreur lors du prélèvement manuel"
+  },
+  "transaction": {
+    "misAJour": "Transaction updated",
+    "introuvable": "Transaction Not Found",
+    "supprime": "Transaction Deleted",
+    "supprimeSucces": "Transactions supprimées avec succès",
+    "erreurSuppression": "Erreur lors de la suppression"
+  },
+  "annonce": {
+    "cree": "Annonce créée et prélèvements effectués.",
+    "misAJour": "Announcement Updated"
+  },
+  "rappel": {
+    "envoyeSucces": "Rappels envoyés avec succès",
+    "erreurEnvoi": "Erreur lors de l’envoi des rappels",
+    "erreurManuel": "Erreur du rappel manuel du solde"
+  },
+  "parametres": {
+    "misAJour": "Settings Updated",
+    "aucun": "Aucun paramètre défini"
+  },
+  "parrainage": {
+    "echecGenerationCode": "Echec génération code parainage unique après 10 essais."
+  }
+}

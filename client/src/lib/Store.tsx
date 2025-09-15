@@ -107,9 +107,15 @@ function useAppState() {
   }, [dispatch])
 
   const disconnectAfter10Minutes = useCallback(() => {
-    const userInfo = JSON.parse(localStorage.getItem('userInfo')!)
+    const userInfoString = localStorage.getItem('userInfo')
 
-    if (!userInfo.registerTime || userInfo.infos) return
+    // Vérifier si userInfo existe avant de le parser
+    if (!userInfoString) return
+
+    const userInfo = JSON.parse(userInfoString)
+
+    // Vérifier si userInfo est valide
+    if (!userInfo || !userInfo.registerTime || userInfo.infos) return
 
     const registerTime = new Date(userInfo.registerTime).getTime()
     const oginesTime = userInfo?.originesTime
@@ -128,8 +134,8 @@ function useAppState() {
       )
       console.log(`⏳ Temps écoulé : ${elapsedOriginesTimeMinutes!} minutes`)
 
-      if (elapsedRegisterTimeMinutes >= 10 && !userInfo?.infos) {
-        console.log('⏳ Déconnexion : inscription incomplète après 10 minutes')
+      if (elapsedRegisterTimeMinutes >= 20 && !userInfo?.infos) {
+        console.log('⏳ Déconnexion : inscription incomplète après 20 minutes')
         window.location.href = '/register'
         localStorage.removeItem('userInfo')
         return
@@ -137,10 +143,10 @@ function useAppState() {
 
       if (
         elapsedOriginesTimeMinutes !== null &&
-        elapsedOriginesTimeMinutes >= 10 &&
+        elapsedOriginesTimeMinutes >= 20 &&
         !userInfo?.infos
       ) {
-        console.log('⏳ Déconnexion : origines incomplètes après 10 minutes')
+        console.log('⏳ Déconnexion : origines incomplètes après 20 minutes')
         window.location.href = '/register'
         localStorage.removeItem('userInfo')
         return

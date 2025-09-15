@@ -7,10 +7,15 @@ import RejoinsSection from '@/components/RejoinsSection'
 import BannerSection from '@/components/BannerSection'
 import CardsSection from '@/components/CardsSection'
 import Footer from '@/components/Footer'
+import { SearchEngineOptimization } from '@/components/SearchEngine/SearchEngineOptimization'
 
 const HomePage = () => {
   return (
     <>
+      <SearchEngineOptimization
+        title="Page d'accueil ACQ/RPN"
+        description="Page d'accueil de l'association des camerounais du Québec ACQ"
+      />
       <Announcement />
       <Navbar />
       <CarouselPlugin />

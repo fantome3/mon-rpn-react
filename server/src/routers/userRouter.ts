@@ -16,10 +16,13 @@ import {
   sendNewUserNotification,
   sendPassword,
 } from '../mailer'
+import labels from '../common/libelles.json'
 import {
   desactivateUserAccount,
   reactivateUserAccount,
 } from '../services/membershipService'
+import { registerUserOnExternalApp } from '../services/externalRegistrationService'
+import { softDeleteUser } from '../services/userService'
 
 export const userRouter = express.Router()
 
@@ -62,7 +65,7 @@ userRouter.post(
       res.json({ valid: true, decoded })
       return
     } catch (error) {
-      res.status(401).json({ valid: false, message: 'Invalid token' })
+      res.status(401).json({ valid: false, message: labels.general.tokenInvalide })
       return
     }
   })
@@ -79,13 +82,13 @@ userRouter.post(
       async (error, decoded) => {
         if (error) {
           res.send({
-            message: 'Error with token',
+            message: labels.general.erreurJeton,
           })
           return
         } else {
           if (password !== confirmPassword) {
             res.send({
-              message: 'Password Do Not Match',
+              message: labels.general.motsDePasseDifferents,
             })
             return
           }
@@ -103,14 +106,14 @@ userRouter.post(
     try {
       const { email, password } = req.body
       if (!email || !password) {
-        res.status(400).send({ message: 'Email et mot de passe requis' })
+        res.status(400).send({ message: labels.general.emailMotPasseRequisFr })
         return
       }
-      await sendPassword({ email, password })
-      res.status(200).send({ message: 'Mot de passe envoyé avec succès' })
+      await sendPassword({ emailAddress: email, password })
+      res.status(200).send({ message: labels.utilisateur.motDePasseEnvoye })
     } catch (error) {
       console.log(error)
-      res.status(500).json({ message: 'Erreur lors de l’envoi de l’email' })
+      res.status(500).json({ message: labels.general.erreurEnvoiEmail })
     }
   })
 )
@@ -135,7 +138,7 @@ userRouter.post(
         userId: user?._id,
       })
       if (!accountByUserId) {
-        res.status(404).send('Account Not Found')
+        res.status(404).send(labels.compte.introuvable)
         return
       }
 
@@ -145,9 +148,9 @@ userRouter.post(
         nativeCountry: user?.origines.nativeCountry,
         email: user?.register.email,
         residenceCountry: user?.infos.residenceCountry,
-        tel: user?.infos.tel,
+        contactNumber: user?.infos.tel,
         paymentMethod: accountByUserId?.paymentMethod,
-        solde: accountByUserId?.solde,
+        balanceAmount: accountByUserId?.solde,
       })
     } catch (error) {
       console.log(error)
@@ -205,7 +208,7 @@ userRouter.post(
         })
         return
       } else {
-        res.status(401).json({ message: 'Invalid email or password' })
+        res.status(401).json({ message: labels.general.emailOuMotPasseInvalide })
         return
       }
     } catch (error) {
@@ -230,7 +233,7 @@ userRouter.post(
       } = req.body
 
       if (!register || !register.email || !register.password) {
-        res.status(400).json({ message: 'Email and password are required' })
+        res.status(400).json({ message: labels.general.emailOuMotPasseRequis })
         return
       }
 
@@ -238,7 +241,7 @@ userRouter.post(
         'register.email': register.email,
       })
       if (existingUser) {
-        res.status(409).json({ message: `L'email existe déjà` })
+        res.status(409).json({ message: labels.general.emailExiste })
         return
       }
 
@@ -261,11 +264,21 @@ userRouter.post(
         referralCode,
       })
       const user = await newUser.save()
+
+      // Enregistrement simultané sur la plateforme externe
+      // débrancher puppeter pour le moment
+      // registerUserOnExternalApp({ register, origines, infos }).catch((err) => {
+      //   console.error('External registration failed:', err)
+      // })
+
+      const isStudent = user?.register?.occupation === 'student' && user?.register?.studentStatus === 'full-time'
+
       res.send({
         ...user.toObject(),
         register: {
           email: user.register.email,
           conditions: user.register.conditions,
+          occupation: isStudent ? user.register.occupation : 'worker',
         },
         token: generateToken(user),
       })
@@ -283,8 +296,10 @@ userRouter.get(
   isAdmin,
   expressAsyncHandler(async (req: Request, res: Response) => {
     try {
-      const users = await UserModel.find()
-      const countUsers = await UserModel.countDocuments()
+      const users = await UserModel.find({ deletedAt: { $exists: false } })
+      const countUsers = await UserModel.countDocuments({
+        deletedAt: { $exists: false },
+      })
       res.send({
         users,
         countUsers,
@@ -307,7 +322,7 @@ userRouter.put(
         Object.assign(user, req.body)
         const updatedUser = await user.save()
         res.send({
-          message: 'User Updated',
+          message: labels.utilisateur.misAJour,
           user: {
             ...updatedUser.toObject(),
             register: {
@@ -320,7 +335,7 @@ userRouter.put(
         return
       } else {
         res.status(404).send({
-          message: 'User Not Found',
+          message: labels.utilisateur.introuvable,
         })
         return
       }
@@ -338,6 +353,7 @@ userRouter.get(
     try {
       const users = await UserModel.find({
         referredBy: req.params.referredBy,
+        deletedAt: { $exists: false },
       })
         .populate('referredBy', '_id origines.firstName origines.lastName')
         .sort({ createdAt: -1 })
@@ -360,7 +376,7 @@ userRouter.get(
         res.send(user)
         return
       } else {
-        res.status(404).send({ message: 'User Not Found' })
+        res.status(404).send({ message: labels.utilisateur.introuvable })
         return
       }
     } catch (error) {
@@ -373,29 +389,28 @@ userRouter.get(
 userRouter.delete(
   '/:id',
   isAuth,
+  isAdmin,
   expressAsyncHandler(async (req: Request, res: Response) => {
     try {
-      const user = await UserModel.findById(req.params.id)
-      if (user) {
-        if (user.isAdmin) {
-          res.status(400).send({
-            message: 'Can Not Delete Admin User',
-          })
-          return
-        }
-        const deletedUser = await user?.deleteOne()
-        res.send({
-          message: 'User Deleted',
-          user: deletedUser,
-        })
-        return
-      } else {
-        res.status(404).send({
-          message: 'User Not Found',
+      const user = await softDeleteUser(req.params.id, (req.user as any)._id)
+      res.send({
+        message: labels.utilisateur.supprime,
+        user,
+      })
+      return
+    } catch (error: any) {
+      if (error.message === 'Cannot delete admin') {
+        res.status(400).send({
+          message: labels.utilisateur.impossibleSupprimerAdmin,
         })
         return
       }
-    } catch (error) {
+      if (error.message === 'User not found') {
+        res.status(404).send({
+          message: labels.utilisateur.introuvable,
+        })
+        return
+      }
       res.status(400).json(error)
       return
     }
@@ -423,7 +438,7 @@ userRouter.put(
       console.log(error)
       res
         .status(500)
-        .json({ message: 'Erreur lors de la désactivation du compte' })
+        .json({ message: labels.compte.erreurDesactivation })
     }
   })
 )
@@ -448,7 +463,28 @@ userRouter.put(
       console.log(error)
       res
         .status(500)
-        .json({ message: 'Erreur lors de la réactivation du compte' })
+        .json({ message: labels.compte.erreurReactivation })
     }
+  })
+)
+
+userRouter.put(
+  '/admin/:id',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req: Request, res: Response) => {
+    const user = await UserModel.findById(req.params.id)
+    if (!user) {
+      res.status(404).send({ message: labels.utilisateur.introuvableFr })
+      return
+    }
+    user.isAdmin = !user.isAdmin
+    await user.save()
+    res.send({
+      isAdmin: user.isAdmin,
+      message: user.isAdmin
+        ? labels.utilisateur.ajouterAdmin
+        : labels.utilisateur.supprimerAdmin,
+    })
   })
 )

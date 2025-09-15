@@ -7,7 +7,11 @@ import { expiryDateRegex } from '@/lib/constant'
 import { useContext, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { formatCreditCardNumber, isDateInFuture } from '@/lib/utils'
+import {
+  formatCreditCardNumber,
+  isDateInFuture,
+  toastAxiosError,
+} from '@/lib/utils'
 import { useNewAccountMutation } from '@/hooks/accountHooks'
 import { Store } from '@/lib/Store'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -109,11 +113,7 @@ const CreditCardPayment = () => {
         })
       }
     } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Oops!',
-        description: 'Quelque chose ne va pas.',
-      })
+      toastAxiosError(error)
     }
   }
   return (

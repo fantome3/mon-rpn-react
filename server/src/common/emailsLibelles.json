@@ -1,0 +1,50 @@
+{
+  "motDePasseOublie": {
+    "sujet": "🔒 Réinitialisation de votre mot de passe – ACQ-RPN",
+    "texte": "<p>Bonjour,</p>\n<p>Nous avons reçu une demande de réinitialisation de mot de passe pour votre compte ACQ-RPN.</p>\n<p>Pour créer un nouveau mot de passe, cliquez sur le lien ci-dessous :</p>\n<p><a href=\"http://localhost:5173/reset-password/{0}/{1}\" style=\"color:#1a73e8;\">Réinitialiser mon mot de passe</a></p>\n<p>Si vous n’êtes pas à l’origine de cette demande, ignorez simplement ce courriel.</p>\n<p style=\"margin-top:20px;\">Cordialement,<br/>L’équipe ACQ-RPN</p>"
+  },
+  "nouvelUtilisateur": {
+    "sujet": "🎉 Nouvelle inscription sur la plateforme ACQ-RPN",
+    "texte": "<h1 style=\"font-size: 18px; margin-top: 0;\">Nouvel utilisateur inscrit</h1>\n<p style=\"line-height: 1.6;\">Bonjour,</p>\n<p style=\"line-height: 1.6;\">Un nouvel utilisateur vient de s'inscrire sur votre plateforme ACQ-RPN. Voici ses informations :</p>\n<ul style=\"line-height: 1.6; padding-left: 20px;\">\n  <li>Prénom(s) : {0}</li>\n  <li>Nom : {1}</li>\n  <li>Courriel : {2}</li>\n  <li>Pays d'origine : {3}</li>\n  <li>Pays de résidence : {4}</li>\n  <li>Numéro : {5}</li>\n  <li>Méthode de paiement : {6}</li>\n  <li>Solde de départ : {7} $</li>\n</ul>"
+  },
+  "envoiMotDePasse": {
+    "sujet": "🛡 Votre mot de passe temporaire – ACQ-RPN",
+    "texte": "<p>Bonjour,</p>\n<p>Bienvenue sur la plateforme ACQ-RPN !</p>\n<p>Voici votre mot de passe temporaire :</p>\n<p style=\"font-weight:bold;font-size:16px;color:#e67e22;\">{0}</p>\n<p>Pour des raisons de sécurité, changez-le dès votre première connexion.</p>\n<p style=\"margin-top:20px;\">Au plaisir de vous accompagner,<br/>L’équipe ACQ-RPN</p>"
+  },
+  "alerteDesactivation": {
+    "sujet": "⚠️ Action requise – risque de désactivation de votre compte",
+    "texte": "<p>Bonjour,</p>\n<p>Suite à <strong>{0}</strong>, votre compte ACQ-RPN pourrait être désactivé le <strong>{1}</strong>.</p>\n<p>Merci de régulariser votre situation avant cette date afin d’éviter toute interruption de service.</p>\n<p style=\"margin-top:20px;\">Cordialement,<br/>L’équipe ACQ-RPN</p>"
+  },
+  "compteDesactive": {
+    "sujet": "🚫 Votre compte ACQ-RPN a été désactivé",
+    "texte": "<h2>Compte désactivé</h2>\n<p>Bonjour,</p>\n<p>Votre compte a été désactivé faute de régularisation dans les délais impartis.</p>\n<p>Pour toute réactivation, veuillez contacter l’administration à l’adresse <a href=\"mailto:acq.quebec@gmail.com\">acq.quebec@gmail.com</a>.</p>\n<p style=\"margin-top:20px;\">Merci de votre compréhension.</p>"
+  },
+  "soldeInsuffisant": {
+    "sujet": "🚨 Solde insuffisant pour les prélèvements RPN",
+    "texte": "<p>Bonjour,</p>\n<p>Votre solde actuel est de <strong>{0} CAD</strong>, alors que le minimum requis pour les prélèvements RPN est de <strong>{1} CAD</strong>.</p>\n<p>Merci d’alimenter votre compte afin de maintenir vos avantages.</p>\n<p style=\"margin-top:20px;\">Cordialement,<br/>L’équipe ACQ-RPN</p>"
+  },
+  "inscriptionExterneEchec": {
+    "sujet": "❌ Échec d’inscription sur l’application externe",
+    "texte": "<p>Bonjour,</p>\n<p>L’inscription du membre <strong>{0}</strong> sur l’application externe a échoué.</p>\n<p>Détail : {1}</p>\n<p style=\"margin-top:20px;\">Nous vous invitons à vérifier et réessayer.</p>"
+  },
+  "notificationDeces": {
+    "sujet": "🕊 Avis de décès – {0}",
+    "texte": "<h2>Avis de décès</h2>\n<p>Bonjour,</p>\n<p>Nous avons la profonde tristesse de vous informer du décès de <strong>{0}</strong>, survenu à <strong>{1}</strong> le <strong>{2}</strong>.</p>\n<p>Plus d’informations sont disponibles sur la plateforme ACQ-RPN.</p>\n<p style=\"margin-top:20px;\">Nos pensées accompagnent la famille.</p>"
+  },
+  "prelevementEchecCotisation": {
+    "sujet": "❌ Cotisation annuelle – prélèvement échoué",
+    "texte": "<p>Bonjour,</p>\n<p>Nous n’avons pas pu prélever votre cotisation annuelle de <strong>{0} CAD</strong>.</p>\n<p>Votre solde actuel est de <strong>{1} CAD</strong>. Merci de renflouer votre compte afin de régulariser votre situation.</p>\n<p style=\"margin-top:20px;\">Cordialement,<br/>L’équipe ACQ-RPN</p>"
+  },
+  "prelevementEchecDeces": {
+    "sujet": "❌ Prélèvement fonds décès – échec",
+    "texte": "<p>Bonjour,</p>\n<p>Le prélèvement décès de <strong>{0} CAD</strong> n’a pas pu être effectué ; votre solde est de <strong>{1} CAD</strong>.</p>\n<p>Merci de recharger votre compte afin de participer au fonds de solidarité communautaire.</p>\n<p style=\"margin-top:20px;\">Cordialement,<br/>L’équipe ACQ-RPN</p>"
+  },
+  "rappelCotisation": {
+    "sujet": "⏰ Rappel – cotisation annuelle en attente",
+    "texte": "<p>Bonjour,</p>\n<p>Votre cotisation annuelle de <strong>{0} CAD</strong> n’a pas été réglée ; votre solde est actuellement de <strong>{1} CAD</strong>.</p>\n<p>Merci de procéder au paiement afin de conserver vos privilèges.</p>\n<p style=\"margin-top:20px;\">Cordialement,<br/>L’équipe ACQ-RPN</p>"
+  },
+  "cotisationReussie": {
+    "sujet": "✅ Cotisation {1} réglée avec succès",
+    "texte": "<p>Bonjour,</p>\n<p>Nous confirmons la réception de votre cotisation annuelle <strong>{1}</strong> d’un montant de <strong>{0} CAD</strong>.</p>\n<p>Merci pour votre engagement et votre confiance.</p>\n<p style=\"margin-top:20px;\">Cordialement,<br/>L’équipe ACQ-RPN</p>"
+  }
+}

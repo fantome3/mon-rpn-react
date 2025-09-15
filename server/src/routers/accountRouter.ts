@@ -3,6 +3,7 @@ import expressAsyncHandler from 'express-async-handler'
 import { AccountModel } from '../models/accountModel'
 import { isAuth } from '../utils'
 import { UserModel } from '../models/userModel'
+import labels from '../common/libelles.json'
 
 export const accountRouter = express.Router()
 
@@ -27,9 +28,12 @@ accountRouter.get(
     try {
       const accounts = await AccountModel.find().populate(
         'userId',
-        '_id subscription.status'
+        '_id isAdmin subscription.status deletedAt'
       )
-      res.send(accounts)
+      const activeAccounts = accounts.filter(
+        (account) => !(account as any).userId?.deletedAt
+      )
+      res.send(activeAccounts)
     } catch (error) {
       res.status(400).json(error)
     }
@@ -99,12 +103,12 @@ accountRouter.put(
           }
         }
         res.send({
-          message: 'Accound Updated',
+          message: labels.compte.misAJour,
           account: updatedAccount,
         })
       } else {
         res.status(404).send({
-          message: 'Account Not Found',
+          message: labels.compte.introuvable,
         })
       }
     } catch (error) {
@@ -123,7 +127,7 @@ accountRouter.get(
         res.send(account)
       } else {
         res.status(404).send({
-          message: 'Account Not Found',
+          message: labels.compte.introuvable,
         })
       }
     } catch (error) {

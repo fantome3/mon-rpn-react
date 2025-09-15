@@ -30,6 +30,7 @@ import { useContext, useEffect } from 'react'
 import { Store } from '@/lib/Store'
 import { toast } from '@/components/ui/use-toast'
 import Loading from '@/components/Loading'
+import { SearchEngineOptimization } from '@/components/SearchEngine/SearchEngineOptimization'
 
 const Login = () => {
   const { mutateAsync: login, isPending } = useLoginMutation()
@@ -37,7 +38,7 @@ const Login = () => {
   const navigate = useNavigate()
   const { search } = useLocation()
   const redirectInUrl = new URLSearchParams(search).get('redirect')
-  const redirect = redirectInUrl ? redirectInUrl : '/profil'
+  const redirect = redirectInUrl ? redirectInUrl : '/summary'
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { userInfo } = state
 
@@ -91,6 +92,7 @@ const Login = () => {
 
   return (
     <>
+      <SearchEngineOptimization title='Connexion' />
       <Header />
       <div className='auth form'>
         <Card className='auth-card '>

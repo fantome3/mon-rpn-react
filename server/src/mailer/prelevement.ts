@@ -1,4 +1,6 @@
 import { sendEmail } from './core'
+import { emailTemplate } from './templates/emailTemplate'
+import { emailContents } from './templates/LabelsSentEmails'
 
 export const sendPrelevementFailedEmail = async (
   email: string,
@@ -8,37 +10,28 @@ export const sendPrelevementFailedEmail = async (
 ) => {
   const subject =
     type === 'membership'
-      ? '❌ Échec de cotisation annuelle sur MON-RPN'
-      : '❌ Échec de prélèvement décès sur MON-RPN'
+      ? emailContents.prelevementEchecCotisation.sujet
+      : emailContents.prelevementEchecDeces.sujet
 
   const text =
     type === 'membership'
-      ? `
-Bonjour,
+      ? emailContents.prelevementEchecCotisation.texte({
+          amount: expectedAmount,
+          current: currentBalance
+        })
+      : emailContents.prelevementEchecDeces.texte({
+          amount: expectedAmount,
+          current: currentBalance
+        })
 
-Votre prélèvement pour la cotisation annuelle a échoué. Votre solde actuel est de ${currentBalance} CAD alors que le montant requis est de ${expectedAmount} CAD.
-
-Merci de renflouer votre compte dès que possible pour régulariser votre situation.
-
-Cordialement,  
-L’équipe MON-RPN.
-`
-      : `
-Bonjour,
-
-Le prélèvement décès de ${expectedAmount} CAD n’a pas pu être effectué car votre solde est de ${currentBalance} CAD.
-
-Merci de recharger votre solde afin de permettre la participation au fonds de solidarité communautaire.
-
-Cordialement,  
-L’équipe MON-RPN.
-`
+  const html = emailTemplate({ content: text })
 
   try {
     await sendEmail({
       to: email,
       subject,
       text,
+      html,
     })
     console.log(`📨 Email d’échec de prélèvement envoyé à ${email}`)
   } catch (error) {

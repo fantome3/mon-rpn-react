@@ -167,3 +167,10 @@ export const useReactivateUserMutation = () =>
       console.error('Error reactivating user:', error)
     },
   })
+
+export const useToggleAdminMutation = () =>
+  useMutation({
+    mutationFn: async (userId: string) =>
+      (await apiClient.put<{ isAdmin: boolean; message: string }>(`api/users/admin/${userId}`))
+        .data,
+  })

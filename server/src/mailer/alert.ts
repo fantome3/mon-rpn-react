@@ -1,4 +1,6 @@
 import { sendEmail } from './core'
+import { emailTemplate } from './templates/emailTemplate'
+import { emailContents } from './templates/LabelsSentEmails'
 
 export const sendDeactivationWarningEmail = async (
   email: string,
@@ -10,31 +12,19 @@ export const sendDeactivationWarningEmail = async (
       ? 'le non-paiement de votre cotisation annuelle'
       : 'un solde insuffisant pour participer aux prélèvements décès'
 
-  const subject = '⚠️ Risque de désactivation de votre compte'
-  const text = `
-Bonjour,
+  const subject = emailContents.alerteDesactivation.sujet
+  const disactivationReasonText = emailContents.alerteDesactivation.texte({ raison : reason, dateLimite : deactivationDate.toLocaleDateString()})
+  const html = emailTemplate({ content: disactivationReasonText })
 
-Suite à ${reason}, votre compte pourrait être désactivé le ${deactivationDate.toLocaleDateString()}.
-
-Merci de régulariser votre situation.
-
-L'équipe MON-RPN.
-  `
-  await sendEmail({ to: email, subject, text })
+  await sendEmail({ to: email, subject, text: disactivationReasonText, html })
 }
 
 export const sendAccountDeactivatedEmail = async (email: string) => {
-  const subject = '🚫 Votre compte a été désactivé'
-  const text = `
-Bonjour,
+  const subject = emailContents.compteDesactive.sujet
+  const accountDeactivationMessage = emailContents.compteDesactive.texte()
+  const html = emailTemplate({ content: accountDeactivationMessage })
 
-Votre compte a été désactivé faute de régularisation.
-
-Contactez l'administration pour le réactiver.
-
-L'équipe MON-RPN.
-  `
-  await sendEmail({ to: email, subject, text })
+  await sendEmail({ to: email, subject, text: accountDeactivationMessage, html })
 }
 
 export const sendLowerBanlanceAlertEmail = async (
@@ -42,20 +32,12 @@ export const sendLowerBanlanceAlertEmail = async (
   balance: number,
   required: number
 ) => {
-  const subject = '🚨 Solde insuffisant pour les prélèvements RPN'
-  const text = `
-  Bonjour,
-
-  Votre solde actuel est de ${balance} CAD, alors que le minimum requis pour les prélèvements RPN est de ${required} CAD.
-
-  Veuillez renflouer votre compte pour continuer à bénéficier du service.
-
-  Cordialement,
-  L’équipe MON-RPN.
-  `
+  const subject = emailContents.soldeInsuffisant.sujet
+  const hmtlBody = emailContents.soldeInsuffisant.texte({ current: balance, minimumRequiredBalance: required})
+  const html = emailTemplate({ content: hmtlBody })
 
   try {
-    await sendEmail({ to: email, subject, text })
+    await sendEmail({ to: email, subject, text: hmtlBody, html })
     console.log(`📨 Email de rappel envoyé à ${email}`)
   } catch (error) {
     console.error(`❌ Erreur envoi mail de rappel`, error)

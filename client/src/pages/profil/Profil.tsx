@@ -1,12 +1,14 @@
 import AddMemberSection from '@/components/AddMemberSection'
 import ProfilInfoConnexion from '@/components/ProfilInfoConnexion'
 import ProfilPersonnalInfo from '@/components/ProfilPersonnalInfo'
+import { SearchEngineOptimization } from '@/components/SearchEngine/SearchEngineOptimization'
 import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Store } from '@/lib/Store'
 import clsx from 'clsx'
 import { useContext } from 'react'
 import { Link } from 'react-router-dom'
+
 const Profil = () => {
   const { state } = useContext(Store)
   const { userInfo } = state
@@ -14,6 +16,9 @@ const Profil = () => {
 
   return (
     <>
+      <SearchEngineOptimization
+        title='Profil utilisateur'
+      />
       <div className='container mb-10'>
         <h1 className='text-center pt-10 mb-2 text-3xl font-semibold'>
           Bienvenue {userInfo?.origines?.firstName}

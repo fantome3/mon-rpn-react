@@ -8,8 +8,13 @@ import { Store } from '@/lib/Store'
 import { useNewAccountMutation } from '@/hooks/accountHooks'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from './ui/use-toast'
-import { refresh, ToLocaleStringFunc } from '@/lib/utils'
+import {
+  refresh,
+  ToLocaleStringFunc,
+  toastAxiosError,
+} from '@/lib/utils'
 import { z } from 'zod'
+import { createInteracFormSchema } from '@/lib/createInteracFormSchema'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from './ui/button'
@@ -28,19 +33,14 @@ import { useNewUserNotificationMutation } from '@/hooks/userHooks'
 import { Interac } from '@/types/Account'
 import { useNewTransactionMutation } from '@/hooks/transactionHooks'
 
-const formSchema = z.object({
-  amountInterac: z
-    .number({
-      required_error: 'Le montant ne peut-être inférieur à 25$',
-      invalid_type_error: 'Le montant doit être un nombre.',
-    })
-    .gte(25),
-  refInterac: z
-    .string()
-    .min(8, { message: 'Doit avoir au moins 8 charactères.' }),
-})
+const createSchema = (minAmount: number) =>
+  createInteracFormSchema(minAmount)
 
-const InteracPayment = () => {
+type InteracPaymentProps = {
+  total: number
+}
+
+const InteracPayment = ({ total }: InteracPaymentProps) => {
   const [modalVisibility, setModalVisibility] = useState(false)
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { userInfo } = state
@@ -53,11 +53,13 @@ const InteracPayment = () => {
   const redirectInUrl = new URLSearchParams(search).get('redirect')
   const redirect = redirectInUrl ? redirectInUrl : '/summary'
 
+  const formSchema = createSchema(total)
+
   const form = useForm<z.infer<typeof formSchema>>({
     mode: 'onChange',
     resolver: zodResolver(formSchema),
     defaultValues: {
-      amountInterac: 0,
+      amountInterac: total,
       refInterac: '',
     },
   })
@@ -73,15 +75,32 @@ const InteracPayment = () => {
   ): Promise<void> => {
     e.preventDefault()
     try {
+      const data = await account({
+        firstName: userInfo?.origines.firstName!,
+        lastName: userInfo?.origines.lastName!,
+        userTel: userInfo?.infos.tel!,
+        userResidenceCountry: userInfo?.infos.residenceCountry!,
+        solde: 0,
+        paymentMethod: 'interac',
+        userId: userInfo?._id!,
+        isAwaitingFirstPayment: true,
+      })
+
+      await newTransaction({
+        userId: userInfo?._id,
+        amount: 0,
+        type: 'credit',
+        reason: 'L\'utilisateur n\'a pas encore effectué de paiement Interac',
+        status: 'awaiting_payment',
+      })
+
+      ctxDispatch({ type: 'ACCOUNT_INFOS', payload: data })
+      localStorage.setItem('accountInfo', JSON.stringify(data))
       navigate(redirect)
       refresh()
       await newUserNotification(userInfo?.register?.email!)
     } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Oops!',
-        description: 'Quelque chose ne va pas.',
-      })
+      toastAxiosError(error)
     }
   }
 
@@ -108,7 +127,8 @@ const InteracPayment = () => {
         userId: userInfo?._id,
         amount: values.amountInterac,
         type: 'credit',
-        reason: 'Renfouement via Interac',
+        reason: 'premier paiement via Interac',
+        refInterac: values.refInterac,
         status: 'pending',
       })
 
@@ -123,11 +143,7 @@ const InteracPayment = () => {
       refresh()
       await newUserNotification(userInfo?.register?.email!)
     } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Oops!',
-        description: 'Quelque chose ne va pas.',
-      })
+      toastAxiosError(error)
     }
   }
 
@@ -154,8 +170,15 @@ const InteracPayment = () => {
           }}
           open={modalVisibility}
           title='Paiement Interac'
-          description={`Faire le virement Interac à l'adresse courriel suivante "paiement.rpn@gmail.com" et utiliser le mot de passe suivant "monrpn" si demandé.
-Par la suite entrez les informations du virement que vous avez effectuer pour renflouer votre compte RPN.(le montant ne peut-être inférieur à 25$)`}
+          description={
+            <span className='block text-justify'>
+              Faire le virement Interac à l'adresse courriel suivante{' '}
+              <strong>acq.quebec@gmail.com</strong> et utiliser le mot de
+              passe suivant <strong>monrpn</strong> si demandé. Par la suite
+              entrez les informations du virement que vous avez effectuer pour
+              renflouer votre compte RPN. Le montant minimal est de {total}$.
+            </span>
+          }
         >
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
@@ -168,7 +191,7 @@ Par la suite entrez les informations du virement que vous avez effectuer pour re
                     <FormControl>
                       <Input
                         type='text'
-                        placeholder='25'
+                        placeholder={total.toString()}
                         value={ToLocaleStringFunc(field.value)}
                         onChange={(event) => {
                           const rawValue = event.target.value.replace(/\s/g, '')
@@ -191,8 +214,8 @@ Par la suite entrez les informations du virement que vous avez effectuer pour re
                     <FormLabel className='text-sm'>
                       Numéro de référence du transfert Interac
                       <HoverCard>
-                        <HoverCardTrigger className='cursor-pointer'>
-                          (i)
+                        <HoverCardTrigger className="cursor-pointer italic text-xs hover:underline ml-1 animate-pulse">
+                          (où le trouver)
                         </HoverCardTrigger>
                         <HoverCardContent className='font-light text-justify'>
                           Interac vous envoie automatiquement un courriel de

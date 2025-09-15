@@ -1,0 +1,32 @@
+FROM node:20-alpine
+
+# Installer Chromium pour Puppeteer
+RUN apk add --no-cache \
+  chromium \
+  nss \
+  freetype \
+  harfbuzz \
+  ca-certificates \
+  ttf-freefont \
+  bash
+
+# Indique le chemin de Chromium pour Puppeteer
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
+# Crée le dossier de travail
+WORKDIR /app
+
+# Copie uniquement les fichiers nécessaires pour l’installation
+COPY package*.json ./
+
+# Installe toutes les dépendances (dev + prod)
+RUN npm install
+
+# Copie le reste du code (sauf si tu utilises volumes)
+COPY . .
+
+# Expose le port du serveur
+EXPOSE 5010
+
+# Lancer le projet en mode dev (avec ts-node-dev)
+CMD ["npm", "run", "dev"]

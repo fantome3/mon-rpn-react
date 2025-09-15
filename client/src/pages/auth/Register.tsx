@@ -27,6 +27,7 @@ import { useContext, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import ConditionsModal from '@/components/ConditionsModal'
 import { z } from 'zod'
 import PasswordGenerator from '@/components/PasswordGenerator'
 import { useGenerateTokenMutation } from '@/hooks/userHooks'
@@ -39,6 +40,7 @@ import {
 } from '@/components/ui/select'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { institutions } from '@/lib/constant'
+import { SearchEngineOptimization } from '@/components/SearchEngine/SearchEngineOptimization'
 
 const formSchema = z.object({
   email: z.string().email({ message: `Email invalide` }),
@@ -59,6 +61,7 @@ const Register = () => {
   const { userInfo } = state
   const [conditionsError, setConditionsError] = useState(false)
   const [isOtherInstitution, setIsOtherInstitution] = useState(false)
+  const [showConditionsModal, setShowConditionsModal] = useState(false)
   const navigate = useNavigate()
   const params = useParams()
   const { t } = useTranslation(['common'])
@@ -67,15 +70,15 @@ const Register = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: userInfo?.register.email || '',
-      password: userInfo?.register.password || '',
-      conditions: userInfo?.register.conditions || false,
-      occupation: userInfo?.register.occupation || undefined,
-      institution: userInfo?.register.institution || undefined,
-      otherInstitution: userInfo?.register.otherInstitution || '',
-      studentNumber: userInfo?.register.studentNumber || '',
-      studentStatus: userInfo?.register.studentStatus || undefined,
-      workField: userInfo?.register.workField || '',
+      email: userInfo?.register?.email || '',
+      password: userInfo?.register?.password || '',
+      conditions: userInfo?.register?.conditions || false,
+      occupation: userInfo?.register?.occupation || undefined,
+      institution: userInfo?.register?.institution || undefined,
+      otherInstitution: userInfo?.register?.otherInstitution || '',
+      studentNumber: userInfo?.register?.studentNumber || '',
+      studentStatus: userInfo?.register?.studentStatus || undefined,
+      workField: userInfo?.register?.workField || '',
     },
   })
 
@@ -90,6 +93,7 @@ const Register = () => {
       setConditionsError(true)
     } else {
       const newPassword = PasswordGenerator()
+
       ctxDispatch({
         type: 'USER_REGISTER',
         payload: {
@@ -97,31 +101,22 @@ const Register = () => {
           password: newPassword,
         },
       })
-      localStorage.setItem(
-        'userInfo',
-        JSON.stringify({
-          ...userInfo,
-          register: { ...values, password: newPassword },
-          registerTime: new Date(),
-        })
-      )
 
       const GenerateToken = await generateToken(values.email)
       localStorage.setItem('tempToken', JSON.stringify(GenerateToken.token))
-
-      localStorage.setItem(
-        'userInfo',
-        JSON.stringify({
-          ...userInfo,
-          register: {
-            ...values,
-            password: PasswordGenerator(),
-          },
-          registerTime: new Date(),
-          token: JSON.stringify(GenerateToken.token),
-        })
-      )
-
+      
+      const updatedUserInfo = {
+        ...userInfo,
+        register: { 
+          ...values, 
+          password: newPassword
+        },
+        registerTime: new Date().toISOString(),
+        token: JSON.stringify(GenerateToken.token),
+      }
+      
+      localStorage.setItem('userInfo', JSON.stringify(updatedUserInfo))
+      
       if (params && Object.keys(params).length > 0) {
         localStorage.setItem('referralId', params.id!)
         localStorage.setItem('referralCode', params.ref!)
@@ -131,8 +126,18 @@ const Register = () => {
     }
   }
 
+  const handleAcceptConditions = () => {
+    form.setValue('conditions', true)
+    setConditionsError(false)
+  }
+
+  const handleRefuseConditions = () => {
+    form.setValue('conditions', false)
+  }
+
   return (
     <>
+      <SearchEngineOptimization title="Enregistrement" />
       <Header />
       <div className='auth form'>
         <Card className='auth-card'>
@@ -369,27 +374,32 @@ const Register = () => {
                   control={form.control}
                   name='conditions'
                   render={({ field }) => (
-                    <FormItem className='flex flex-row items-start space-x-3 space-y-0 py-4'>
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel
-                        className={clsx('text-xs text-justify', {
-                          'text-destructive':
-                            conditionsError === true && field.value === false,
-                        })}
-                      >
-                        {t('enregistrement.conditions')}&nbsp;
-                        <span className='font-bold'>
-                          <Link to='/conditions'>
-                            {t('enregistrement.status')}
-                          </Link>
-                        </span>
-                      </FormLabel>
-                    </FormItem>
+                  <FormItem className='flex flex-row items-start space-x-3 space-y-0 py-4'>
+                    <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                    </FormControl>
+                    <FormLabel
+                    className={clsx('text-xs text-justify', {
+                      'text-destructive':
+                      conditionsError === true && field.value === false,
+                    })}
+                    >
+                    {t('enregistrement.conditions')}&nbsp;
+                    <Link
+                      to='#'
+                      onClick={(e) => {
+                      e.preventDefault()
+                      setShowConditionsModal(true)
+                      }}
+                      className='font-bold text-primary underline hover:text-primary/60'
+                    >
+                      {t('enregistrement.status')}
+                    </Link>
+                    </FormLabel>
+                  </FormItem>
                   )}
                 />
 
@@ -407,6 +417,15 @@ const Register = () => {
           </CardFooter>
         </Card>
       </div>
+
+      {showConditionsModal && (
+        <ConditionsModal
+          open={showConditionsModal}
+          setOpen={setShowConditionsModal}
+          onAccept={handleAcceptConditions}
+          onRefuse={handleRefuseConditions}
+        />
+      )}
 
       <Footer />
     </>

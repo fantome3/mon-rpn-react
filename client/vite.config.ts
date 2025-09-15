@@ -10,4 +10,12 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  server: {
+    host: true, // Permet d'accéder au serveur depuis d'autres appareils sur le réseau local
+    port: 5173, // Port par défaut pour le serveur de développement
+    watch: {
+      usePolling: true, // utile sur Windows/Docker
+    },
+    strictPort: true,
+  },
 })
