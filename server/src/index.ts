@@ -14,12 +14,8 @@ import './cron/membershipReminder'
 dotenv.config({ path: path.join(__dirname, '../.env') })
 mongoose.set('strictQuery', true)
 
-const MONGODB_URI =
-  process.env.MONGODB_URI ||
-  'mongodb+srv://mory:mory@cluster0.hpxrt.mongodb.net/monrpn'
-
 mongoose
-  .connect(MONGODB_URI!)
+  .connect(process.env.MONGODB_URI!)
   .then(() => {
     console.log('Connected to MongoDB')
   })

@@ -111,7 +111,7 @@ const UpdateInteracPayment = ({ onSuccess, minAmount = 25 }: UpdateInteracPaymen
           description={
             <span className="block text-justify">
               Faire le virement Interac à l'adresse courriel suivante{' '}
-              <strong>paiement.rpn@gmail.com</strong> et utiliser le mot de
+              <strong>acq.quebec@gmail.com</strong> et utiliser le mot de
               passe <strong>monrpn</strong> si demandé. Ensuite, entrez ici les
               informations du virement effectué pour renflouer votre compte RPN.
               Le montant minimal est de <strong>{minAmount}$</strong>.

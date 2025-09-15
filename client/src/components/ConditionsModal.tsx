@@ -15,7 +15,7 @@ const ConditionsModal = ({ open, setOpen, onAccept, onRefuse }: ConditionsModalP
       open={open}
       setOpen={setOpen}
       title="Conditions d'utilisation"
-      size='xl'
+      size='full'
       footer={(
         <>
           <Button

@@ -121,7 +121,7 @@ npm install
 
 ```bash
 PORT=5000
-MONGO_URI=mongodb://localhost:27017/monrpn
+MONGO_URI_LOCAL=mongodb://localhost:27017/monrpn
 JWT_SECRET=supersecret
 SMTP_HOST=smtp.example.com
 SMTP_PORT=587

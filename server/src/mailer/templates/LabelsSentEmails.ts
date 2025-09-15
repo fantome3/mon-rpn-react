@@ -70,7 +70,7 @@ export const emailContents = {
       <h2>Compte désactivé</h2>
       <p>Bonjour,</p>
       <p>Votre compte a été désactivé faute de régularisation dans les délais impartis.</p>
-      <p>Pour toute réactivation, veuillez contacter l’administration à l’adresse <a href="mailto:contact@acq-quebec.org">contact@acq-quebec.org</a>.</p>
+      <p>Pour toute réactivation, veuillez contacter l’administration à l’adresse <a href="mailto:acq.quebec@gmail.com">acq.quebec@gmail.com</a>.</p>
       <p style="margin-top:20px;">Merci de votre compréhension.</p>`
   },
 
