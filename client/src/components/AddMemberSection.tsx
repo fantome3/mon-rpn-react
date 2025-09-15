@@ -36,6 +36,7 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import { format } from 'date-fns'
 import { CalendarIcon } from 'lucide-react'
 import { Calendar } from './CustomCalendar'
+import { stateFromName } from '../../../src/domain/familyMember/states'
 
 const formSchema = z.object({
   firstName: z.string(),
@@ -98,9 +99,13 @@ const AddMemberSection = () => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
+      const { status: memberStatus, ...rest } = values
       await updateUser({
         ...user!,
-        familyMembers: [...(user?.familyMembers ?? []), values],
+        familyMembers: [
+          ...(user?.familyMembers ?? []),
+          { ...rest, state: stateFromName(memberStatus as any) },
+        ],
         _id: user?._id,
       })
       if (pathname === '/dependents') {

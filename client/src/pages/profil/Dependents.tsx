@@ -53,6 +53,7 @@ import { cn, toastAxiosError } from '@/lib/utils'
 import { format } from 'date-fns'
 import { Calendar } from '@/components/CustomCalendar'
 import IconButtonWithTooltip from '@/components/IconButtonWithTooltip'
+import { stateFromName } from '../../../../src/domain/familyMember/states'
 
 const formSchema = z.object({
   firstName: z.string(),
@@ -102,7 +103,7 @@ const Dependents = () => {
       residenceCountryStatus: editingItem
         ? editingItem.residenceCountryStatus
         : 'worker',
-      status: editingItem ? editingItem.status : '',
+      status: editingItem ? editingItem.state.name : '',
       birthDate: editingItem ? editingItem.birthDate : new Date('1990-01-01'),
       tel: editingItem ? editingItem.tel : '',
     },
@@ -114,7 +115,7 @@ const Dependents = () => {
         firstName: editingItem.firstName || '',
         lastName: editingItem.lastName || '',
         relationship: editingItem.relationship || '',
-        status: editingItem.status || '',
+        status: editingItem.state.name || '',
         residenceCountryStatus: editingItem.residenceCountryStatus || 'worker',
         birthDate: new Date(editingItem.birthDate),
         tel: editingItem.tel,
@@ -189,27 +190,15 @@ const Dependents = () => {
       header: 'Téléphone',
     },
     {
-      accessorKey: 'status',
+      accessorKey: 'state',
       header: 'Statut',
       cell: ({ row }) => {
-        const status = row.original.status
-        if (status === 'active') {
-          return <Badge className='font-normal'>Actif</Badge>
-        }
-        if (status === 'inactive') {
-          return (
-            <Badge className='font-normal' variant='outline'>
-              Inactif
-            </Badge>
-          )
-        }
-        if (status === 'deleted') {
-          return (
-            <Badge className='font-normal' variant='destructive'>
-              Supprimé
-            </Badge>
-          )
-        }
+        const { label, variant } = row.original.state.badgeProps()
+        return (
+          <Badge className='font-normal' variant={variant}>
+            {label}
+          </Badge>
+        )
       },
     },
     {
@@ -226,7 +215,7 @@ const Dependents = () => {
               setModalVisibility(true)
               setGetIndex(row.index)
             }}
-            disabled={row.original.status === 'deleted' ? true : false}
+            disabled={!row.original.state.isEditable()}
           />
 
           <div className='font-semibold text-[#b9bdbc] mx-4'>
@@ -241,7 +230,7 @@ const Dependents = () => {
               setDeleteModal(true)
               setGetIndex(row.index)
             }}
-            disabled={row.original.status === 'deleted' ? true : false}
+            disabled={!row.original.state.isEditable()}
           />
         </div>
       ),
@@ -253,7 +242,7 @@ const Dependents = () => {
       try {
         const deletedMember: FamilyMember = {
           ...editingItem,
-          status: 'deleted',
+          state: stateFromName('deleted'),
         }
         const updatedFamilyMembers = [...(user?.familyMembers ?? [])]
         updatedFamilyMembers[getIndex] = deletedMember
@@ -289,7 +278,7 @@ const Dependents = () => {
           lastName: values.lastName,
           relationship: values.relationship,
           residenceCountryStatus: values.residenceCountryStatus,
-          status: values.status,
+          state: stateFromName(values.status as any),
         }
         const updatedFamilyMembers = [...(user?.familyMembers ?? [])]
         updatedFamilyMembers[getIndex] = updatedMember

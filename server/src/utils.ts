@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import jwt, { JwtPayload } from 'jsonwebtoken'
 import { User, UserModel } from './models/userModel'
+import { ActiveState, stateFromName } from '../../src/domain/familyMember/states'
 import { caching } from 'cache-manager'
 import { GenerateTokenType } from './types/GenerateTokenType'
 import labels from './common/libelles.json'
@@ -174,7 +175,8 @@ export const calculateTotalPersons = (user: User): number => {
   const dependents =
     user.familyMembers?.filter((member) => {
       const age = currentYear - new Date(member.birthDate).getFullYear()
-      return age >= 18 && member.status === 'active'
+      const state = stateFromName((member as any).state?.name)
+      return age >= 18 && state instanceof ActiveState
     }) || []
 
   return includeUser + dependents.length

@@ -10,6 +10,7 @@ import { TransactionModel } from '../models/transactionModel'
 import { notifyAllUsers } from '../mailer'
 import { handleFailedPrelevement } from '../services/subscriptionService'
 import labels from '../common/libelles.json'
+import { ActiveState, stateFromName } from '../../../src/domain/familyMember/states'
 
 export const deathAnnouncementRouter = express.Router()
 
@@ -45,8 +46,10 @@ deathAnnouncementRouter.post(
               ? new Types.ObjectId(user._id)
               : user._id
           const nbActive =
-            user.familyMembers?.filter((member) => member.status === 'active')
-              .length || 0
+            user.familyMembers?.filter((member) => {
+              const state = stateFromName((member as any).state?.name)
+              return state instanceof ActiveState
+            }).length || 0
           const totalPersons = nbActive + 1 // +1 pour le membre principal
           const totalToDeduct = totalPersons * amountPerPerson
 

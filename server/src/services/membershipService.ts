@@ -12,6 +12,7 @@ import {
 } from '../mailer'
 import labels from '../common/libelles.json'
 import { handleFailedPrelevement } from './subscriptionService'
+import { ActiveState, stateFromName } from '../../../src/domain/familyMember/states'
 
 const calculateMembershipAmount = (
   user: DocumentType<User>,
@@ -29,7 +30,8 @@ const calculateMembershipAmount = (
 
   for (const member of user.familyMembers || []) {
     const age = currentYear - new Date(member.birthDate).getFullYear()
-    if (age >= 18 && member.status === 'active') {
+    const state = stateFromName((member as any).state?.name)
+    if (age >= 18 && state instanceof ActiveState) {
       total +=
         member.residenceCountryStatus === 'student'
           ? studentAmount
