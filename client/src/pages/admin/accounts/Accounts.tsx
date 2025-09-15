@@ -40,6 +40,8 @@ import { ArrowUpDown, Pencil } from 'lucide-react'
 import { useContext, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
+import { SubscriptionState } from '../../../../../src/domain/subscription/SubscriptionState'
+import { InactiveState } from '../../../../../src/domain/subscription/states/InactiveState'
 
 const formSchema = z.object({
   firstName: z.string(),
@@ -101,9 +103,10 @@ const Accounts = () => {
       header: 'Créé le',
       cell: ({ row }) => {
         const created: string = row.getValue('createdAt')
-        const status = row.original.userId.subscription.status
+        const state =
+          row.original.userId.subscription.state as SubscriptionState
         return (
-          <div className={status === 'inactive' ? 'text-gray-400' : ''}>
+          <div className={!state.canAccess() ? 'text-gray-400' : ''}>
             {' '}
             {functionReverse(created.substring(0, 10))}{' '}
           </div>
@@ -125,9 +128,10 @@ const Accounts = () => {
       },
       accessorFn: (row) => `${row.firstName} ${row.lastName}`, // Génère dynamiquement le champ
       cell: ({ row }) => {
-        const status = row.original.userId.subscription.status
+        const state =
+          row.original.userId.subscription.state as SubscriptionState
         return (
-          <div className={status === 'inactive' ? 'text-gray-400' : ''}>
+          <div className={!state.canAccess() ? 'text-gray-400' : ''}>
             {row.original.firstName} {row.original.lastName}
           </div>
         )
@@ -152,11 +156,11 @@ const Accounts = () => {
         )
       },
       cell: ({ row }) => {
-        const isInactive =
-          row.original.userId.subscription.status === 'inactive'
+        const state =
+          row.original.userId.subscription.state as SubscriptionState
         const userTel: string = row.getValue('userTel')
         return (
-          <div className={isInactive ? 'text-gray-400' : ''}>{userTel}</div>
+          <div className={!state.canAccess() ? 'text-gray-400' : ''}>{userTel}</div>
         )
       },
     },
@@ -174,11 +178,11 @@ const Accounts = () => {
         )
       },
       cell: ({ row }) => {
-        const isInactive =
-          row.original.userId.subscription.status === 'inactive'
+        const state =
+          row.original.userId.subscription.state as SubscriptionState
         const residenceCountry: string = row.getValue('userResidenceCountry')
         return (
-          <div className={isInactive ? 'text-gray-400' : ''}>
+          <div className={!state.canAccess() ? 'text-gray-400' : ''}>
             {residenceCountry}
           </div>
         )
@@ -189,9 +193,10 @@ const Accounts = () => {
       header: 'Solde',
       cell: ({ row }) => {
         const solde: number = row.getValue('solde')
-        const status = row.original.userId.subscription.status
+        const state =
+          row.original.userId.subscription.state as SubscriptionState
         return (
-          <div className={status === 'inactive' ? 'text-gray-400' : ''}>
+          <div className={!state.canAccess() ? 'text-gray-400' : ''}>
             {' '}
             {ToLocaleStringFunc(solde)}{' '}
           </div>
@@ -203,9 +208,10 @@ const Accounts = () => {
       header: 'En attente paiement',
       cell: ({ row }) => {
         const awaiting: boolean = row.getValue('isAwaitingFirstPayment')
-        const status = row.original.userId.subscription.status
+        const state =
+          row.original.userId.subscription.state as SubscriptionState
         return (
-          <div className={status === 'inactive' ? 'text-gray-400' : ''}>
+          <div className={!state.canAccess() ? 'text-gray-400' : ''}>
             {awaiting ? 'Oui' : 'Non'}
           </div>
         )
@@ -216,12 +222,13 @@ const Accounts = () => {
       header: 'Méthode paiement',
       cell: ({ row }) => {
         const paymentMethod = row.original.paymentMethod
-        const status = row.original.userId.subscription.status
+        const state =
+          row.original.userId.subscription.state as SubscriptionState
         if (paymentMethod === 'credit_card') {
           return (
             <Badge
               className={
-                status === 'inactive' ? 'bg-gray-400' : 'bg-fuchsia-500'
+                !state.canAccess() ? 'bg-gray-400' : 'bg-fuchsia-500'
               }
             >
               {paymentMethod}
@@ -230,7 +237,7 @@ const Accounts = () => {
         } else {
           return (
             <Badge
-              className={status === 'inactive' ? 'bg-gray-400' : 'bg-sky-400'}
+              className={!state.canAccess() ? 'bg-gray-400' : 'bg-sky-400'}
             >
               {paymentMethod}
             </Badge>
@@ -243,8 +250,9 @@ const Accounts = () => {
       header: () => <div className="text-center w-full">Action</div>,
       enableHiding: false,
       cell: ({ row }) => {
-        const isInactive =
-          row.original.userId.subscription.status === 'inactive'
+        const state =
+          row.original.userId.subscription.state as SubscriptionState
+        const isInactive = state instanceof InactiveState
         return (
           <div className={`flex `}>
             <IconButtonWithTooltip
@@ -273,7 +281,7 @@ const Accounts = () => {
               refetch={refetch}
             />
             <div className='font-semibold text-[#b9bdbc] mx-2'>|</div>
-            {row.original.userId.subscription.status === 'inactive' ? (
+            {isInactive ? (
               <ManualReactivateButton
                 userId={row.original.userId._id}
                 refetch={refetch}

@@ -21,6 +21,9 @@ export const handleFailedPrelevement = async ({
   maxMissed: number
   totalPersons: number
 }) => {
+  if (!user.subscription.state.canAccess()) {
+    return
+  }
   // Transaction échouée
   await TransactionModel.create({
     userId: user._id,

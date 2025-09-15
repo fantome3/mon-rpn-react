@@ -6,6 +6,7 @@ import Footer from './Footer'
 import Announcement from './Announcement'
 import { useGetAccountsByUserIdQuery } from '@/hooks/accountHooks'
 import useAwaitingFirstPaymentRedirect from '@/hooks/useAwaitingFirstPaymentRedirect'
+import { SubscriptionState } from '../../../src/domain/subscription/SubscriptionState'
 
 const ProtectedRoute = () => {
   const {
@@ -26,7 +27,8 @@ const ProtectedRoute = () => {
   }, [fetchedAccount, ctxDispatch])
 
   if (!userInfo) return <Navigate to='/login' />
-  if (userInfo?.subscription?.status === 'inactive') {
+  const state = userInfo?.subscription?.state as SubscriptionState | undefined
+  if (state && !state.canAccess()) {
     return <Navigate to='/account-deactivated' />
   }
 
