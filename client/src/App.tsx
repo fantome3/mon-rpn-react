@@ -5,7 +5,6 @@ import { Button } from './components/ui/button'
 import { useNavigate } from 'react-router-dom'
 import apiClient from './apiClient'
 import { Store } from './lib/Store'
-import { toast } from './components/ui/use-toast'
 import { toastAxiosError } from './lib/utils'
 
 const App = () => {

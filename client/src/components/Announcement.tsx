@@ -1,11 +1,10 @@
 import { X } from 'lucide-react'
 import { Button } from './ui/button'
-import { useContext, useState } from 'react'
-import { Store } from '@/lib/Store'
+import { useState } from 'react'
 
 const Announcement = () => {
-  const { state } = useContext(Store)
-  const { userInfo } = state
+  // const { state } = useContext(Store)
+  // const { userInfo } = state
 
   //Calculer dynamiquement si l'annonce doit être affichée ou non
   const [show, setShow] = useState(() => {
