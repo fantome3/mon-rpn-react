@@ -11,7 +11,7 @@ import { settingRouter } from './routers/settingRouter'
 import { transactionRouter } from './routers/transactionRouter'
 import './cron/membershipReminder'
 
-dotenv.config({ path: path.join(__dirname, '../.env') })
+dotenv.config({ path: path.join(__dirname, '../.env'), override: true })
 mongoose.set('strictQuery', true)
 
 mongoose
