@@ -1,7 +1,7 @@
 {
   "motDePasseOublie": {
     "sujet": "🔒 Réinitialisation de votre mot de passe – ACQ-RPN",
-    "texte": "<p>Bonjour,</p>\n<p>Nous avons reçu une demande de réinitialisation de mot de passe pour votre compte ACQ-RPN.</p>\n<p>Pour créer un nouveau mot de passe, cliquez sur le lien ci-dessous :</p>\n<p><a href=\"http://localhost:5173/reset-password/{0}/{1}\" style=\"color:#1a73e8;\">Réinitialiser mon mot de passe</a></p>\n<p>Si vous n’êtes pas à l’origine de cette demande, ignorez simplement ce courriel.</p>\n<p style=\"margin-top:20px;\">Cordialement,<br/>L’équipe ACQ-RPN</p>"
+    "texte": "<p>Bonjour,</p>\n<p>Nous avons reçu une demande de réinitialisation de mot de passe pour votre compte ACQ-RPN.</p>\n<p>Pour créer un nouveau mot de passe, cliquez sur le lien ci-dessous :</p>\n<p><a href=\"https://www.acq-rpn.org/reset-password/{0}/{1}\" style=\"color:#1a73e8;\">Réinitialiser mon mot de passe</a></p>\n<p>Si vous n’êtes pas à l’origine de cette demande, ignorez simplement ce courriel.</p>\n<p style=\"margin-top:20px;\">Cordialement,<br/>L’équipe ACQ-RPN</p>"
   },
   "nouvelUtilisateur": {
     "sujet": "🎉 Nouvelle inscription sur la plateforme ACQ-RPN",
@@ -29,7 +29,7 @@
   },
   "notificationDeces": {
     "sujet": "🕊 Avis de décès – {0}",
-    "texte": "<h2>Avis de décès</h2>\n<p>Bonjour,</p>\n<p>Nous avons la profonde tristesse de vous informer du décès de <strong>{0}</strong>, survenu à <strong>{1}</strong> le <strong>{2}</strong>.</p>\n<p>Plus d’informations sont disponibles sur la plateforme ACQ-RPN.</p>\n<p style=\"margin-top:20px;\">Nos pensées accompagnent la famille.</p>"
+    "texte": "<h2>Avis de décès</h2>\n<p>Bonjour,</p>\n<p>Nous avons la profonde tristesse de vous informer du décès de <strong>{0}</strong>, survenu au <strong>{1}</strong> le <strong>{2}</strong>.</p>\n<p>Plus d’informations sont disponibles sur la plateforme ACQ-RPN.</p>\n<p style=\"margin-top:20px;\">Nos pensées accompagnent la famille.</p>"
   },
   "prelevementEchecCotisation": {
     "sujet": "❌ Cotisation annuelle – prélèvement échoué",

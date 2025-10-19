@@ -41,7 +41,11 @@ import { Store } from '@/lib/Store'
 import clsx from 'clsx'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
-import { useRegisterMutation, useVerifyTokenMutation } from '@/hooks/userHooks'
+import { 
+  useRegisterMutation, 
+  useSendPasswordMutation, 
+  useVerifyTokenMutation 
+} from '@/hooks/userHooks'
 import Loading from '@/components/Loading'
 import { checkPostalCode, checkTel, toastAxiosError } from '@/lib/utils'
 import { User } from '@/types/User'
@@ -73,6 +77,7 @@ const formSchema = z.object({
 const Infos = () => {
   const [showModal, setShowModal] = useState(false)
   const { mutateAsync: registerfunc, isPending } = useRegisterMutation()
+  const { mutateAsync: sendPasswordToUser } = useSendPasswordMutation()
   const { mutateAsync: verifyToken } = useVerifyTokenMutation()
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { userInfo } = state
@@ -144,9 +149,13 @@ const Infos = () => {
         payload: registerData,
       })
       localStorage.setItem('userInfo', JSON.stringify(registerData))
+
       setShowModal(true)
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await sendPasswordToUser({
+        email: userInfo?.register?.email!,
+        password: userInfo?.register?.password!,
+      })
     } catch (error: any) {
       if (error.response && error.response.status === 409) {
         const title = "Changer l'adresse courriel";

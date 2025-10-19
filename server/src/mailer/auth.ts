@@ -67,7 +67,7 @@ export const sendNewUserNotification = async ({
   
   try {
     await sendEmail({
-      to: 'djokojires@gmail.com, acq.quebec@gmail.com',
+      to: 'acq.quebec@gmail.com',
       subject,
       text: newUserEmailContent,
       html,

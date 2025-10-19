@@ -17,7 +17,7 @@ export const emailContents = {
       <p>Bonjour,</p>
       <p>Nous avons reçu une demande de réinitialisation de mot de passe pour votre compte ACQ-RPN.</p>
       <p>Pour créer un nouveau mot de passe, cliquez sur le lien ci-dessous&nbsp;:</p>
-      <p><a href="http://localhost:5173/reset-password/${userId}/${token}" style="color:#1a73e8;">Réinitialiser mon mot de passe</a></p>
+      <p><a href="https://www.acq-rpn.org/reset-password/${userId}/${token}" style="color:#1a73e8;">Réinitialiser mon mot de passe</a></p>
       <br/>
       <p>Si vous n’êtes pas à l’origine de cette demande, ignorez simplement ce courriel.</p>
       <p style="margin-top:20px;">Cordialement,</p>`
@@ -78,7 +78,8 @@ export const emailContents = {
     sujet: '🚨 Solde insuffisant pour les prélèvements RPN',
     texte: ({ minimumRequiredBalance, current }: AccountStatusParams) => `
       <p>Bonjour,</p>
-      <p>Votre solde actuel est de <strong>${current} CAD</strong>, alors que le minimum requis pour les prélèvements RPN est de <strong>${minimumRequiredBalance} CAD</strong>.</p>
+      <p>Votre solde actuel est de <strong>${current} CAD</strong>, alors que le minimum requis pour les prélèvements RPN est de <strong>${minimumRequiredBalance} CAD</strong>.
+      pour les personnes seules et de <strong>25$ CAD</strong> pour les familles ou des personnes à charge.</p>
       <p>Merci d’alimenter votre compte afin de maintenir vos avantages.</p>
       <p style="margin-top:20px;">Cordialement,</p>`
   },
@@ -97,7 +98,7 @@ export const emailContents = {
     texte: ({ name, place, date }: DeceasedParams) => `
       <h2>Avis de décès</h2>
       <p>Bonjour,</p>
-      <p>Nous avons la profonde tristesse de vous informer du décès de <strong>${name}</strong>, survenu à <strong>${place}</strong> le <strong>${date}</strong>.</p>
+      <p>Nous avons la profonde tristesse de vous informer du décès de <strong>${name}</strong>, survenu au <strong>${place}</strong> le <strong>${date}</strong>.</p>
       <p>Plus d’informations sont disponibles sur la plateforme ACQ-RPN.</p>
       <p style="margin-top:20px;">Nos pensées accompagnent la famille.</p>`
   },
@@ -106,8 +107,8 @@ export const emailContents = {
     sujet: '❌ Cotisation annuelle – prélèvement échoué',
     texte: ({ amount, current }: PaymentFailedParams) => `
       <p>Bonjour,</p>
-      <p>Nous n’avons pas pu prélever votre cotisation annuelle de <strong>${amount} CAD</strong>.</p>
-      <p>Votre solde actuel est de <strong>${current} CAD</strong>. Merci de renflouer votre compte afin de régulariser votre situation.</p>
+      <p>Nous n’avons pas pu prélever votre cotisation annuelle de <strong>${amount} $CAD</strong>.</p>
+      <p>Votre solde actuel est de <strong>${current} $CAD</strong>. Merci de renflouer votre compte afin de régulariser votre situation.</p>
       <p style="margin-top:20px;">Cordialement,</p>`
   },
 
@@ -115,7 +116,7 @@ export const emailContents = {
     sujet: '❌ Prélèvement fonds décès – échec',
     texte: ({ amount, current }: FuneralCostParams) => `
       <p>Bonjour,</p>
-      <p>Le prélèvement décès de <strong>${amount} CAD</strong> n’a pas pu être effectué ; votre solde est de <strong>${current} CAD</strong>.</p>
+      <p>Le prélèvement décès de <strong>${amount} $CAD</strong> n’a pas pu être effectué, votre solde est de <strong>${current} $CAD</strong>.</p>
       <p>Merci de recharger votre compte afin de participer au fonds de solidarité communautaire.</p>
       <p style="margin-top:20px;">Cordialement,</p>`
   },
@@ -124,7 +125,7 @@ export const emailContents = {
     sujet: '⏰ Rappel – cotisation annuelle en attente',
     texte: ({ minimumRequiredBalance: required, current }: AccountStatusParams) => `
       <p>Bonjour,</p>
-      <p>Votre cotisation annuelle de <strong>${required} $CAD</strong> n’a pas été réglée ; votre solde est actuellement de <strong>${current} CAD</strong>.</p>
+      <p>Votre cotisation annuelle de <strong>${required} $CAD</strong> n’a pas été réglée ; votre solde est actuellement de <strong>${current} $CAD</strong>.</p>
       <p>Merci de procéder au paiement afin de conserver vos privilèges.</p>
       <p style="margin-top:20px;">Cordialement,</p>`
   },
