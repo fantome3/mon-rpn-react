@@ -138,12 +138,13 @@ const AddMemberSection = () => {
     <>
       <div className='flex flex-col sm:flex-row items-center justify-center gap-4'>
         <div>
-          <Button
+            <Button
             onClick={() => setReferralModalVisibility(true)}
             className='px-8 py-4'
-          >
+            disabled={true}
+            >
             Parrainer
-          </Button>
+            </Button>
         </div>
         <div>
           <Button
