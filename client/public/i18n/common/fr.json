@@ -239,7 +239,7 @@
     "confirmPasswordLabel": "Confirmer mot de passe*",
     "conditions": "*J'ai lu et j'accepte",
     "status": "les status de l'association et les conditions d'utilisation de l'application",
-    "occupationLabel": "Occupation",
+    "occupationLabel": "Occupation*",
     "occupationPlaceholder": "Sélectionnez votre occupation",
     "occupationStudent": "Étudiant",
     "occupationWorker": "Travailleur",

@@ -66,7 +66,6 @@ const Origines = () => {
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { userInfo } = state
   const origines = userInfo?.origines || null
-  const { mutateAsync: sendPasswordToUser } = useSendPasswordMutation()
   const { mutateAsync: verifyToken } = useVerifyTokenMutation()
   // const { mutateAsync: upload, isPending: uploadPending } = useUploadImageMutation()
   // const fileInputRef = useRef<HTMLInputElement>(null)
@@ -176,11 +175,6 @@ const Origines = () => {
       )
 
       navigate('/infos')
-
-      await sendPasswordToUser({
-        email: userInfo?.register?.email!,
-        password: userInfo?.register?.password!,
-      })
     } catch (error) {
       console.log(error)
     }

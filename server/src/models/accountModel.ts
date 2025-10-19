@@ -35,6 +35,7 @@ class Card {
 @modelOptions({
   schemaOptions: { timestamps: true },
 })
+
 export class Account {
   public _id?: string
 

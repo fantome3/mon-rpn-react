@@ -5,9 +5,10 @@
   "main": "src/index.ts",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only --files src/index.ts",
-    "build": "tsc",
+    "build": "tsc && npm run copy-assets",
     "start": "node build/src/index.js",
-    "test": "node --loader ts-node/esm --test ./test/*.test.ts"
+    "test": "node --loader ts-node/esm --test ./test/*.test.ts",
+    "copy-assets": "cp -r src/mailer/assets build/mailer/"
   },
   "keywords": [],
   "author": "",
