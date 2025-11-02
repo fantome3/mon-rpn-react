@@ -33,6 +33,8 @@ import {
   TransactionsByUserId,
   AllAnnouncements,
   AccountDeactivated,
+  BalNoelLanding,
+  AdminBookingList
 } from './pages/index.ts'
 import './lib/i18n'
 import { StoreProvider } from './lib/Store.tsx'
@@ -82,6 +84,8 @@ const router = createBrowserRouter(
           <Route path='transactions' element={<Transactions />} />
         </Route>
       </Route>
+      <Route path='/reserver-fete-fin-annee' element={<BalNoelLanding />} />
+      <Route path='/liste-reservations' element={<AdminBookingList />} />
     </>
   )
 )

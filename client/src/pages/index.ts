@@ -20,6 +20,8 @@ import Transactions from './admin/transactions/Transactions'
 import TransactionsByUserId from './transactions/Transactions'
 import AllAnnouncements from './announcements/Announcements'
 import AccountDeactivated from './account-deactivated/AccountDeactivated'
+import BalNoelLanding from './evenements/feteNoel'
+import AdminBookingList from './evenements/pageAdministrateur'
 
 export {
   Login,
@@ -44,4 +46,6 @@ export {
   TransactionsByUserId,
   AllAnnouncements,
   AccountDeactivated,
+  BalNoelLanding,
+  AdminBookingList,
 }

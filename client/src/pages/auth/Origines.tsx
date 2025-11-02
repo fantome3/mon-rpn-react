@@ -46,7 +46,6 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { toast } from '@/components/ui/use-toast'
 import {
-  useSendPasswordMutation,
   useVerifyTokenMutation,
 } from '@/hooks/userHooks'
 import { SearchEngineOptimization } from '@/components/SearchEngine/SearchEngineOptimization'
