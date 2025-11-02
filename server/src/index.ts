@@ -10,6 +10,7 @@ import { uploadRouter } from './routers/uploadRouter'
 import { settingRouter } from './routers/settingRouter'
 import { transactionRouter } from './routers/transactionRouter'
 import './cron/membershipReminder'
+import { reservationRouter } from './routers/feteNoel2025Router'
 
 dotenv.config({ path: path.join(__dirname, '../.env'), override: true })
 mongoose.set('strictQuery', true)
@@ -41,6 +42,7 @@ app.use('/api/announcements', deathAnnouncementRouter)
 app.use('/api/upload', uploadRouter)
 app.use('/api/settings', settingRouter)
 app.use('/api/transactions', transactionRouter)
+app.use('/api/reservations', reservationRouter);
 
 app.get('/api/ping', (_req, res) => {
   res.send('pong')

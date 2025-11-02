@@ -37,10 +37,12 @@ export function emailTemplate({
 
         <div style="margin-top: 30px;">
           <p style="line-height: 1.6;">
-            ${presidentName}<br/>
-            Président de l’ACQ<br/>
-            Tél. : ${phone}<br/>
-            Email : acq.quebec@gmail.com
+          ${presidentName ? `
+              ${presidentName}<br/>
+              Président de l’ACQ<br/>
+              Tél. : ${phone}<br/>
+              Email : acq.quebec@gmail.com
+          ` : ''}
           </p>
         </div>
       </div>
