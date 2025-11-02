@@ -1,4 +1,5 @@
 import { ReservationModel } from "../models/feteNoel2025Model";
+import { sendReservationStatusEmail } from "../mailer/reservationEvenementMailer";
 
 export interface ReservationPersonneDTO {
   prenom: string;
@@ -81,7 +82,26 @@ export async function createReservation(
     eventDate: meta?.eventDate ? new Date(meta.eventDate) : undefined,
   });
 
-  return reservationDoc.toObject();
+  const reservation = reservationDoc.toObject();
+
+  try {
+    await sendReservationStatusEmail({
+      to: reservation.compte.email,
+      prenom: reservation.compte.titulaire.prenom,
+      nom: reservation.compte.titulaire.nom,
+      forfaitType: reservation.forfaitType,
+      participantCount: reservation.participantCount,
+      eventDate: reservation.eventDate,
+      totalAmount: reservation.totalAmount,
+      interacCode: reservation.interacCode,
+      status: reservation.status ?? "pending",
+      scenario: "created",
+    });
+  } catch (error) {
+    console.error("Failed to send reservation confirmation email:", error);
+  }
+
+  return reservation;
 }
 
 export async function listReservations() {
@@ -112,5 +132,27 @@ export async function updateReservationAmount(id: string, totalAmount: number) {
 }
 
 export async function deleteReservation(id: string) {
-  return ReservationModel.findByIdAndDelete(id).lean().exec();
+  const reservationDoc = await ReservationModel.findByIdAndDelete(id);
+  if (!reservationDoc) return null;
+
+  const reservation = reservationDoc.toObject();
+
+  try {
+    await sendReservationStatusEmail({
+      to: reservation.compte.email,
+      prenom: reservation.compte.titulaire.prenom,
+      nom: reservation.compte.titulaire.nom,
+      forfaitType: reservation.forfaitType,
+      participantCount: reservation.participantCount,
+      eventDate: reservation.eventDate,
+      totalAmount: reservation.totalAmount,
+      interacCode: reservation.interacCode,
+      status: "refunded",
+      scenario: "refunded",
+    });
+  } catch (error) {
+    console.error("Failed to send reservation refund email:", error);
+  }
+
+  return reservation;
 }

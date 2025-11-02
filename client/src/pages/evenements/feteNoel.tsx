@@ -18,7 +18,10 @@ const formatCurrency = (value: number) => value.toFixed(2);
 
 export default function BalNoelLanding() {
   const { mutateAsync: createReservation } = useNewReservationMutation();
-  
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [now, setNow] = useState(() => new Date());
   const [firstVisitTime, setFirstVisitTime] = useState<number | null>(() => {
     const v = localStorage.getItem(FIRST_VISIT_KEY);
@@ -68,6 +71,209 @@ export default function BalNoelLanding() {
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const clearErrors = useCallback((...keys: string[]) => {
+    if (keys.length === 0) return;
+    setErrors((prev) => {
+      const next = { ...prev };
+      keys.forEach((key) => {
+        delete next[key];
+      });
+      return next;
+    });
+  }, []);
+
+  const registerError = useCallback((key: string, message: string) => {
+    setErrors((prev) => ({ ...prev, [key]: message }));
+  }, []);
+
+  const validateEmail = useCallback((value: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+  }, []);
+
+  const validateStep1 = useCallback(() => {
+    const keysToClear = ["etablissement", "numEtudiant"];
+    clearErrors(...keysToClear);
+    if (forfaitType !== "etudiant") {
+      return true;
+    }
+    const nextErrors: Record<string, string> = {};
+    if (!etablissement.trim()) {
+      nextErrors.etablissement = "Veuillez indiquer l'établissement.";
+    }
+    if (!numEtudiant.trim()) {
+      nextErrors.numEtudiant = "Veuillez indiquer votre numéro d'étudiant.";
+    }
+    if (Object.keys(nextErrors).length) {
+      setErrors((prev) => ({ ...prev, ...nextErrors }));
+      return false;
+    }
+    return true;
+  }, [clearErrors, forfaitType, etablissement, numEtudiant]);
+
+  const validateStep2 = useCallback(() => {
+    const keysToClear = ["prenom", "nom", "email", "telephone"];
+    clearErrors(...keysToClear);
+    const nextErrors: Record<string, string> = {};
+    if (!prenom.trim()) nextErrors.prenom = "Le prénom est requis.";
+    if (!nom.trim()) nextErrors.nom = "Le nom est requis.";
+    if (!email.trim()) nextErrors.email = "Le courriel est requis.";
+    else if (!validateEmail(email)) nextErrors.email = "Le courriel n'est pas valide.";
+    if (!telephone.trim()) nextErrors.telephone = "Le téléphone est requis.";
+    if (Object.keys(nextErrors).length) {
+      setErrors((prev) => ({ ...prev, ...nextErrors }));
+      return false;
+    }
+    return true;
+  }, [clearErrors, email, nom, prenom, telephone, validateEmail]);
+
+  const validateStep3 = useCallback(() => {
+    const keysToClear = personnes.flatMap((_, index) => [
+      `accompagnateur-${index}-prenom`,
+      `accompagnateur-${index}-nom`,
+    ]);
+    if (keysToClear.length) clearErrors(...keysToClear);
+    const nextErrors: Record<string, string> = {};
+    personnes.forEach((personne, index) => {
+      if (!personne.prenom.trim()) {
+        nextErrors[`accompagnateur-${index}-prenom`] =
+          "Le prénom de l'accompagnateur est requis.";
+      }
+      if (!personne.nom.trim()) {
+        nextErrors[`accompagnateur-${index}-nom`] =
+          "Le nom de l'accompagnateur est requis.";
+      }
+    });
+    if (Object.keys(nextErrors).length) {
+      setErrors((prev) => ({ ...prev, ...nextErrors }));
+      return false;
+    }
+    return true;
+  }, [clearErrors, personnes]);
+
+  const validateStep4 = useCallback(() => {
+    clearErrors("interacCode");
+    const trimmed = interacCode.trim().toUpperCase();
+    if (!trimmed) {
+      registerError("interacCode", "Le code Interac est requis.");
+      return false;
+    }
+    if (!trimmed.startsWith("C")) {
+      registerError("interacCode", 'Le code Interac doit commencer par "C".');
+      return false;
+    }
+    if (trimmed.length < 5) {
+      registerError("interacCode", 'Le code Interac n\'est pas valide.');
+      return false;
+    }
+    return true;
+  }, [clearErrors, interacCode, registerError]);
+
+  const handleStep1Next = useCallback(() => {
+    if (validateStep1()) {
+      setStep(2);
+    }
+  }, [validateStep1]);
+
+  const handleStep2Next = useCallback(() => {
+    if (validateStep2()) {
+      setStep(accompanyingPersonsCount > 0 ? 3 : 4);
+    }
+  }, [accompanyingPersonsCount, validateStep2]);
+
+  const handleStep3Next = useCallback(() => {
+    if (validateStep3()) {
+      setStep(4);
+    }
+  }, [validateStep3]);
+
+  const handlePersonneChange = useCallback(
+    (index: number, field: "prenom" | "nom", value: string) => {
+      clearErrors(`accompagnateur-${index}-${field}`);
+      setPersonnes((prev) => {
+        const next = [...prev];
+        const current = next[index] ?? Personne.empty();
+        next[index] =
+          field === "prenom" ? current.withPrenom(value) : current.withNom(value);
+        return next;
+      });
+    },
+    [clearErrors]
+  );
+
+  const closeSuccessModal = useCallback(() => {
+    setShowSuccessModal(false);
+  }, []);
+
+  const handleSubmit = useCallback(async () => {
+    if (isSubmitting) return;
+
+    setSubmitted(false);
+    setSubmissionError(null);
+
+    if (!validateStep2()) {
+      setStep(2);
+      return;
+    }
+
+    if (accompanyingPersonsCount > 0 && !validateStep3()) {
+      setStep(3);
+      return;
+    }
+
+    if (!validateStep4()) {
+      return;
+    }
+
+    const titulaire = new Personne(prenom, nom);
+    const compte = new Compte(titulaire, email, telephone);
+
+    if (!compte.isValid()) {
+      validateStep2();
+      return;
+    }
+
+    const reservation = new Reservation(
+      selectedForfait,
+      compte,
+      personnes,
+      interacCode,
+      discountMultiplier
+    );
+
+    try {
+      setIsSubmitting(true);
+      console.log("Submitting reservation:", reservation.toPayload());
+      await createReservation(
+        reservation.toPayload()
+      );
+      setSubmitted(true);
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error(error);
+      setSubmissionError(
+        "Impossible de confirmer votre réservation pour le moment. Veuillez réessayer plus tard."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [
+    isSubmitting,
+    validateStep2,
+    validateStep3,
+    validateStep4,
+    accompanyingPersonsCount,
+    prenom,
+    nom,
+    email,
+    telephone,
+    personnes,
+    interacCode,
+    discountMultiplier,
+    createReservation,
+    etablissement,
+    numEtudiant,
+  ]);
+
   const secondsLeft = Math.max(0, differenceInSeconds(PROMO_END, now));
   const days = Math.floor(secondsLeft / (60 * 60 * 24));
   const hours = Math.floor((secondsLeft / (60 * 60)) % 24);
@@ -106,103 +312,6 @@ export default function BalNoelLanding() {
     () => Number((unitPrice * totalParticipants).toFixed(2)),
     [unitPrice, totalParticipants]
   );
-
-  const handlePersonneChange = useCallback(
-    (index: number, field: "prenom" | "nom", value: string) => {
-      setPersonnes((prev) => {
-        const next = [...prev];
-        const current = next[index] ?? Personne.empty();
-        next[index] =
-          field === "prenom" ? current.withPrenom(value) : current.withNom(value);
-        return next;
-      });
-    },
-    []
-  );
-
-  const handleSubmit = useCallback(async () => {
-    if (isSubmitting) return;
-
-    if (!nom.trim() || !prenom.trim() || !email.trim() || !interacCode.trim()) {
-      alert(
-        "Veuillez remplir les champs obligatoires (Nom, Prénom, Courriel, Code Interac)."
-      );
-      return;
-    }
-
-    if (!interacCode.trim().toUpperCase().startsWith("CA")) {
-      alert('Le code Interac doit commencer par "CA".');
-      return;
-    }
-
-    if (telephone.trim().length === 0) {
-      alert("Veuillez indiquer un numéro de téléphone valide.");
-      return;
-    }
-
-    if (
-      accompanyingPersonsCount > 0 &&
-      personnes.some((personne) => !personne.isComplete())
-    ) {
-      alert("Veuillez compléter les informations de tous les accompagnateurs.");
-      return;
-    }
-
-    if (forfaitType === "etudiant" && (!etablissement.trim() || !numEtudiant.trim())) {
-      alert("Veuillez préciser l'établissement et le numéro d'étudiant.");
-      return;
-    }
-
-    const titulaire = new Personne(prenom, nom);
-    const compte = new Compte(titulaire, email, telephone);
-
-    if (!compte.isValid()) {
-      alert(
-        "Les informations du compte principal sont incomplètes. Vérifiez le courriel et le téléphone."
-      );
-      return;
-    }
-
-    const reservation = new Reservation(
-      selectedForfait,
-      compte,
-      personnes,
-      interacCode,
-      discountMultiplier
-    );
-    console.log("Reservation payload:", reservation.toPayload());
-
-    try {
-      setIsSubmitting(true);
-      await createReservation(reservation.toPayload());
-
-      setSubmitted(true);
-      alert(
-        "Réservation enregistrée ! Vous recevrez une confirmation par courriel sous 24h."
-      );
-    } catch (error) {
-      console.error(error);
-      alert(
-        "Impossible de confirmer votre réservation pour le moment. Veuillez réessayer plus tard."
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [
-    accompanyingPersonsCount,
-    discountMultiplier,
-    email,
-    etablissement,
-    interacCode,
-    isSubmitting,
-    nom,
-    numEtudiant,
-    personnes,
-    prenom,
-    selectedForfait,
-    telephone,
-    forfaitType,
-  ]);
 
   return (
     <>
@@ -377,9 +486,15 @@ export default function BalNoelLanding() {
                   </label>
                   <select
                     value={accompanyingPersonsCount}
-                    onChange={(e) =>
-                      setAccompanyingPersonsCount(Number(e.target.value))
-                    }
+                    onChange={(e) => {
+                      clearErrors(
+                        ...personnes.flatMap((_, index) => [
+                          `accompagnateur-${index}-prenom`,
+                          `accompagnateur-${index}-nom`,
+                        ])
+                      );
+                      setAccompanyingPersonsCount(Number(e.target.value));
+                    }}
                     className="w-full p-3 rounded-lg bg-black/10"
                   >
                     <option value={0}>0</option>
@@ -393,22 +508,38 @@ export default function BalNoelLanding() {
                       <input
                         placeholder="Établissement"
                         value={etablissement}
-                        onChange={(e) => setEtablissement(e.target.value)}
-                        className="w-full p-3 rounded-lg bg-black/10 mb-2"
+                        onChange={(e) => {
+                          setEtablissement(e.target.value);
+                          clearErrors("etablissement");
+                        }}
+                        className={`w-full p-3 rounded-lg bg-black/10 mb-2 ${
+                          errors.etablissement ? "ring-1 ring-red-400" : ""
+                        }`}
                       />
+                      {errors.etablissement && (
+                        <p className="text-xs text-red-300">{errors.etablissement}</p>
+                      )}
                       <input
                         placeholder="Numéro d'étudiant"
                         value={numEtudiant}
-                        onChange={(e) => setNumEtudiant(e.target.value)}
-                        className="w-full p-3 rounded-lg bg-black/10"
+                        onChange={(e) => {
+                          setNumEtudiant(e.target.value);
+                          clearErrors("numEtudiant");
+                        }}
+                        className={`w-full p-3 rounded-lg bg-black/10 ${
+                          errors.numEtudiant ? "ring-1 ring-red-400" : ""
+                        }`}
                       />
+                      {errors.numEtudiant && (
+                        <p className="text-xs text-red-300">{errors.numEtudiant}</p>
+                      )}
                     </div>
                   )}
 
                   <div className="mt-4">
                     <button
                       className="w-full py-3 rounded-lg bg-amber-500 text-black font-semibold"
-                      onClick={() => setStep(2)}
+                      onClick={handleStep1Next}
                     >
                       Continuer
                     </button>
@@ -422,27 +553,57 @@ export default function BalNoelLanding() {
                   <input
                     placeholder="Prénom"
                     value={prenom}
-                    onChange={(e) => setPrenom(e.target.value)}
-                    className="w-full p-3 rounded-lg bg-black/10 mb-2"
+                    onChange={(e) => {
+                      setPrenom(e.target.value);
+                      clearErrors("prenom");
+                    }}
+                    className={`w-full p-3 rounded-lg bg-black/10 mb-2 ${
+                      errors.prenom ? "ring-1 ring-red-400" : ""
+                    }`}
                   />
+                  {errors.prenom && (
+                    <p className="text-xs text-red-300">{errors.prenom}</p>
+                  )}
                   <input
                     placeholder="Nom"
                     value={nom}
-                    onChange={(e) => setNom(e.target.value)}
-                    className="w-full p-3 rounded-lg bg-black/10 mb-2"
+                    onChange={(e) => {
+                      setNom(e.target.value);
+                      clearErrors("nom");
+                    }}
+                    className={`w-full p-3 rounded-lg bg-black/10 mb-2 ${
+                      errors.nom ? "ring-1 ring-red-400" : ""
+                    }`}
                   />
+                  {errors.nom && <p className="text-xs text-red-300">{errors.nom}</p>}
                   <input
                     placeholder="Courriel"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full p-3 rounded-lg bg-black/10 mb-2"
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      clearErrors("email");
+                    }}
+                    className={`w-full p-3 rounded-lg bg-black/10 mb-2 ${
+                      errors.email ? "ring-1 ring-red-400" : ""
+                    }`}
                   />
+                  {errors.email && (
+                    <p className="text-xs text-red-300">{errors.email}</p>
+                  )}
                   <input
                     placeholder="Téléphone"
                     value={telephone}
-                    onChange={(e) => setTelephone(e.target.value)}
-                    className="w-full p-3 rounded-lg bg-black/10"
+                    onChange={(e) => {
+                      setTelephone(e.target.value);
+                      clearErrors("telephone");
+                    }}
+                    className={`w-full p-3 rounded-lg bg-black/10 ${
+                      errors.telephone ? "ring-1 ring-red-400" : ""
+                    }`}
                   />
+                  {errors.telephone && (
+                    <p className="text-xs text-red-300">{errors.telephone}</p>
+                  )}
 
                   <div className="mt-4 flex gap-2">
                     <button
@@ -453,7 +614,7 @@ export default function BalNoelLanding() {
                     </button>
                     <button
                       className="flex-1 py-3 rounded-lg bg-amber-500 text-black font-semibold"
-                      onClick={() => setStep(accompanyingPersonsCount > 0 ? 3 : 4)}
+                      onClick={handleStep2Next}
                     >
                       Suivant
                     </button>
@@ -474,16 +635,36 @@ export default function BalNoelLanding() {
                         onChange={(e) =>
                           handlePersonneChange(i, "prenom", e.target.value)
                         }
-                        className="w-full p-3 rounded-lg bg-black/10 mb-2"
+                        className={`w-full p-3 rounded-lg bg-black/10 mb-2 ${
+                          errors[`accompagnateur-${i}-prenom`]
+                            ? "ring-1 ring-red-400"
+                            : ""
+                        }`}
                       />
+                      {errors[`accompagnateur-${i}-prenom`] && (
+                        <p className="text-xs text-red-300">
+                          {errors[`accompagnateur-${i}-prenom`]
+                          }
+                        </p>
+                      )}
                       <input
                         placeholder={`Nom ${i + 1}`}
                         value={personne.nom}
                         onChange={(e) =>
                           handlePersonneChange(i, "nom", e.target.value)
                         }
-                        className="w-full p-3 rounded-lg bg-black/10"
+                        className={`w-full p-3 rounded-lg bg-black/10 ${
+                          errors[`accompagnateur-${i}-nom`]
+                            ? "ring-1 ring-red-400"
+                            : ""
+                        }`}
                       />
+                      {errors[`accompagnateur-${i}-nom`] && (
+                        <p className="text-xs text-red-300">
+                          {errors[`accompagnateur-${i}-nom`]
+                          }
+                        </p>
+                      )}
                     </div>
                   ))}
 
@@ -496,7 +677,7 @@ export default function BalNoelLanding() {
                     </button>
                     <button
                       className="flex-1 py-3 rounded-lg bg-amber-500 text-black font-semibold"
-                      onClick={() => setStep(4)}
+                      onClick={handleStep3Next}
                     >
                       Paiement
                     </button>
@@ -508,9 +689,9 @@ export default function BalNoelLanding() {
                 <div>
                   <label className="block text-xs mb-1">Paiement Interac</label>
                   <div className="text-xs opacity-80 mb-2">
-                    Envoyez le montant total à :{" "}
+                    Envoyez le montant total à :{" Imelda au "}
                     <span className="font-semibold text-red-500">
-                      balnoel@association.com
+                      +1 (418) 261-3989 
                     </span>
                   </div>
                   <div className="text-xs opacity-80 mb-4">
@@ -520,9 +701,17 @@ export default function BalNoelLanding() {
                   <input
                     placeholder="Code référence Interac: CA122222"
                     value={interacCode}
-                    onChange={(e) => setInteracCode(e.target.value)}
-                    className="w-full p-3 rounded-lg bg-black/10 mb-3"
+                    onChange={(e) => {
+                      setInteracCode(e.target.value);
+                      clearErrors("interacCode");
+                    }}
+                    className={`w-full p-3 rounded-lg bg-black/10 mb-2 ${
+                      errors.interacCode ? "ring-1 ring-red-400" : ""
+                    }`}
                   />
+                  {errors.interacCode && (
+                    <p className="text-xs text-red-300">{errors.interacCode}</p>
+                  )}
 
                   <div className="text-sm opacity-80 mb-3">
                     Total à envoyer :{" "}
@@ -531,10 +720,20 @@ export default function BalNoelLanding() {
                     </span>
                   </div>
 
+                  {submissionError && (
+                    <div className="mb-3 rounded-lg border border-red-500/40 bg-red-900/30 px-3 py-2 text-sm text-red-200">
+                      {submissionError}
+                    </div>
+                  )}
+
                   <div className="flex gap-2">
                     <button
                       className="flex-1 py-3 rounded-lg bg-black/20"
-                      onClick={() => setStep(Math.max(1, accompanyingPersonsCount > 0 ? 3 : 2))}
+                      onClick={() =>
+                        setStep(
+                          Math.max(1, accompanyingPersonsCount > 0 ? 3 : 2)
+                        )
+                      }
                     >
                       Retour
                     </button>
@@ -546,12 +745,12 @@ export default function BalNoelLanding() {
                       {isSubmitting ? "Envoi en cours..." : "Confirmer la réservation"}
                     </button>
                   </div>
-                </div>
-              )}
 
-              {submitted && (
-                <div className="mt-3 p-3 rounded-lg bg-green-800/30">
-                  Merci ! Votre réservation a été enregistrée.
+                  {submitted && !showSuccessModal && (
+                    <div className="mt-3 rounded-xl border border-emerald-400/50 bg-emerald-900/30 px-4 py-3 text-sm text-emerald-200">
+                      Merci pour votre engagement.
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -588,6 +787,40 @@ export default function BalNoelLanding() {
           </div>
         </div>
       </div>
+
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={closeSuccessModal}
+          />
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.85, opacity: 0 }}
+            className="relative w-full max-w-sm rounded-3xl bg-white/95 p-6 text-slate-900 shadow-2xl"
+          >
+            <div className="flex items-center justify-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                ✅
+              </div>
+            </div>
+            <h2 className="mt-4 text-center text-xl font-semibold">
+              Réservation enregistrée
+            </h2>
+            <p className="mt-2 text-center text-sm text-slate-600">
+              Merci pour votre réservation. Vous recevrez un courriel de confirmation
+              avec tous les détails.
+            </p>
+            <button
+              className="mt-6 w-full rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-emerald-600"
+              onClick={closeSuccessModal}
+            >
+              Fermer
+            </button>
+          </motion.div>
+        </div>
+      )}
     </>
   );
 }

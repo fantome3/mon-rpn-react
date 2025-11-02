@@ -156,7 +156,7 @@ const UpdateInteracPayment = ({ onSuccess, minAmount = 25 }: UpdateInteracPaymen
                         <HoverCardContent className="font-light text-justify">
                           Interac vous envoie un courriel de confirmation pour chaque virement.
                           Ce courriel contient votre <span className="text-destructive">numéro de référence Interac</span>,
-                          qui commence généralement par CA. Vous pouvez aussi le retrouver sur la confirmation de virement
+                          qui commence généralement par CA ou C. Vous pouvez aussi le retrouver sur la confirmation de virement
                           ou dans la description de la transaction selon votre institution financière.
                         </HoverCardContent>
                       </HoverCard>

@@ -351,7 +351,7 @@ const PaymentMethodInfo = () => {
                               <span className='text-destructive'>
                                 numéro de référence Interac
                               </span>
-                              , qui commence généralement par CA. <br />
+                              , qui commence généralement par CA ou C. <br />
                               Vous pouvez également trouver votre &nbsp;
                               <span className='text-destructive'>
                                 numéro de référence Interac
