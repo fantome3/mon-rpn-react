@@ -303,7 +303,7 @@ export const adminMenuItems = [
 ]
 
 export const relations = [
-  { name: 'Femme' },
+  { name: 'Conjoint/Conjointe' },
   { name: 'Enfant' },
   { name: 'Père' },
   { name: 'Mère' },
@@ -312,14 +312,14 @@ export const relations = [
 export const statusOptions = [
   { value: 'visitor', label: 'Visiteur' },
   { value: 'student', label: 'Étudiant' },
-  { value: 'worker', label: 'Travailleur' },
+  { value: 'worker', label: 'Travailleur temporaire' },
   { value: 'permanent_resident', label: 'Résident Permanent' },
   { value: 'canadian_citizen', label: 'Citoyen Canadien' },
 ]
 
 export const residenceCountryStatusMap: { [key: string]: string } = {
   student: 'Étudiant',
-  worker: 'Travailleur',
+  worker: 'Travailleur temporaire',
   canadian_citizen: 'Citoyen Canadien',
   permanent_resident: 'Résident Permanent',
   visitor: 'Visiteur',
