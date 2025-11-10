@@ -92,7 +92,7 @@ const Infos = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       residenceCountry: infos ? infos.residenceCountry : 'Canada',
-      residenceCountryStatus: infos ? infos.residenceCountryStatus : 'worker',
+      residenceCountryStatus: infos ? infos.residenceCountryStatus : 'permanent_resident',
       postalCode: infos ? infos.postalCode : '',
       address: infos ? infos.address : '',
       tel: infos ? infos.tel : '',
