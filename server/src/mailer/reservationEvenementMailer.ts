@@ -58,8 +58,11 @@ const SCENARIO_FOOTER: Record<ReservationEmailScenario, string> = {
 
 const formatDateFr = (value?: Date | string | null) => {
   if (!value) return "À confirmer";
+
   const date = typeof value === "string" ? new Date(value) : value;
+  
   if (Number.isNaN(date.getTime())) return "À confirmer";
+  
   return new Intl.DateTimeFormat("fr-CA", {
     dateStyle: "long",
     timeStyle: "short",

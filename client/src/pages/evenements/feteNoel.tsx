@@ -4,15 +4,35 @@ import decorationNoel from "@/assets/image-noel.jpg";
 import floconNeige from "@/assets/flocon-neige-anime.gif";
 import { differenceInSeconds } from "date-fns";
 import { motion } from "framer-motion";
-import { Forfait, ForfaitType } from "@/pages/evenements/forfait";
+import { Forfait, ForfaitType, MembershipStatus } from "@/pages/evenements/forfait";
 import { Personne } from "@/pages/evenements/personne";
 import { Compte } from "@/pages/evenements/compte";
 import { Reservation } from "@/pages/evenements/reservation";
 import { useNewReservationMutation } from "@/hooks/evenementsAnnuelHook";
 
 const PROMO_END = new Date("2025-12-17T23:59:59");
-const FIRST_VISIT_KEY = "first_visit";
-const baseDiscount = 40;
+
+const MEMBERSHIP_OPTIONS: {
+  value: MembershipStatus;
+  label: string;
+  description: string;
+}[] = [
+  {
+    value: "membre",
+    label: "Membre ACQ",
+    description: "Tarif privilégié -90 %",
+  },
+  {
+    value: "nouveau-arrivant",
+    label: "Nouvel étudiant / arrivant",
+    description: "Découverte -90 %",
+  },
+  {
+    value: "non-membre",
+    label: "Non membre",
+    description: "Tarif invité -50 %",
+  },
+];
 
 const formatCurrency = (value: number) => value.toFixed(2);
 
@@ -23,39 +43,20 @@ export default function BalNoelLanding() {
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [now, setNow] = useState(() => new Date());
-  const [firstVisitTime, setFirstVisitTime] = useState<number | null>(() => {
-    const v = localStorage.getItem(FIRST_VISIT_KEY);
-    return v ? Number(v) : null;
-  });
   const formRef = useRef<HTMLDivElement | null>(null);
+
+  const [membershipStatus, setMembershipStatus] =
+    useState<MembershipStatus>("membre");
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    if (!firstVisitTime) {
-      const dateNow = Date.now();
-      localStorage.setItem(FIRST_VISIT_KEY, String(dateNow));
-      setFirstVisitTime(dateNow);
-    }
-  }, [firstVisitTime]);
-
-  const promoActive = now < PROMO_END;
-
-  const instantBonusActive = useMemo(() => {
-    if (!firstVisitTime) return false;
-    const diffMs = Date.now() - firstVisitTime;
-    return diffMs <= 24 * 60 * 60 * 1000;
-  }, [firstVisitTime, now]);
-
-  const discountMultiplier = useMemo(() => {
-    let d = 0;
-    if (promoActive) d += 0.4;
-    if (instantBonusActive) d += 0.1;
-    return d;
-  }, [promoActive, instantBonusActive]);
+  const membershipDiscount = useMemo(
+    () => Forfait.getDiscountFor(membershipStatus),
+    [membershipStatus]
+  );
 
   const [step, setStep] = useState(1);
   const [forfaitType, setForfaitType] = useState<ForfaitType>("travailleur");
@@ -237,7 +238,14 @@ export default function BalNoelLanding() {
       compte,
       personnes,
       interacCode,
-      discountMultiplier
+      membershipDiscount,
+      membershipStatus,
+      forfaitType === "etudiant"
+        ? {
+            ...(etablissement.trim() ? { etablissement: etablissement.trim() } : {}),
+            ...(numEtudiant.trim() ? { numEtudiant: numEtudiant.trim() } : {}),
+          }
+        : {}
     );
 
     try {
@@ -268,7 +276,9 @@ export default function BalNoelLanding() {
     telephone,
     personnes,
     interacCode,
-    discountMultiplier,
+    membershipDiscount,
+    membershipStatus,
+    forfaitType,
     createReservation,
     etablissement,
     numEtudiant,
@@ -304,8 +314,8 @@ export default function BalNoelLanding() {
     [forfaitType]
   );
   const unitPrice = useMemo(
-    () => selectedForfait.getDiscountedPrice(discountMultiplier),
-    [selectedForfait, discountMultiplier]
+    () => selectedForfait.getPrice(membershipStatus),
+    [selectedForfait, membershipStatus]
   );
   const totalParticipants = accompanyingPersonsCount + 1;
   const totalAmount = useMemo(
@@ -327,9 +337,9 @@ export default function BalNoelLanding() {
             <div className="rounded-xl overflow-hidden shadow-2xl bg-gradient-to-b from-[rgba(255,255,255,0.02)] to-transparent border border-white/5">
               <div className="bg-gradient-to-r via-[#ff4d79] rounded-2xl px-6 py-4 shadow-lg max-w-sm w-full mb-5">
                 <p className="text-sm font-medium mb-2">
-                  Profitez de{" "}
+                  Profitez des réductions de{" "}
                   <span className="text-yellow-300 font-extrabold">
-                    -{baseDiscount} %
+                    -{Math.round(membershipDiscount * 100)} %
                   </span>{" "}
                   jusqu’au <span className="underline">17 décembre</span>
                 </p>
@@ -362,10 +372,10 @@ export default function BalNoelLanding() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent flex items-end p-4">
                   <div>
                     <h1 className="text-xl font-semibold">
-                      Le Bal de Noël Chic — Université Laval
+                      Le Bal de Noël Chic & Élégant
                     </h1>
-                    <p className="text-sm opacity-80">
-                      23 décembre 2025 · Pavillon Desjardins
+                    <p className="text-xs opacity-80">
+                      20 décembre 2025 · Pavillon Desjardins — Université Laval
                     </p>
                   </div>
                 </div>
@@ -376,22 +386,23 @@ export default function BalNoelLanding() {
                   <div className="flex items-center justify-between mb-3">
                     <div>
                       <div className="text-sm font-semibold">
-                        Déjà 64 femmes inscrites
+                        Déjà 14 femmes inscrites
                       </div>
-                      <div className="text-xs opacity-80">Et 34 hommes inscrits</div>
+                      <div className="text-xs opacity-80">Et 11 hommes inscrits</div>
                     </div>
                     <div className="text-right text-xs opacity-70">
-                      Il reste <span className="font-semibold">58 places</span>
+                      Il reste <span className="font-semibold">25 places</span>
                     </div>
                   </div>
 
-                  <div>
+{/* était cencer être une image ou video animée */}
+                  {/* <div>
                     <img
                       src={decorationNoel}
                       alt="Souvenir 1"
                       className="w-full h-24 object-cover rounded"
                     />
-                  </div>
+                  </div> */}
                 </div>
               </section>
 
@@ -400,17 +411,16 @@ export default function BalNoelLanding() {
                   Offre spéciale
                 </div>
 
-                {instantBonusActive && (
+                {/* {instantBonusActive && (
                   <motion.div
                     initial={{ scale: 0.5, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ type: "spring", duration: 1 }}
                     className="relative bg-yellow-400 text-red-700 px-4 py-2 rounded-full font-bold shadow-md animate-pulse"
                   >
-                    🎁 -10 % en bonus si tu réserves avec minimum 25$ dans les 4h qui
-                    suivent !
+                    🎁 -10 % en bonus si tu fais des démarches pour être membre au compte de l'année 2026
                   </motion.div>
-                )}
+                )} */}
 
                 <div className="mt-3">
                   <button
@@ -429,18 +439,51 @@ export default function BalNoelLanding() {
 
           <section ref={formRef} className="mb-4">
             <div className="rounded-xl p-3 bg-white/5 border border-white/5">
-              <h2 className="text-sm font-semibold mb-2">Choisi ton forfait :</h2>
+              <h2 className="text-sm font-semibold mb-2">Votre statut :</h2>
+              <div className="grid gap-2">
+                {MEMBERSHIP_OPTIONS.map((option) => {
+                  const checked = membershipStatus === option.value;
+                  return (
+                    <label
+                      key={option.value}
+                      className={`flex items-center gap-3 p-3 rounded-lg border transition ${
+                        checked
+                          ? "border-amber-400/70 bg-amber-900/20"
+                          : "border-white/10 bg-black/10"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        className="h-4 w-4 accent-amber-400"
+                        checked={checked}
+                        onChange={() => setMembershipStatus(option.value)}
+                      />
+                      <div>
+                        <div className="font-semibold">{option.label}</div>
+                        <div className="text-xs opacity-70">
+                          {option.description}
+                        </div>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="rounded-xl p-3 bg-white/5 border border-white/5 mt-4">
+              <h2 className="text-sm font-semibold mb-2">Choisis ton forfait :</h2>
               <div className="grid gap-2">
                 {forfaits.map((f) => {
                   const isSelected = forfaitType === f.type;
-                  const discounted = f.getDiscountedPrice(discountMultiplier);
+                  const finalPrice = f.getPrice(membershipStatus);
+                  const referencePrice = f.getReferencePrice(membershipStatus);
                   return (
                     <div
                       key={f.type}
-                      className={`flex items-center justify-between p-3 rounded-lg ${
+                      className={`flex items-center justify-between p-3 rounded-lg cursor-pointer ${
                         isSelected
                           ? "bg-amber-800/20 border border-amber-400/20"
-                          : "bg-black/10"
+                          : "bg-black/10 border border-white/5"
                       }`}
                       onClick={() => setForfaitType(f.type)}
                       role="button"
@@ -450,11 +493,13 @@ export default function BalNoelLanding() {
                         <div className="text-xs opacity-70">{f.description}</div>
                       </div>
                       <div className="text-right">
-                        <div className="text-sm line-through opacity-60">
-                          ${formatCurrency(f.basePrice)}
-                        </div>
+                        {referencePrice > finalPrice && (
+                          <div className="text-sm line-through opacity-60">
+                            ${formatCurrency(referencePrice)}
+                          </div>
+                        )}
                         <div className="text-lg font-semibold">
-                          ${formatCurrency(discounted)}
+                          ${formatCurrency(finalPrice)}
                         </div>
                       </div>
                     </div>
@@ -691,7 +736,7 @@ export default function BalNoelLanding() {
                   <div className="text-xs opacity-80 mb-2">
                     Envoyez le montant total à :{" Imelda au "}
                     <span className="font-semibold text-red-500">
-                      +1 (418) 261-3989 
+                      acq.quebec@gmail.com
                     </span>
                   </div>
                   <div className="text-xs opacity-80 mb-4">

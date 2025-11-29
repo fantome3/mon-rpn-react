@@ -16,6 +16,7 @@ export interface ReservationMetaDTO {
   etablissement?: string;
   numEtudiant?: string;
   eventDate?: string;
+  membershipStatus?: string;
 }
 
 export interface CreateReservationInput {
@@ -79,7 +80,8 @@ export async function createReservation(
     totalAmount,
     discountMultiplier,
     meta: sanitizeMeta(meta),
-    eventDate: meta?.eventDate ? new Date(meta.eventDate) : undefined,
+    eventDate: "2025-12-20 19:00:00.000Z",
+    // eventDate: meta?.eventDate ? new Date(meta.eventDate) : undefined,
   });
 
   const reservation = reservationDoc.toObject();

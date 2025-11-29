@@ -1,9 +1,15 @@
 import { Compte } from "./compte";
-import { Forfait } from "./forfait";
+import { Forfait, ForfaitType, MembershipStatus } from "./forfait";
 import { Personne } from "./personne";
 
+export interface ReservationMetaPayload {
+  membershipStatus: MembershipStatus;
+  etablissement?: string;
+  numEtudiant?: string;
+}
+
 export interface ReservationPayload {
-  forfaitType: string;
+  forfaitType: ForfaitType;
   compte: ReturnType<Compte["toJSON"]>;
   accompagnateurs: ReturnType<Personne["toJSON"]>[];
   interacCode: string;
@@ -11,6 +17,7 @@ export interface ReservationPayload {
   unitPrice: number;
   totalAmount: number;
   discountMultiplier: number;
+  meta: ReservationMetaPayload;
 }
 
 export class Reservation {
@@ -19,7 +26,9 @@ export class Reservation {
     private readonly compte: Compte,
     private readonly accompagnateurs: Personne[],
     private readonly interacCode: string,
-    private readonly discountMultiplier: number
+    private readonly discountMultiplier: number,
+    private readonly membershipStatus: MembershipStatus,
+    private readonly meta: Omit<ReservationMetaPayload, "membershipStatus">
   ) {}
 
   get participantCount(): number {
@@ -27,7 +36,7 @@ export class Reservation {
   }
 
   get unitPrice(): number {
-    return this.forfait.getDiscountedPrice(this.discountMultiplier);
+    return this.forfait.getPrice(this.membershipStatus);
   }
 
   get totalAmount(): number {
@@ -44,8 +53,10 @@ export class Reservation {
       unitPrice: this.unitPrice,
       totalAmount: this.totalAmount,
       discountMultiplier: this.discountMultiplier,
+      meta: {
+        membershipStatus: this.membershipStatus,
+        ...this.meta,
+      },
     };
   }
 }
-
-export type ForfaitType = "etudiant" | "travailleur" | "famille";

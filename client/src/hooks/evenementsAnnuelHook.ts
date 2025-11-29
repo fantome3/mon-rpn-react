@@ -7,7 +7,6 @@ export interface ReservationRecord extends ReservationPayload {
   status: 'pending' | 'confirmed' | 'refunded'
   createdAt: string
   updatedAt: string
-  meta?: Record<string, unknown>
 }
 
 export const useNewReservationMutation = () =>

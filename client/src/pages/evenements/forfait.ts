@@ -1,26 +1,45 @@
 export type ForfaitType = "etudiant" | "travailleur" | "famille";
+export type MembershipStatus = "membre" | "nouveau-arrivant" | "non-membre";
+
+const MEMBERSHIP_DISCOUNTS: Record<MembershipStatus, number> = {
+  membre: 0.9,
+  "nouveau-arrivant": 0.9,
+  "non-membre": 0.5,
+};
 
 interface ForfaitDefinition {
-  basePrice: number;
   label: string;
   description?: string;
+  prices: Record<MembershipStatus, number>;
 }
 
 const FORFAIT_DEFINITIONS: Record<ForfaitType, ForfaitDefinition> = {
   etudiant: {
-    basePrice: 95,
     label: "Étudiant",
-    description: "Une preuve peut être demandée.",
+    description: "une preuve peut être demandée.",
+    prices: {
+      membre: 5,
+      "nouveau-arrivant": 5,
+      "non-membre": 40,
+    },
   },
   travailleur: {
-    basePrice: 160,
-    label: "Travailleur",
-    // description: "Accès + conso incl.",
+    label: "Participant individuel",
+    // description: "Si vous ne pouvez pas bénéficier du tarif étudiant.",
+    prices: {
+      membre: 5,
+      "nouveau-arrivant": 5,
+      "non-membre": 40,
+    },
   },
   famille: {
-    basePrice: 300,
     label: "Famille",
-    description: "2 adultes + enfants",
+    description: "2 adultes + enfants (gratuit).",
+    prices: {
+      membre: 15,
+      "nouveau-arrivant": 15,
+      "non-membre": 70,
+    },
   },
 };
 
@@ -40,12 +59,12 @@ export class Forfait {
     );
   }
 
-  get type(): ForfaitType {
-    return this.typeValue;
+  static getDiscountFor(status: MembershipStatus): number {
+    return MEMBERSHIP_DISCOUNTS[status] ?? 0;
   }
 
-  get basePrice(): number {
-    return this.forfaitInfo.basePrice;
+  get type(): ForfaitType {
+    return this.typeValue;
   }
 
   get label(): string {
@@ -56,7 +75,20 @@ export class Forfait {
     return this.forfaitInfo?.description || "";
   }
 
-  getDiscountedPrice(discountMultiplier: number): number {
-    return Number((this.basePrice * (1 - discountMultiplier)).toFixed(2));
+  getPrice(status: MembershipStatus): number {
+    return this.forfaitInfo.prices[status];
+  }
+
+  getReferencePrice(status: MembershipStatus): number {
+    const finalPrice = this.getPrice(status);
+    const discount = Forfait.getDiscountFor(status);
+    if (discount <= 0 || discount >= 1) {
+      return finalPrice;
+    }
+    return Number((finalPrice / (1 - discount)).toFixed(2));
+  }
+
+  getDiscount(status: MembershipStatus): number {
+    return Forfait.getDiscountFor(status);
   }
 }
