@@ -15,8 +15,14 @@ import { reservationRouter } from './routers/feteNoel2025Router'
 dotenv.config({ path: path.join(__dirname, '../.env'), override: true })
 mongoose.set('strictQuery', true)
 
+let uriMongodb: string = process.env.MONGODB_URI!;
+
+if (process.env.NODE_ENV === 'development') {
+  uriMongodb = process.env.MONGODB_URI_DEV!;
+}
+
 mongoose
-  .connect(process.env.MONGODB_URI!)
+  .connect(uriMongodb!)
   .then(() => {
     console.log('Connected to MongoDB')
   })
