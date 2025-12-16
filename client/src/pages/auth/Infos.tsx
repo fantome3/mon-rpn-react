@@ -42,6 +42,7 @@ import clsx from 'clsx'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import {
+  useNewUserNotificationMutation,
   useRegisterMutation,
   useSendPasswordMutation,
   useVerifyTokenMutation,
@@ -86,6 +87,7 @@ const Infos = () => {
   const { mutateAsync: verifyToken } = useVerifyTokenMutation()
   const { mutateAsync: createAccount } = useNewAccountMutation()
   const { mutateAsync: createTransaction } = useNewTransactionMutation()
+  const { mutateAsync: newUserNotification } = useNewUserNotificationMutation()
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { userInfo } = state
   const { infos } = userInfo!
@@ -182,13 +184,14 @@ const Infos = () => {
         email: userInfo?.register?.email!,
         password: userInfo?.register?.password!,
       })
+      await newUserNotification(userInfo?.register?.email!)
     } catch (error: any) {
       if (error.response && error.response.status === 409) {
         const title = "Changer l'adresse courriel";
-        const description = "L'adresse courriel que vous avez entrer existe déjà";
+        const description = "L'adresse courriel que vous avez entré existe déjà";
         toastAxiosError(description, title)
       } else {
-        toastAxiosError(error, 'Opps!')
+        toastAxiosError(error, 'Doublon!')
       }
     }
   }

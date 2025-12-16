@@ -45,8 +45,7 @@ const InteracPayment = ({ total }: InteracPaymentProps) => {
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { userInfo } = state
   const { mutateAsync: account, isPending } = useNewAccountMutation()
-  const { mutateAsync: newUserNotification, isPending: notificationPending } =
-    useNewUserNotificationMutation()
+  const { isPending: notificationPending } = useNewUserNotificationMutation()
   const { mutateAsync: newTransaction } = useNewTransactionMutation()
   const navigate = useNavigate()
   const { search } = useLocation()
@@ -107,7 +106,6 @@ const InteracPayment = ({ total }: InteracPaymentProps) => {
       })
       navigate(redirect)
       refresh()
-      await newUserNotification(userInfo?.register?.email!)
     } catch (error) {
       toastAxiosError(error)
     }
