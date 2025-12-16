@@ -1,5 +1,4 @@
 import {
-  sendDeactivationWarningEmail,
   sendLowerBanlanceAlertEmail,
 } from '../mailer'
 import { AccountModel } from '../models/accountModel'
@@ -11,7 +10,6 @@ import { handleFailedPrelevement } from './subscriptionService'
 export const checkMinimumBalanceAndSendReminder = async () => {
   const settings = await SettingsModel.findOne()
   const MINIMUM_UNIT = settings?.minimumBalanceRPN || 50
-  const MAX_MISSED = settings?.maxMissedReminders || 3
 
   const users = await UserModel.find({ deletedAt: { $exists: false } })
   for (const user of users) {
@@ -23,15 +21,6 @@ export const checkMinimumBalanceAndSendReminder = async () => {
     const minRequired = totalPersons * MINIMUM_UNIT
 
     if (account.solde < minRequired) {
-      await handleFailedPrelevement({
-        user,
-        type: 'balance',
-        totalToDeduct: minRequired,
-        solde: account.solde,
-        maxMissed: MAX_MISSED,
-        totalPersons,
-      })
-
       await sendLowerBanlanceAlertEmail(
         user.register.email,
         account.solde,

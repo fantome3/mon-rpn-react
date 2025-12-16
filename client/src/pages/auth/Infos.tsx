@@ -41,14 +41,19 @@ import { Store } from '@/lib/Store'
 import clsx from 'clsx'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
-import { 
-  useRegisterMutation, 
-  useSendPasswordMutation, 
-  useVerifyTokenMutation 
+import {
+  useRegisterMutation,
+  useSendPasswordMutation,
+  useVerifyTokenMutation,
 } from '@/hooks/userHooks'
+import { useNewAccountMutation } from '@/hooks/accountHooks'
+import { useNewTransactionMutation } from '@/hooks/transactionHooks'
+import { Transaction } from '@/types/Transaction'
+import { Account } from '@/types/Account'
 import Loading from '@/components/Loading'
 import { checkPostalCode, checkTel, toastAxiosError } from '@/lib/utils'
 import { User } from '@/types/User'
+import { createAwaitingInteracAccount } from '@/lib/interacAccount'
 import {
   Dialog,
   DialogContent,
@@ -79,6 +84,8 @@ const Infos = () => {
   const { mutateAsync: registerfunc, isPending } = useRegisterMutation()
   const { mutateAsync: sendPasswordToUser } = useSendPasswordMutation()
   const { mutateAsync: verifyToken } = useVerifyTokenMutation()
+  const { mutateAsync: createAccount } = useNewAccountMutation()
+  const { mutateAsync: createTransaction } = useNewTransactionMutation()
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { userInfo } = state
   const { infos } = userInfo!
@@ -144,11 +151,30 @@ const Infos = () => {
         referredBy: localStorage.getItem('referralId')!,
       }
       const registerData = await registerfunc(userData)
+
+      const accountData = (await createAwaitingInteracAccount({
+        createAccount,
+        createTransaction: async (payload) => {
+          if (!payload.userId) {
+            throw new Error('userId is required');
+          }
+          return createTransaction(payload as Transaction);
+        },
+        userInfo: registerData,
+        transactionReason:
+          "Compte créé en attente du premier paiement Interac (inscription)",
+      })) as Account
+
       ctxDispatch({
         type: 'USER_SIGNUP',
         payload: registerData,
       })
+      ctxDispatch({
+        type: 'ACCOUNT_INFOS',
+        payload: accountData,
+      })
       localStorage.setItem('userInfo', JSON.stringify(registerData))
+      localStorage.setItem('accountInfo', JSON.stringify(accountData))
 
       setShowModal(true)
 

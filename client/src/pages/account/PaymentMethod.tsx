@@ -41,8 +41,7 @@ const PaymentMethod = () => {
         title="Mode de paiement ACQ"
         description="Page de sélection du mode de paiement de l'association des camerounais du Québec ACQ"
       />
-      <SelectFees updateTotal={setTotalPayment} />
-
+      
       <div className="form flex-col sm:m-0 m-20" id="payment-block" style={{ minHeight: '60vh', justifyContent: 'unset' }}>
         <div className="text-center mt-8">
           <h1 className="text-3xl font-bold">Mode de paiement</h1>
@@ -63,6 +62,8 @@ const PaymentMethod = () => {
           )}
         </div>
       </div>
+
+      <SelectFees updateTotal={setTotalPayment} />
     </>
   )
 }
