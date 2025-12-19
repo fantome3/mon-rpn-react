@@ -78,8 +78,8 @@ export const emailContents = {
     sujet: '🚨 Solde insuffisant pour les prélèvements RPN',
     texte: ({ minimumRequiredBalance, current }: AccountStatusParams) => `
       <p>Bonjour,</p>
-      <p>Votre solde actuel est de <strong>${current}$ CAD</strong>, alors que le minimum requis pour les prélèvements RPN est de <strong>${minimumRequiredBalance}$ CAD</strong>
-      pour les personnes seules et de <strong>25$ CAD</strong> pour les familles ou des personnes à charge.</p>
+      <p>Votre solde actuel est de <strong>${current} $ CAD</strong>, alors que le minimum requis pour les prélèvements RPN est de <strong>${minimumRequiredBalance} $ CAD</strong>
+      pour les personnes seules et de <strong>25 $ CAD</strong> pour les familles ou des personnes à charge.</p>
       <p>Merci d’alimenter votre compte afin de maintenir vos avantages.</p>
       <p style="margin-top:20px;">Cordialement,</p>`
   },

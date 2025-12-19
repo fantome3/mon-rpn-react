@@ -156,11 +156,11 @@ const Infos = () => {
 
       const accountData = (await createAwaitingInteracAccount({
         createAccount,
-        createTransaction: async (payload) => {
+        createTransaction: async (payload: Transaction) => {
           if (!payload.userId) {
             throw new Error('userId is required');
           }
-          return createTransaction(payload as Transaction);
+          return createTransaction(payload);
         },
         userInfo: registerData,
         transactionReason:
