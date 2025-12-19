@@ -156,15 +156,16 @@ const Infos = () => {
 
       const accountData = (await createAwaitingInteracAccount({
         createAccount,
-        createTransaction: async (payload: Transaction) => {
+        createTransaction: async (payload) => {
           if (!payload.userId) {
             throw new Error('userId is required');
           }
-          return createTransaction(payload);
+
+          return createTransaction(payload as Transaction);
         },
+
         userInfo: registerData,
-        transactionReason:
-          "Compte créé en attente du premier paiement Interac (inscription)",
+        transactionReason: "Compte créé en attente du premier paiement Interac (inscription)",
       })) as Account
 
       ctxDispatch({
