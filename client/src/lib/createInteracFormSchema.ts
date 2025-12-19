@@ -12,6 +12,6 @@ export const createInteracFormSchema = (minAmount: number) =>
       }),
     refInterac: z
       .string()
-      .min(6, { message: 'Ce code interact n\'est pas valide.' })
-      .regex(/^(C|c|CA|Ca|cA|ca)/, { message: 'Ce code interact n\'est pas valide.' }),
+      .min(6, { message: 'Ce code Interac n\'est pas valide.' })
+      .regex(/^ca?/i, { message: 'Ce code Interac n\'est pas valide.' }),
   })
