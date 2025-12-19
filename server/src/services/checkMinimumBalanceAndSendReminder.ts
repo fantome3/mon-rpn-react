@@ -1,5 +1,5 @@
 import {
-  sendLowerBanlanceAlertEmail,
+  sendLowBalanceNotification,
 } from '../mailer'
 import { AccountModel } from '../models/accountModel'
 import { SettingsModel } from '../models/settingsModel'
@@ -21,7 +21,7 @@ export const checkMinimumBalanceAndSendReminder = async () => {
     const minRequired = totalPersons * MINIMUM_UNIT
 
     if (account.solde < minRequired) {
-      await sendLowerBanlanceAlertEmail(
+      await sendLowBalanceNotification(
         user.register.email,
         account.solde,
         minRequired
@@ -54,7 +54,7 @@ export const sendBalanceReminderIfNeeded = async (userId: string) => {
       totalPersons,
     })
 
-    await sendLowerBanlanceAlertEmail(
+    await sendLowBalanceNotification(
       user.register.email,
       account.solde,
       minimumRequired

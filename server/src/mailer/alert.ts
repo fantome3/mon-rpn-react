@@ -27,7 +27,7 @@ export const sendAccountDeactivatedEmail = async (email: string) => {
   await sendEmail({ to: email, subject, text: accountDeactivationMessage, html })
 }
 
-export const sendLowerBanlanceAlertEmail = async (
+export const sendLowBalanceNotification = async (
   email: string,
   balance: number,
   required: number

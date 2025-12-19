@@ -51,7 +51,7 @@ export const emailContents = {
       <p>Bonjour,</p>
       <p>Bienvenue sur la plateforme ACQ-RPN&nbsp;!</p>
       <p>Voici votre mot de passe temporaire&nbsp;: <span style="font-weight:bold;font-size:16px;color:#e67e22;">${password}</span></p>
-      <p>Pour des raisons de sécurité, changez-le dès votre première connexion dans votre <a href="https://www.acq-rpn.org/reset-password/profil" style="color:#1a73e8;">profile</a>.</p>
+      <p>Pour des raisons de sécurité, changez-le dès votre première connexion dans votre <a href="https://www.acq-rpn.org/reset-password/profil" style="color:#1a73e8;">profil</a>.</p>
       <p style="margin-top:20px;">Au plaisir de vous accompagner,</p>`
   },
 
