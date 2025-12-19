@@ -192,7 +192,7 @@ const Infos = () => {
         const description = "L'adresse courriel que vous avez entré existe déjà";
         toastAxiosError(description, title)
       } else {
-        toastAxiosError(error, 'Doublon!')
+        toastAxiosError(error, 'Ooops!')
       }
     }
   }
