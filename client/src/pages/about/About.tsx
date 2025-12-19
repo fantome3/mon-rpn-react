@@ -63,14 +63,14 @@ export default function About() {
                 <h1 className="inline-flex items-center gap-2 text-2xl md:text-4xl font-extrabold text-gray-900 tracking-tight">
                   Bienvenue à l’ACQ <Sparkles className="h-6 w-6 text-teal-500" />
                 </h1>
-                <p className="mt-2 text-sm md:text-base text-gray-500">Association des Camerounais de Québec</p>
+                <p className="mt-2 text-sm md:text-base text-gray-500">Association des camerounaises et camerounais de Québec</p>
 
                 {/* Cartouche du mot de bienvenue */}
                 <div className="mt-6">
                   <div className="bg-white/90 backdrop-blur rounded-2xl shadow-lg ring-1 ring-gray-200 p-5 md:p-6">
                     <p className="text-gray-700 leading-relaxed">
                       C’est avec une immense joie que je vous souhaite la bienvenue sur le site officiel de
-                      <span className="font-semibold"> l’Association des Camerounais de Québec (ACQ)</span>.
+                      <span className="font-semibold"> l’Association des camerounaises et camerounais de Québec (ACQ)</span>.
                       Notre mission est claire : <span className="font-semibold">faciliter l’intégration des nouveaux arrivants </span>
                       dans leur nouvelle réalité québécoise, tout en renforçant les liens fraternels entre les membres de notre communauté.
                       L’ACQ est un espace de solidarité, de partage et de soutien, où chacun peut trouver des repères pour mieux s’épanouir au Québec.

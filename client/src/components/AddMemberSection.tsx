@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select'
-import { relations, status, statusOptions, telRegex } from '@/lib/constant'
+import { relations, status, canadianResidenceStatus, telRegex, age_maximal_personne } from '@/lib/constant'
 import { Store } from '@/lib/Store'
 import {
   useGetUserDetailsQuery,
@@ -78,7 +78,7 @@ const AddMemberSection = () => {
       lastName: '',
       relationship: '',
       status: 'active',
-      residenceCountryStatus: 'worker',
+      residenceCountryStatus: 'permanent_resident',
       birthDate: new Date('1990-01-01'),
       tel: '',
     },
@@ -90,7 +90,7 @@ const AddMemberSection = () => {
       lastName: '',
       relationship: '',
       status: 'active',
-      residenceCountryStatus: 'worker',
+      residenceCountryStatus: 'permanent_resident',
       birthDate: new Date('1990-01-01'),
       tel: '',
     })
@@ -232,7 +232,7 @@ const AddMemberSection = () => {
                     >
                       <FormControl>
                         <SelectTrigger className='w-full'>
-                          <SelectValue placeholder='Votre relation' />
+                          <SelectValue placeholder='Votre lien familial' />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -267,7 +267,7 @@ const AddMemberSection = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {statusOptions.map((status) => (
+                        {canadianResidenceStatus.map((status) => (
                           <SelectItem key={status.value} value={status.value}>
                             {status.label}
                           </SelectItem>
@@ -334,20 +334,20 @@ const AddMemberSection = () => {
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className='w-auto p-0' align='start'>
+                        <PopoverContent className='w-auto p-0' align='start'>
                         <Calendar
                           mode='single'
                           captionLayout='dropdown-buttons'
                           selected={field.value}
                           onSelect={field.onChange}
                           disabled={(date) =>
-                            date > new Date() || date < new Date('1960-01-01')
+                          date > new Date() || date < new Date(new Date().getFullYear() - age_maximal_personne, 0, 1)
                           }
                           initialFocus
-                          fromYear={1960}
-                          toYear={2030}
+                          fromYear={new Date().getFullYear() - age_maximal_personne}
+                          toYear={new Date().getFullYear()}
                         />
-                      </PopoverContent>
+                        </PopoverContent>
                     </Popover>
                     <FormMessage />
                   </FormItem>

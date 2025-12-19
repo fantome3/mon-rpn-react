@@ -152,7 +152,7 @@ const Announcements = () => {
     } else {
       form.reset({
         firstName: '',
-        deathPlace: 'Canada',
+        deathPlace: '',
         deathDate: new Date(),
       })
     }
@@ -161,6 +161,7 @@ const Announcements = () => {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!editingAnnouncement) {
       try {
+        setModalVisibility(false)
         await newAnnouncement(values)
         toast({
           variant: 'default',
@@ -249,9 +250,13 @@ const Announcements = () => {
                 name='deathPlace'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Lieu du décès</FormLabel>
+                    <FormLabel>Lieu du décès (ville et province)</FormLabel>
                     <FormControl>
-                      <Input placeholder='Nom' {...field} />
+                      <Input
+                      placeholder='Exemple: 12 rue Charlotte, Montréal, Canada'
+                      value={field.value}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

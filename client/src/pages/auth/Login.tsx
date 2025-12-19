@@ -50,9 +50,10 @@ const Login = () => {
   })
 
   const Lng =
-    navigator.language ||
-    navigator.languages[0] ||
-    localStorage.getItem('i18nextLng')!
+    'fr' === navigator.language || 'fr-FR' === navigator.language || 'fr-CA' === navigator.language ? 'fr'
+      : ('en' === navigator.language || 'en-US' === navigator.language
+          ? 'en'
+          : 'fr')
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

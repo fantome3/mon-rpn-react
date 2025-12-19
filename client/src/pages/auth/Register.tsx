@@ -39,7 +39,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { institutions } from '@/lib/constant'
+import { academicInstitutionsList } from '@/lib/constant'
 import { SearchEngineOptimization } from '@/components/SearchEngine/SearchEngineOptimization'
 
 const formSchema = z.object({
@@ -255,7 +255,7 @@ const Register = () => {
                                 />
                               </SelectTrigger>
                               <SelectContent>
-                                {institutions.map((institution) => (
+                                {academicInstitutionsList.map((institution) => (
                                   <SelectItem
                                     key={institution.value}
                                     value={institution.value}

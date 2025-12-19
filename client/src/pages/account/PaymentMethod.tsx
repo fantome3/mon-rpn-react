@@ -39,7 +39,7 @@ const PaymentMethod = () => {
     <>
       <SearchEngineOptimization
         title="Mode de paiement ACQ"
-        description="Page de sélection du mode de paiement de l'association des camerounais du Québec ACQ"
+        description="Page de sélection du mode de paiement de l'association des camerounaises et camerounais de Québec ACQ"
       />
       
       <div className="form flex-col sm:m-0 m-20" id="payment-block" style={{ minHeight: '60vh', justifyContent: 'unset' }}>

@@ -31,7 +31,7 @@ import {
 import {
   countries,
   postalCodeRegex,
-  statusOptions,
+  canadianResidenceStatus,
   telRegex,
 } from '@/lib/constant'
 import { useTranslation } from 'react-i18next'
@@ -338,7 +338,7 @@ const Infos = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {statusOptions.map((status) => (
+                          {canadianResidenceStatus.map((status) => (
                             <SelectItem key={status.value} value={status.value}>
                               {status.label}
                             </SelectItem>
