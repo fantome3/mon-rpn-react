@@ -12,5 +12,6 @@ export const createInteracFormSchema = (minAmount: number) =>
       }),
     refInterac: z
       .string()
-      .min(8, { message: 'Doit avoir au moins 8 charactères.' }),
+      .min(6, { message: 'Ce code Interac n\'est pas valide.' })
+      .regex(/^ca?/i, { message: 'Ce code Interac n\'est pas valide.' }),
   })

@@ -41,7 +41,7 @@ export const emailContents = {
         <li>Pays de résidence&nbsp;: ${residenceCountry}</li>
         <li>Numéro&nbsp;: ${tel}</li>
         <li>Méthode de paiement&nbsp;: ${paymentMethod}</li>
-        <li>Solde de départ&nbsp;: ${solde} $</li>
+        <li>Solde de départ : ${solde}$, veuillez le renflouer afin de maintenir vos avantages.</li>
       </ul>`
   },
 
@@ -51,7 +51,7 @@ export const emailContents = {
       <p>Bonjour,</p>
       <p>Bienvenue sur la plateforme ACQ-RPN&nbsp;!</p>
       <p>Voici votre mot de passe temporaire&nbsp;: <span style="font-weight:bold;font-size:16px;color:#e67e22;">${password}</span></p>
-      <p>Pour des raisons de sécurité, changez-le dès votre première connexion.</p>
+      <p>Pour des raisons de sécurité, changez-le dès votre première connexion dans votre <a href="https://www.acq-rpn.org/reset-password/profil" style="color:#1a73e8;">profil</a>.</p>
       <p style="margin-top:20px;">Au plaisir de vous accompagner,</p>`
   },
 
@@ -78,8 +78,8 @@ export const emailContents = {
     sujet: '🚨 Solde insuffisant pour les prélèvements RPN',
     texte: ({ minimumRequiredBalance, current }: AccountStatusParams) => `
       <p>Bonjour,</p>
-      <p>Votre solde actuel est de <strong>${current} CAD</strong>, alors que le minimum requis pour les prélèvements RPN est de <strong>${minimumRequiredBalance} CAD</strong>.
-      pour les personnes seules et de <strong>25$ CAD</strong> pour les familles ou des personnes à charge.</p>
+      <p>Votre solde actuel est de <strong>${current} $ CAD</strong>, alors que le minimum requis pour les prélèvements RPN est de <strong>${minimumRequiredBalance} $ CAD</strong>
+      pour les personnes seules et de <strong>25 $ CAD</strong> pour les familles ou des personnes à charge.</p>
       <p>Merci d’alimenter votre compte afin de maintenir vos avantages.</p>
       <p style="margin-top:20px;">Cordialement,</p>`
   },
@@ -139,22 +139,3 @@ export const emailContents = {
       <p style="margin-top:20px;">Cordialement,</p>`
   }
 } as const;
-
-/* -------------------------------------------------------------------------- 
-const htmlContent = emailTemplates.nouvelUtilisateur.texte({
-  firstName: 'Marie',
-  lastName: 'Dupont',
-  email: 'mdupont@example.com',
-  nativeCountry: 'Cameroun',
-  residenceCountry: 'Canada',
-  tel: '+1 514 123-4567',
-  paymentMethod: 'Virement',
-  solde: 100
-});
-
-const htmlBody = emailTemplate({
-  content: htmlContent,
-  presidentName: 'Jirès Djoko',
-  phone: '+1 (514) 555-1234'
-});
-*/

@@ -45,8 +45,7 @@ const InteracPayment = ({ total }: InteracPaymentProps) => {
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { userInfo } = state
   const { mutateAsync: account, isPending } = useNewAccountMutation()
-  const { mutateAsync: newUserNotification, isPending: notificationPending } =
-    useNewUserNotificationMutation()
+  const { isPending: notificationPending } = useNewUserNotificationMutation()
   const { mutateAsync: newTransaction } = useNewTransactionMutation()
   const navigate = useNavigate()
   const { search } = useLocation()
@@ -69,40 +68,6 @@ const InteracPayment = ({ total }: InteracPaymentProps) => {
     if (form.formState.isSubmitSuccessful) navigate(redirect)
     return () => ac.abort()
   }, [redirect, form.formState.isSubmitSuccessful, navigate])
-
-  const payLaterHandler = async (
-    e: React.MouseEvent<HTMLButtonElement>
-  ): Promise<void> => {
-    e.preventDefault()
-    try {
-      const data = await account({
-        firstName: userInfo?.origines.firstName!,
-        lastName: userInfo?.origines.lastName!,
-        userTel: userInfo?.infos.tel!,
-        userResidenceCountry: userInfo?.infos.residenceCountry!,
-        solde: 0,
-        paymentMethod: 'interac',
-        userId: userInfo?._id!,
-        isAwaitingFirstPayment: true,
-      })
-
-      await newTransaction({
-        userId: userInfo?._id,
-        amount: 0,
-        type: 'credit',
-        reason: 'L\'utilisateur n\'a pas encore effectué de paiement Interac',
-        status: 'awaiting_payment',
-      })
-
-      ctxDispatch({ type: 'ACCOUNT_INFOS', payload: data })
-      localStorage.setItem('accountInfo', JSON.stringify(data))
-      navigate(redirect)
-      refresh()
-      await newUserNotification(userInfo?.register?.email!)
-    } catch (error) {
-      toastAxiosError(error)
-    }
-  }
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
@@ -141,7 +106,6 @@ const InteracPayment = ({ total }: InteracPaymentProps) => {
       })
       navigate(redirect)
       refresh()
-      await newUserNotification(userInfo?.register?.email!)
     } catch (error) {
       toastAxiosError(error)
     }
@@ -254,7 +218,7 @@ const InteracPayment = ({ total }: InteracPaymentProps) => {
                 <Button
                   variant='outline'
                   className='text-destructive hover:bg-destructive hover:text-white border-destructive'
-                  onClick={payLaterHandler}
+                  onClick={() => navigate(redirect)}
                   disabled={notificationPending}
                 >
                   Payer plus tard

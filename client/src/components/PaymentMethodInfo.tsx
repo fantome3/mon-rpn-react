@@ -35,18 +35,9 @@ import {
   InputOTPSlot,
 } from './ui/input-otp'
 import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card'
+import { createInteracFormSchema } from '@/lib/createInteracFormSchema'
 
-const interacFormSchema = z.object({
-  amountInterac: z
-    .number({
-      required_error: 'Le montant ne peut-être inférieur à 25$',
-      invalid_type_error: 'Le montant doit être un nombre.',
-    })
-    .gte(25),
-  refInterac: z
-    .string()
-    .min(8, { message: 'Doit avoir au moins 8 charactères.' }),
-})
+const interacFormSchema = createInteracFormSchema(25)
 
 const creditCardFormSchema = z.object({
   network: z.string(),

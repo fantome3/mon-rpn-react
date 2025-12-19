@@ -4,6 +4,7 @@ import banner3 from '../assets/banner_3.png'
 import { Info } from 'lucide-react'
 
 export const carousel_images = [banner1, banner2, banner3]
+export const age_maximal_personne = 95
 
 export const cardContent = [
   {
@@ -303,29 +304,21 @@ export const adminMenuItems = [
 ]
 
 export const relations = [
-  { name: 'Femme' },
+  { name: 'Conjoint(e)' },
   { name: 'Enfant' },
   { name: 'Père' },
   { name: 'Mère' },
 ]
 
-export const statusOptions = [
+export const canadianResidenceStatus = [
   { value: 'visitor', label: 'Visiteur' },
   { value: 'student', label: 'Étudiant' },
   { value: 'worker', label: 'Travailleur' },
   { value: 'permanent_resident', label: 'Résident Permanent' },
-  { value: 'canadian_citizen', label: 'Citoyen Canadien' },
+  { value: 'canadian_citizen', label: 'Citoyen(ne)' },
 ]
 
-export const residenceCountryStatusMap: { [key: string]: string } = {
-  student: 'Étudiant',
-  worker: 'Travailleur',
-  canadian_citizen: 'Citoyen Canadien',
-  permanent_resident: 'Résident Permanent',
-  visitor: 'Visiteur',
-}
-
-export const institutions = [
+export const academicInstitutionsList = [
   { value: 'Université Laval', label: 'Université Laval' },
   {
     value: 'Université du Québec à Rimouski',

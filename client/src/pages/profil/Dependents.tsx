@@ -37,9 +37,8 @@ import {
 } from '@/components/ui/select'
 import {
   relations,
-  residenceCountryStatusMap,
   status,
-  statusOptions,
+  canadianResidenceStatus,
   telRegex,
 } from '@/lib/constant'
 import { toast } from '@/components/ui/use-toast'
@@ -171,7 +170,7 @@ const Dependents = () => {
               'font-normal': true,
             })}
           >
-            {residenceCountryStatusMap[status]}
+            {canadianResidenceStatus.find((option) => option.value === status)?.label}
           </Badge>
         )
       },
@@ -483,7 +482,7 @@ const Dependents = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {statusOptions.map((status) => (
+                        {canadianResidenceStatus.map((status) => (
                           <SelectItem key={status.value} value={status.value}>
                             {status.label}
                           </SelectItem>

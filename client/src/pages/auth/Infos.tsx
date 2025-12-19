@@ -31,7 +31,7 @@ import {
 import {
   countries,
   postalCodeRegex,
-  statusOptions,
+  canadianResidenceStatus,
   telRegex,
 } from '@/lib/constant'
 import { useTranslation } from 'react-i18next'
@@ -41,14 +41,20 @@ import { Store } from '@/lib/Store'
 import clsx from 'clsx'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
-import { 
-  useRegisterMutation, 
-  useSendPasswordMutation, 
-  useVerifyTokenMutation 
+import {
+  useNewUserNotificationMutation,
+  useRegisterMutation,
+  useSendPasswordMutation,
+  useVerifyTokenMutation,
 } from '@/hooks/userHooks'
+import { useNewAccountMutation } from '@/hooks/accountHooks'
+import { useNewTransactionMutation } from '@/hooks/transactionHooks'
+import { Transaction } from '@/types/Transaction'
+import { Account } from '@/types/Account'
 import Loading from '@/components/Loading'
 import { checkPostalCode, checkTel, toastAxiosError } from '@/lib/utils'
 import { User } from '@/types/User'
+import { createAwaitingInteracAccount } from '@/lib/interacAccount'
 import {
   Dialog,
   DialogContent,
@@ -79,6 +85,9 @@ const Infos = () => {
   const { mutateAsync: registerfunc, isPending } = useRegisterMutation()
   const { mutateAsync: sendPasswordToUser } = useSendPasswordMutation()
   const { mutateAsync: verifyToken } = useVerifyTokenMutation()
+  const { mutateAsync: createAccount } = useNewAccountMutation()
+  const { mutateAsync: createTransaction } = useNewTransactionMutation()
+  const { mutateAsync: newUserNotification } = useNewUserNotificationMutation()
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { userInfo } = state
   const { infos } = userInfo!
@@ -144,11 +153,31 @@ const Infos = () => {
         referredBy: localStorage.getItem('referralId')!,
       }
       const registerData = await registerfunc(userData)
+
+      const accountData = (await createAwaitingInteracAccount({
+        createAccount,
+        createTransaction: async (payload) => {
+          if (!payload.userId) {
+            throw new Error('userId is required');
+          }
+
+          return createTransaction(payload as Transaction);
+        },
+
+        userInfo: registerData,
+        transactionReason: "Compte créé en attente du premier paiement Interac (inscription)",
+      })) as Account
+
       ctxDispatch({
         type: 'USER_SIGNUP',
         payload: registerData,
       })
+      ctxDispatch({
+        type: 'ACCOUNT_INFOS',
+        payload: accountData,
+      })
       localStorage.setItem('userInfo', JSON.stringify(registerData))
+      localStorage.setItem('accountInfo', JSON.stringify(accountData))
 
       setShowModal(true)
 
@@ -156,13 +185,14 @@ const Infos = () => {
         email: userInfo?.register?.email!,
         password: userInfo?.register?.password!,
       })
+      await newUserNotification(userInfo?.register?.email!)
     } catch (error: any) {
       if (error.response && error.response.status === 409) {
         const title = "Changer l'adresse courriel";
-        const description = "L'adresse courriel que vous avez entrer existe déjà";
+        const description = "L'adresse courriel que vous avez entré existe déjà";
         toastAxiosError(description, title)
       } else {
-        toastAxiosError(error, 'Opps!')
+        toastAxiosError(error, 'Ooops!')
       }
     }
   }
@@ -309,7 +339,7 @@ const Infos = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {statusOptions.map((status) => (
+                          {canadianResidenceStatus.map((status) => (
                             <SelectItem key={status.value} value={status.value}>
                               {status.label}
                             </SelectItem>
