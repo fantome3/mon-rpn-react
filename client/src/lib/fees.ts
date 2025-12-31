@@ -9,15 +9,15 @@ export type FeeDetail = {
 }
 
 const BASE_FEES: Record<FeeType, number> = {
-  worker: 65, // 50$ adhésion + 15$ traitement
-  student: 40, // 25$ adhésion + 15$ traitement
-  minor: 15, // 15$ traitement, pas d'adhésion
+  worker: 60, // 50 $ membership + 10 $ adhésion
+  student: 35, // 25 $ membership + 10 $ adhésion
+  minor: 10, // 10 $ adhésion
 }
 
 const RPN_FEES: Record<FeeType, number> = {
   worker: 20,
   student: 20,
-  minor: 10,
+  minor: 20,
 }
 
 export const calculateSubtotal = (
