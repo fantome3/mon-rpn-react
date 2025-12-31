@@ -13,9 +13,9 @@ import { Store } from '@/lib/Store'
  * --------------------------------------------------
  * • L’utilisateur saisit le **nombre d’adultes** (≥ 1) et de **mineurs** (≥ 0).
  * • Barème fixe :
- *     - Travailleur : 85 $ (50 $ ACQ + 15 $ traitement + 20 $ RPN)
- *     - Étudiant : 60 $ (25 $ ACQ + 15 $ traitement + 20 $ RPN)
- *     - Mineur : 25 $ (15 $ traitement + 10 $ RPN)
+ *     - Travailleur : 80 $ (50 $ ACQ + 10 $ adhésion + 20 $ RPN)
+ *     - Étudiant : 55 $ (25 $ ACQ + 10 $ adhésion + 20 $ RPN)
+ *     - Mineur : 30 $ (10 $ adhésion + 20 $ RPN)
  */
 
 type SelectFeesProps = {
@@ -46,26 +46,36 @@ export default function SelectFees({ updateTotal }: SelectFeesProps) {
     const extraAdults = Math.max(0, newAdult)
     const extraMinors = Math.max(0, newMinor)
 
-    const currentFeeItems: FeeDetail[] = [defaultFeeDetails[0]]
-    if (extraAdults > 0)
-      currentFeeItems.push({
-        id: 'adults',
-        feeDescription: `${extraAdults} × autre(s) adulte(s)`,
-        quantity: extraAdults,
-        type: 'worker',
-        isRpnActive: true,
-      })
-    if (extraMinors > 0)
-      currentFeeItems.push({
-        id: 'minors',
-        feeDescription: `${extraMinors} × mineur(s)`,
-        quantity: extraMinors,
-        type: 'minor',
-        isRpnActive: true,
-      })
+    setFeeDetails((prev) => {
+      const previousToggles = new Map(prev.map((row) => [row.id, row.isRpnActive]))
+      const rows: FeeDetail[] = [
+        {
+          ...defaultFeeDetails[0],
+          isRpnActive: previousToggles.get('me') ?? defaultFeeDetails[0].isRpnActive,
+        },
+      ]
 
-    setFeeDetails(currentFeeItems)
-    updateTotal(calculateTotal(currentFeeItems))
+      if (extraAdults > 0)
+        rows.push({
+          id: 'adults',
+          feeDescription: `${extraAdults} × autre(s) adulte(s)`,
+          quantity: extraAdults,
+          type: 'worker',
+          isRpnActive: previousToggles.get('adults') ?? true,
+        })
+
+      if (extraMinors > 0)
+        rows.push({
+          id: 'minors',
+          feeDescription: `${extraMinors} × mineur(s)`,
+          quantity: extraMinors,
+          type: 'minor',
+          isRpnActive: previousToggles.get('minors') ?? true,
+        })
+
+      updateTotal(calculateTotal(rows))
+      return rows
+    })
   }
 
   /* ---------------- Handlers de quantité saisie ----------------- */
@@ -109,8 +119,8 @@ export default function SelectFees({ updateTotal }: SelectFeesProps) {
             <thead>
               <tr className="bg-gray-100 text-center">
                 <th className="p-2 border">Catégorie</th>
-                <th className="p-2 border">Frais d’adhésion ACQ</th>
-                <th className="p-2 border">Frais de traitement</th>
+                <th className="p-2 border">Membership annuel</th>
+                <th className="p-2 border">Frais d'adhésion</th>
                 <th className="p-2 border">Frais minimum RPN</th>
                 <th className="p-2 border">Total / personne</th>
               </tr>
@@ -119,23 +129,23 @@ export default function SelectFees({ updateTotal }: SelectFeesProps) {
               <tr className="text-center">
                 <td className="p-2 border text-left">Travailleur(se) (18 ans et +)</td>
                 <td className="p-2 border">50 $</td>
-                <td className="p-2 border">15 $</td>
+                <td className="p-2 border">10 $</td>
                 <td className="p-2 border">20 $</td>
-                <td className="p-2 border font-semibold">85 $</td>
+                <td className="p-2 border font-semibold">80 $</td>
               </tr>
               <tr className="text-center">
                 <td className="p-2 border text-left">Étudiant(e)</td>
                 <td className="p-2 border">25 $</td>
-                <td className="p-2 border">15 $</td>
+                <td className="p-2 border">10 $</td>
                 <td className="p-2 border">20 $</td>
-                <td className="p-2 border font-semibold">60 $</td>
+                <td className="p-2 border font-semibold">55 $</td>
               </tr>
               <tr className="text-center">
                 <td className="p-2 border text-left">Mineur (&lt; 18 ans)</td>
                 <td className="p-2 border">—</td>
-                <td className="p-2 border">15 $</td>
                 <td className="p-2 border">10 $</td>
-                <td className="p-2 border font-semibold">25 $</td>
+                <td className="p-2 border">20 $</td>
+                <td className="p-2 border font-semibold">30 $</td>
               </tr>
             </tbody>
           </table>
@@ -143,7 +153,7 @@ export default function SelectFees({ updateTotal }: SelectFeesProps) {
           <p className="mt-4 text-sm">
             <strong>Comment procéder :</strong><br />
             Indiquez simplement le nombre d’adultes et de mineurs à inscrire. Le montant total se met à jour automatiquement.<br />
-            Exemple : 1 adulte + 2 mineurs = 85 $ + 25 $ + 25 $ = 135 $.
+            Exemple : 1 adulte + 2 mineurs = 80 $ + 30 $ + 30 $ = 140 $.
           </p>
         </div>
       </div>
@@ -178,11 +188,11 @@ export default function SelectFees({ updateTotal }: SelectFeesProps) {
               <th className="p-2 border whitespace-nowrap">&nbsp;</th>
               <th className="p-2 border whitespace-normal sm:whitespace-nowrap">
                 <span className="block sm:inline">Frais </span>
-                <span className="block sm:inline">adhésion</span>
+                <span className="block sm:inline">membership</span>
               </th>
               <th className="p-2 border whitespace-normal sm:whitespace-nowrap">
                 <span className="block sm:inline">Frais </span>
-                <span className="block sm:inline">traitement</span>
+                <span className="block sm:inline">adhésion</span>
               </th>
               <th className="p-2 border whitespace-normal sm:whitespace-nowrap">RPN</th>
               <th className="p-2 border whitespace-nowrap">Sous‑total</th>
