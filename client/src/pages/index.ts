@@ -22,6 +22,7 @@ import AllAnnouncements from './announcements/Announcements'
 import AccountDeactivated from './account-deactivated/AccountDeactivated'
 import BalNoelLanding from './evenements/feteNoel'
 import AdminBookingList from './evenements/pageAdministrateur'
+import WeddingMenu from './evenements/WeddingMenu'
 
 export {
   Login,
@@ -48,4 +49,5 @@ export {
   AccountDeactivated,
   BalNoelLanding,
   AdminBookingList,
+  WeddingMenu,
 }
