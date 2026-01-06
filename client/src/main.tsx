@@ -34,7 +34,8 @@ import {
   AllAnnouncements,
   AccountDeactivated,
   BalNoelLanding,
-  AdminBookingList
+  AdminBookingList,
+  WeddingMenu
 } from './pages/index.ts'
 import './lib/i18n'
 import { StoreProvider } from './lib/Store.tsx'
@@ -59,6 +60,7 @@ const router = createBrowserRouter(
       <Route path='/contact-us' element={<Contact />} />
       <Route path='/conditions' element={<Conditions />} />
       <Route path='/account-deactivated' element={<AccountDeactivated />} />
+      <Route path='/menu-mariage' element={<WeddingMenu />} />
       <Route path='/' element={<App />}>
         <Route path='/' index={true} element={<HomePage />} />
 
