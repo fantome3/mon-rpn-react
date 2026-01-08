@@ -1,93 +1,93 @@
 import { SearchEngineOptimization } from '@/components/SearchEngine/SearchEngineOptimization'
 import { motion } from 'framer-motion'
 import floconNeige from '@/assets/flocon-neige-anime.gif'
+import rokiaEtRomeo from '@/assets/rokia_et_moi.jpg'
 
 const sections = [
   {
-    title: 'Amuse-bouche & Entrées',
+    title: 'Amuse-bouche',
     description:
-      'Textures délicates, jeux de saveurs florales et acidulées pour ouvrir le bal.',
+      'Textures délicates, jeux de saveurs florales et acidulées pour briser l\'ennui.',
     items: [
       {
-        name: 'Ndolet crevette',
+        name: 'Mini Quiche',
+        description: 'petites bouchées salées garnies de légumes et viande',
         image:
-          'https://th.bing.com/th/id/OIP.ezV2IMhqBI68xjUmthr95QHaE8?w=282&h=187&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3',
+          'https://cdn.thefreshmancook.com/wp-content/uploads/2024/06/Crustless-Mini-Quiche-Recipe-2-1024x771.png',
       },
       {
-        name: 'Tartare de daurade, crème de yuzu et pétales comestibles',
+        name: 'samoussas',
+        description: 'triangles croustillants farcis de viande ou de légumes, inspirés des saveurs africaines et asiatiques.',
         image:
-          'https://images.unsplash.com/photo-1481931098730-318b6f776db0?auto=format&fit=crop&w=800&q=80',
-      },
+          'https://assets.afcdn.com/recipe/20200218/107814_w1024h768c1cx960cy540cxt0cyt0cxb1920cyb1080.jpg',
+      }
     ],
   },
   {
     title: 'Plats Signature',
-    description:
-      'Des accords couture qui mêlent terroir français et touches exotiques.',
+    description: '',
     items: [
       {
-        name: 'Filet de boeuf en croûte truffée, jus réduit au cacao',
+        name: 'Ndolet',
+        description: 'plat camerounais à base de feuilles amères mijotées avec arachides et viande ou poisson.',
         image:
-          'https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?auto=format&fit=crop&w=800&q=80',
+          'https://th.bing.com/th/id/OIP.ezV2IMhqBI68xjUmthr95QHaE8?w=282&h=187&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3',
       },
       {
-        name: 'Bar rôti, écume de citronnelle, asperges glacées',
+        name: 'Tchep rouge au poisson',
+        description: 'riz sénégalais parfumé à la tomate et aux épices, accompagné de poisson.',
         image:
-          'https://images.unsplash.com/photo-1525755662778-989d0524087e?auto=format&fit=crop&w=800&q=80',
+          'https://answersafrica.com/wp-content/uploads/2017/03/benachin.jpg',
+      },
+      {
+        name: 'Vermicelles au poulet',
+        description: 'pâtes fines sautées avec morceaux de poulet et légumes, relevées d’épices douces.',
+        image:
+          'https://i.pinimg.com/originals/a7/cf/c1/a7cfc142839fccdea28fc3306fb78123.jpg',
+      },
+      {
+        name: 'Sauce feuille',
+        description: 'spécialité ivoirienne préparée avec feuilles vertes locales, viande ou poisson, et assaisonnements traditionnels.',
+        image:
+          'https://www.cuisinedecheznous.net/wp-content/uploads/2022/04/sauce-feuille-patate-cuisine-ivoirienne-ivorianfood.jpg',
+      },
+      {
+        name: 'Choukouya De Mouton',
+        description: 'brochettes de viande de mouton marinée aux épices et braisées, plat populaire en Côte d\'Ivoire.',
+        image:
+          'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2b/e6/06/24/choukouya.jpg?w=1200&h=-1&s=1',
       },
     ],
   },
   {
-    title: 'Douceurs & Bar à Desserts',
-    description:
-      'Un final pétillant aux textures aériennes et notes florales.',
+    title: 'Bar à Desserts',
+    description: 'Gâteaux à partager par les mariés',
     items: [
       {
-        name: 'Sphère chocolat-blanc, coeur passion et éclats d’or',
+        name: 'À dévoiler par les mariés',
+        description: '',
         image:
           'https://th.bing.com/th/id/OIP.sLVnpZGObKoLhNIneH_GkAHaEO?w=326&h=186&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3',
-      },
-      {
-        name: 'Entremets framboise-litchi, meringue cristal',
-        image:
-          'https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=800&q=80',
-      },
+      }
     ],
   },
   {
-    title: 'Signature Bar',
+    title: 'Bar',
     description:
-      'Mixologie sur-mesure avec floral, bulles et touches fumées.',
+      'Boissons pour accompagner le repas',
     items: [
       {
-        name: 'Cocktail “Éclat de Nuit” – gin infusé à la lavande, champagne, fumée de thym',
-        image:
-          'https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=800&q=80',
-      },
-      {
-        name: 'Mocktail “Lueur” – verveine, poire, tonic pétillant',
+        name: 'Mocktail – Jus de fruit',
+        description: 'Mélange rafraîchissant de jus de fruits tropicaux.',
         image:
           'https://images.unsplash.com/photo-1497534446932-c925b458314e?auto=format&fit=crop&w=800&q=80',
       },
+      {
+        name: 'Cocktail – vin rouge',
+        image:
+          'https://i0.wp.com/www.toutsurlevin.ca/wp-content/uploads/2019/01/d%C3%A9gustation-de-vin-tout-sur-le-vin.png?fit=1024%2C1024',
+      },
     ],
-  },
-]
-
-const experienceHighlights = [
-  {
-    title: 'Ambiance',
-    description:
-      'Un ballet de lumières bleutées, ponctué d’or et de cristal, pour accueillir vos proches dans une atmosphère feutrée.',
-  },
-  {
-    title: 'Signature culinaire',
-    description:
-      'Chaque assiette mêle élégance française et clins d’œil aux racines africaines des mariés.',
-  },
-  {
-    title: 'Service',
-    description:
-      'Une brigade aux gestes précis, un timing maîtrisé et une attention discrète pour vos convives.',
   },
 ]
 
@@ -108,24 +108,38 @@ export default function WeddingMenu() {
         </div>
         <div className='pointer-events-none fixed inset-0 z-[-1] bg-gradient-to-br from-slate-950/70 via-slate-950/45 to-slate-900/40' />
         <main className='relative z-10'>
-          <section className='flex min-h-screen flex-col items-center justify-center px-6 py-24 text-center lg:px-10'>
+          <section className='px-6 lg:px-10'>
             <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1.1 }}
-              className='max-w-3xl space-y-6'
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.7 }}
+              className='mx-auto flex max-w-4xl flex-col items-center gap-10 rounded-3xl border border-[#D4AF37]/25 bg-slate-900/70 p-10 shadow-[0_30px_80px_-40px_rgba(10,24,56,0.65)] backdrop-blur'
             >
-              <p className='tracking-[0.4em] text-xs uppercase text-[#D4AF37]'>
-                Roméo & Rokia
-              </p>
-              <h1 className='text-4xl font-semibold text-[#D4AF37] md:text-6xl'>
-                Bienvenue à notre union
-              </h1>
-              <p className='text-lg text-slate-200/80 md:text-xl'>
-                Deux âmes, deux héritages, une promesse éternelle. Merci de
-                célébrer avec nous ce moment d’union et d’amour, sous la
-                valse de dégustations soigneusement orchestrée pour ravir vos sens.
-              </p>
+              <img
+                src={rokiaEtRomeo}
+                alt='Roméo & Rokia'
+                className='h-66 w-64 rounded-full border-4 border-[#D4AF37]/60 object-cover shadow-[0_15px_45px_-30px_rgba(212,175,55,0.8)]'
+                loading='lazy'
+              />
+              <div className='text-center space-y-4'>
+                <h2 className='text-3xl font-semibold text-[#D4AF37] md:text-4xl'>
+                  Roméo & Rokia
+                </h2>
+                <p className='text-base leading-relaxed text-slate-200/80'>
+                  Deux âmes, deux héritages, une promesse éternelle.
+                </p>
+                <p className='text-base leading-relaxed text-slate-200/80'>
+                  Unis par des racines camerounaises et ivoiriennes, nos histoires se rencontrent dans un amour vibrant, 
+                  respectueux des traditions et de leurs divergences.
+                </p>
+                <p className='text-base leading-relaxed text-slate-200/80'>
+                  Ce menu est l’écrin culinaire de notre célébration, une valse de saveurs soigneusement orchestrée pour ravir vos sens.
+                </p>
+                <p className='text-sm uppercase tracking-[0.35em] text-slate-200/55'>
+                  “Deux cultures, une lumière commune.”
+                </p>
+              </div>
             </motion.div>
           </section>
 
@@ -141,28 +155,11 @@ export default function WeddingMenu() {
                 Notre promesse à vos sens
               </h2>
               <p className='mt-6 text-base leading-relaxed text-slate-200/80'>
-                Ce menu a été conçu comme un voyage sensoriel : du premier
-                toast aux desserts, chaque accord célèbre l’union de nos
-                cultures et l’élégance contemporaine de votre soirée. Laissez-vous
-                guider par les textures, arômes et jeux de lumière.
+                du premier amuse-bouche au dessert, chaque accord célèbre l’union de nos
+                cultures et la joie de votre présence. Laissez-vous
+                guider par les textures, arômes et la musique du téroire.
               </p>
             </motion.div>
-
-            {/* <div className='mt-16 grid gap-8 md:grid-cols-3'>
-              {experienceHighlights.map(({ title, description }) => (
-                <motion.article
-                  key={title}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.4 }}
-                  transition={{ duration: 0.6 }}
-                  className='rounded-2xl border border-[#D4AF37]/30 bg-slate-900/70 p-6 shadow-[0_20px_60px_-30px_rgba(4,20,60,0.65)]'
-                >
-                  <h3 className='text-xl font-medium text-[#D4AF37]'>{title}</h3>
-                  <p className='mt-3 text-sm text-slate-200/70'>{description}</p>
-                </motion.article>
-              ))}
-            </div> */}
           </section>
 
           <section className='px-6 pb-24 lg:px-10'>
@@ -174,11 +171,8 @@ export default function WeddingMenu() {
               className='mx-auto max-w-4xl text-center'
             >
               <h2 className='text-3xl font-semibold text-[#D4AF37] md:text-4xl'>
-                Menu Signature
+                Menu
               </h2>
-              <p className='mt-4 text-sm uppercase tracking-[0.4em] text-slate-200/60'>
-                Élégance moderne & raffinement intemporel
-              </p>
             </motion.div>
 
             <div className='mt-16 grid gap-14'>
@@ -187,7 +181,6 @@ export default function WeddingMenu() {
                   key={section.title}
                   initial={{ opacity: 0, y: 32 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.3 }}
                   transition={{ duration: 0.6 }}
                   className='rounded-3xl border border-[#D4AF37]/20 bg-slate-900/75 p-8 shadow-[0_30px_80px_-40px_rgba(10,24,56,0.8)] backdrop-blur'
                 >
@@ -221,7 +214,7 @@ export default function WeddingMenu() {
                             {item.name}
                           </h4>
                           <p className='mt-2 text-sm text-slate-200/70'>
-                            Accord suggéré, service à l’assiette.
+                            {item.description}
                           </p>
                         </div>
                       </div>
