@@ -6,8 +6,7 @@ import rokiaEtRomeo from '@/assets/rokia_et_moi.jpg'
 const sections = [
   {
     title: 'Amuse-bouche',
-    description:
-      'Textures délicates, jeux de saveurs florales et acidulées pour briser l\'ennui.',
+    description: '',
     items: [
       {
         name: 'Mini Quiche',
@@ -16,7 +15,7 @@ const sections = [
           'https://cdn.thefreshmancook.com/wp-content/uploads/2024/06/Crustless-Mini-Quiche-Recipe-2-1024x771.png',
       },
       {
-        name: 'samoussas',
+        name: 'Samoussas',
         description: 'triangles croustillants farcis de viande ou de légumes, inspirés des saveurs africaines et asiatiques.',
         image:
           'https://assets.afcdn.com/recipe/20200218/107814_w1024h768c1cx960cy540cxt0cyt0cxb1920cyb1080.jpg',
@@ -24,7 +23,7 @@ const sections = [
     ],
   },
   {
-    title: 'Plats Signature',
+    title: 'Plats principaux',
     description: '',
     items: [
       {
@@ -60,8 +59,8 @@ const sections = [
     ],
   },
   {
-    title: 'Bar à Desserts',
-    description: 'Gâteaux à partager par les mariés',
+    title: 'Dessert',
+    description: 'Gâteau à partager par les mariés',
     items: [
       {
         name: 'À dévoiler par les mariés',
@@ -130,7 +129,7 @@ export default function WeddingMenu() {
                   Deux âmes, deux héritages, une promesse éternelle.
                 </p>
                 <p className='text-base leading-relaxed text-slate-200/80'>
-                  Unis par des racines camerounaises et ivoiriennes, nos histoires se rencontrent dans un amour vibrant, 
+                  Unis par des racines camerounaises et ivoiriennes,  
                   respectueux des traditions et de leurs divergences.
                 </p>
                 <p className='text-base leading-relaxed text-slate-200/80'>
@@ -143,26 +142,7 @@ export default function WeddingMenu() {
             </motion.div>
           </section>
 
-          <section className='px-6 py-24 lg:px-10'>
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-              className='mx-auto max-w-3xl text-center'
-            >
-              <h2 className='text-3xl font-semibold text-[#D4AF37] md:text-4xl'>
-                Notre promesse à vos sens
-              </h2>
-              <p className='mt-6 text-base leading-relaxed text-slate-200/80'>
-                du premier amuse-bouche au dessert, chaque accord célèbre l’union de nos
-                cultures et la joie de votre présence. Laissez-vous
-                guider par les textures, arômes et la musique du téroire.
-              </p>
-            </motion.div>
-          </section>
-
-          <section className='px-6 pb-24 lg:px-10'>
+          <section className='px-6 py-12 lg:px-10'>
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -175,7 +155,7 @@ export default function WeddingMenu() {
               </h2>
             </motion.div>
 
-            <div className='mt-16 grid gap-14'>
+            <div className='mt-10 grid gap-14'>
               {sections.map((section) => (
                 <motion.article
                   key={section.title}
@@ -188,13 +168,13 @@ export default function WeddingMenu() {
                     <h3 className='text-2xl font-semibold text-[#D4AF37]'>
                       {section.title}
                     </h3>
-                    <span className='h-px flex-1 bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent sm:mx-8' />
+                    
                     <p className='max-w-xl text-sm text-slate-200/70'>
                       {section.description}
                     </p>
                   </div>
 
-                  <div className='mt-10 grid gap-8 md:grid-cols-2'>
+                  <div className='mt-5 grid gap-8 md:grid-cols-2'>
                     {section.items.map((item) => (
                       <div
                         key={item.name}
