@@ -33,6 +33,8 @@ export default function SelectFees({ updateTotal }: SelectFeesProps) {
       feeDescription: isStudent ? 'Vous (Étudiant-e)' : 'Vous (Travailleur-se)',
       quantity: 1,
       type: isStudent ? 'student' : 'worker',
+      isMembershipActive: true,
+      isAdhesionActive: true,
       isRpnActive: true,
     },
   ]
@@ -47,11 +49,16 @@ export default function SelectFees({ updateTotal }: SelectFeesProps) {
     const extraMinors = Math.max(0, newMinor)
 
     setFeeDetails((prev) => {
-      const previousToggles = new Map(prev.map((row) => [row.id, row.isRpnActive]))
+      const previousSelections = new Map(prev.map((row) => [row.id, row]))
       const rows: FeeDetail[] = [
         {
           ...defaultFeeDetails[0],
-          isRpnActive: previousToggles.get('me') ?? defaultFeeDetails[0].isRpnActive,
+          isMembershipActive:
+            previousSelections.get('me')?.isMembershipActive ?? defaultFeeDetails[0].isMembershipActive,
+          isAdhesionActive:
+            previousSelections.get('me')?.isAdhesionActive ?? defaultFeeDetails[0].isAdhesionActive,
+          isRpnActive:
+            previousSelections.get('me')?.isRpnActive ?? defaultFeeDetails[0].isRpnActive,
         },
       ]
 
@@ -61,7 +68,9 @@ export default function SelectFees({ updateTotal }: SelectFeesProps) {
           feeDescription: `${extraAdults} × autre(s) adulte(s)`,
           quantity: extraAdults,
           type: 'worker',
-          isRpnActive: previousToggles.get('adults') ?? true,
+          isMembershipActive: previousSelections.get('adults')?.isMembershipActive ?? true,
+          isAdhesionActive: previousSelections.get('adults')?.isAdhesionActive ?? true,
+          isRpnActive: previousSelections.get('adults')?.isRpnActive ?? true,
         })
 
       if (extraMinors > 0)
@@ -70,7 +79,9 @@ export default function SelectFees({ updateTotal }: SelectFeesProps) {
           feeDescription: `${extraMinors} × mineur(s)`,
           quantity: extraMinors,
           type: 'minor',
-          isRpnActive: previousToggles.get('minors') ?? true,
+          isMembershipActive: false,
+          isAdhesionActive: previousSelections.get('minors')?.isAdhesionActive ?? true,
+          isRpnActive: previousSelections.get('minors')?.isRpnActive ?? true,
         })
 
       updateTotal(calculateTotal(rows))
@@ -92,6 +103,14 @@ export default function SelectFees({ updateTotal }: SelectFeesProps) {
   const toggleRpn = (id: string) => {
     const updated = feeDetails.map((r) =>
       r.id === id ? { ...r, isRpnActive: !r.isRpnActive } : r,
+    )
+    setFeeDetails(updated)
+    updateTotal(calculateTotal(updated))
+  }
+
+  const toggleAdhesion = (id: string) => {
+    const updated = feeDetails.map((r) =>
+      r.id === id ? { ...r, isAdhesionActive: !r.isAdhesionActive } : r,
     )
     setFeeDetails(updated)
     updateTotal(calculateTotal(updated))
@@ -192,7 +211,7 @@ export default function SelectFees({ updateTotal }: SelectFeesProps) {
               </th>
               <th className="p-2 border whitespace-normal sm:whitespace-nowrap">
                 <span className="block sm:inline">Frais </span>
-                <span className="block sm:inline">adhésion</span>
+                <span className="block sm:inline">adhésion</span> pourquoi le mail de 100$?
               </th>
               <th className="p-2 border whitespace-normal sm:whitespace-nowrap">RPN</th>
               <th className="p-2 border whitespace-nowrap">Sous‑total</th>
@@ -204,11 +223,11 @@ export default function SelectFees({ updateTotal }: SelectFeesProps) {
                 <td className="p-2 border text-left font-medium whitespace-nowrap">{row.feeDescription}</td>
                 {/* ACQ obligatoire adultes */}
                 <td className="p-2 border">
-                  {row.type === 'minor' ? '—' : <Checkbox checked disabled />}
+                  {row.type === 'minor' ? '—' : <Checkbox checked={row.isMembershipActive} disabled />}
                 </td>
                 {/* Traitement obligatoire */}
                 <td className="p-2 border">
-                  <Checkbox checked disabled />
+                  <Checkbox checked={row.isAdhesionActive} onCheckedChange={() => toggleAdhesion(row.id)} />
                 </td>
                 {/* RPN optionnel */}
                 <td className="p-2 border">

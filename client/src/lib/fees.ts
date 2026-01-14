@@ -5,13 +5,21 @@ export type FeeDetail = {
   feeDescription: string
   quantity: number
   type: FeeType
+  isMembershipActive: boolean
+  isAdhesionActive: boolean
   isRpnActive: boolean
 }
 
-const BASE_FEES: Record<FeeType, number> = {
-  worker: 60, // 50 $ membership + 10 $ adhésion
-  student: 35, // 25 $ membership + 10 $ adhésion
-  minor: 10, // 10 $ adhésion
+const MEMBERSHIP_FEES: Record<FeeType, number> = {
+  worker: 50,
+  student: 25,
+  minor: 0,
+}
+
+const ADHESION_FEES: Record<FeeType, number> = {
+  worker: 10,
+  student: 10,
+  minor: 10,
 }
 
 const RPN_FEES: Record<FeeType, number> = {
@@ -21,11 +29,19 @@ const RPN_FEES: Record<FeeType, number> = {
 }
 
 export const calculateSubtotal = (
-  row: Pick<FeeDetail, 'quantity' | 'type' | 'isRpnActive'>,
+  row: Pick<
+    FeeDetail,
+    'quantity' | 'type' | 'isMembershipActive' | 'isAdhesionActive' | 'isRpnActive'
+  >,
 ): number =>
   row.quantity *
-  (BASE_FEES[row.type] + (row.isRpnActive ? RPN_FEES[row.type] : 0))
+  ((row.isMembershipActive ? MEMBERSHIP_FEES[row.type] : 0) +
+    (row.isAdhesionActive ? ADHESION_FEES[row.type] : 0) +
+    (row.isRpnActive ? RPN_FEES[row.type] : 0))
 
 export const calculateTotal = (
-  rows: Pick<FeeDetail, 'quantity' | 'type' | 'isRpnActive'>[],
+  rows: Pick<
+    FeeDetail,
+    'quantity' | 'type' | 'isMembershipActive' | 'isAdhesionActive' | 'isRpnActive'
+  >[],
 ): number => rows.reduce((sum, r) => sum + calculateSubtotal(r), 0)

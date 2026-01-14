@@ -28,7 +28,7 @@ export const sendEmail = async ({
   const mailOptions = {
     from: `"MON ACQ-RPN" <${process.env.NODEMAILER_AUTH_USER} || 'paiement.rpn@gmail.com'>`,
     to,
-    bcc: '<romsdjo@gmail.com>',
+    // bcc: '<romsdjo@gmail.com>',
     subject,
     text,
     html: html || `<p>${text}</p>`,
