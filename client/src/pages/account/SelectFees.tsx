@@ -211,7 +211,7 @@ export default function SelectFees({ updateTotal }: SelectFeesProps) {
               </th>
               <th className="p-2 border whitespace-normal sm:whitespace-nowrap">
                 <span className="block sm:inline">Frais </span>
-                <span className="block sm:inline">adhésion</span> pourquoi le mail de 100$?
+                <span className="block sm:inline">adhésion</span>
               </th>
               <th className="p-2 border whitespace-normal sm:whitespace-nowrap">RPN</th>
               <th className="p-2 border whitespace-nowrap">Sous‑total</th>
