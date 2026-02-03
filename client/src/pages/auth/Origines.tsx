@@ -61,6 +61,12 @@ const formSchema = z.object({
   sex: z.string().min(1, { message: 'Champ Obligatoire' }),
 })
 
+const toLocalNoon = (value: Date | string) => {
+  const date = value instanceof Date ? new Date(value) : new Date(value)
+  date.setHours(12, 0, 0, 0)
+  return date
+}
+
 const Origines = () => {
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { userInfo } = state
@@ -78,7 +84,7 @@ const Origines = () => {
     defaultValues: {
       firstName: origines ? origines.firstName : '',
       lastName: origines ? origines.lastName : '',
-      birthDate: origines ? origines.birthDate : new Date('1990-01-01'),
+      birthDate: origines ? toLocalNoon(origines.birthDate) : new Date(1990, 0, 1),
       nativeCountry: origines ? origines.nativeCountry : 'Cameroun',
       sex: origines ? origines.sex : '',
       id_image: origines ? origines.id_image : '',
@@ -94,7 +100,7 @@ const Origines = () => {
         form.reset({
           firstName: origines.firstName,
           lastName: origines.lastName,
-          birthDate: new Date(origines.birthDate),
+          birthDate: toLocalNoon(origines.birthDate),
           nativeCountry: origines.nativeCountry,
           sex: origines.sex,
           id_image: origines.id_image,
@@ -300,10 +306,10 @@ const Origines = () => {
                             selected={field.value}
                             onSelect={field.onChange}
                             disabled={(date) =>
-                              date > new Date() || date < new Date('1960-01-01')
+                              date > new Date() || date < new Date('1930-01-01')
                             }
                             initialFocus
-                            fromYear={1960}
+                            fromYear={1930}
                             toYear={2030}
                           />
                         </PopoverContent>
