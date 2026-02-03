@@ -295,6 +295,8 @@ const Dependents = () => {
           relationship: values.relationship,
           residenceCountryStatus: values.residenceCountryStatus,
           status: values.status,
+          birthDate: values.birthDate,
+          tel: values.tel,
         }
         const updatedFamilyMembers = [...(user?.familyMembers ?? [])]
         updatedFamilyMembers[getIndex] = updatedMember
