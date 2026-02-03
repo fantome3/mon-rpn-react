@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import { Button } from './ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from './ui/card'
 import { Store } from '@/lib/Store'
@@ -78,16 +78,22 @@ const UserOriginInfo = () => {
     },
   })
 
+  const infosResetSignatureRef = useRef('')
+
   useEffect(() => {
     if (userInfo) {
-      form.reset({
-        residenceCountry: infos?.residenceCountry,
-        postalCode: infos?.postalCode,
-        address: infos?.address,
-        tel: infos?.tel,
-        hasInsurance: infos?.hasInsurance,
-        residenceCountryStatus: infos?.residenceCountryStatus,
-      })
+      const nextSignature = JSON.stringify(infos ?? {})
+      if (infosResetSignatureRef.current !== nextSignature) {
+        form.reset({
+          residenceCountry: infos?.residenceCountry,
+          postalCode: infos?.postalCode,
+          address: infos?.address,
+          tel: infos?.tel,
+          hasInsurance: infos?.hasInsurance,
+          residenceCountryStatus: infos?.residenceCountryStatus,
+        })
+        infosResetSignatureRef.current = nextSignature
+      }
     }
   }, [userInfo, form, infos])
 
@@ -268,8 +274,8 @@ const UserOriginInfo = () => {
                   <FormItem>
                     <FormLabel className='text-sm'>Pays de résidence</FormLabel>
                     <Select
+                      value={field.value ?? ''}
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
                     >
                       <FormControl>
                         <SelectTrigger>
