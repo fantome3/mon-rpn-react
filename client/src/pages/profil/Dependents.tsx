@@ -12,7 +12,7 @@ import { Store } from '@/lib/Store'
 import { FamilyMember } from '@/types/User'
 import { ColumnDef } from '@tanstack/react-table'
 import clsx from 'clsx'
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowUpDown, Pencil, Trash2, Tally1, CalendarIcon } from 'lucide-react'
 import CustomModal from '@/components/CustomModal'
@@ -107,17 +107,23 @@ const Dependents = () => {
     },
   })
 
+  const editResetSignatureRef = useRef('')
+
   useEffect(() => {
     if (editingItem) {
-      form.reset({
-        firstName: editingItem.firstName || '',
-        lastName: editingItem.lastName || '',
-        relationship: editingItem.relationship || '',
-        status: editingItem.status || '',
-        residenceCountryStatus: editingItem.residenceCountryStatus || 'worker',
-        birthDate: new Date(editingItem.birthDate),
-        tel: editingItem.tel,
-      })
+      const nextSignature = JSON.stringify(editingItem)
+      if (editResetSignatureRef.current !== nextSignature) {
+        form.reset({
+          firstName: editingItem.firstName || '',
+          lastName: editingItem.lastName || '',
+          relationship: editingItem.relationship || '',
+          status: editingItem.status || '',
+          residenceCountryStatus: editingItem.residenceCountryStatus || 'worker',
+          birthDate: new Date(editingItem.birthDate),
+          tel: editingItem.tel,
+        })
+        editResetSignatureRef.current = nextSignature
+      }
     }
   }, [editingItem, form])
 
@@ -441,9 +447,8 @@ const Dependents = () => {
                   <FormItem>
                     <FormLabel className='mb-0.5 text-sm'>Relation</FormLabel>
                     <Select
+                      value={field.value ?? ''}
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      {...field}
                     >
                       <FormControl>
                         <SelectTrigger className='w-full'>
@@ -472,9 +477,8 @@ const Dependents = () => {
                       Status au Canada
                     </FormLabel>
                     <Select
+                      value={field.value ?? ''}
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      {...field}
                     >
                       <FormControl>
                         <SelectTrigger className='w-full'>
@@ -501,9 +505,8 @@ const Dependents = () => {
                   <FormItem>
                     <FormLabel className='mb-0.5 text-sm'>Status</FormLabel>
                     <Select
+                      value={field.value ?? ''}
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      {...field}
                     >
                       <FormControl>
                         <SelectTrigger className='w-full'>

@@ -227,8 +227,8 @@ const AddMemberSection = () => {
                   <FormItem>
                     <FormLabel className='mb-0.5 text-sm'>Relation</FormLabel>
                     <Select
+                      value={field.value ?? ''}
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
                     >
                       <FormControl>
                         <SelectTrigger className='w-full'>
@@ -257,9 +257,8 @@ const AddMemberSection = () => {
                       Status au Canada
                     </FormLabel>
                     <Select
+                      value={field.value ?? ''}
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      {...field}
                     >
                       <FormControl>
                         <SelectTrigger className='w-full'>
@@ -286,8 +285,8 @@ const AddMemberSection = () => {
                   <FormItem>
                     <FormLabel className='mb-0.5 text-sm'>Status</FormLabel>
                     <Select
+                      value={field.value ?? ''}
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
                     >
                       <FormControl>
                         <SelectTrigger className='w-full'>

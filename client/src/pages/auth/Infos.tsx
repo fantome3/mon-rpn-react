@@ -36,7 +36,7 @@ import {
 } from '@/lib/constant'
 import { useTranslation } from 'react-i18next'
 import { Checkbox } from '@/components/ui/checkbox'
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import { Store } from '@/lib/Store'
 import clsx from 'clsx'
 import Header from '@/components/Header'
@@ -109,9 +109,15 @@ const Infos = () => {
     },
   })
 
+  const infosResetSignatureRef = useRef('')
+
   useEffect(() => {
     if (userInfo && userInfo.infos) {
-      form.reset(userInfo.infos)
+      const nextSignature = JSON.stringify(userInfo.infos)
+      if (infosResetSignatureRef.current !== nextSignature) {
+        form.reset(userInfo.infos)
+        infosResetSignatureRef.current = nextSignature
+      }
     }
   }, [userInfo, form])
 
@@ -298,8 +304,8 @@ const Infos = () => {
                         {t('infoPerso.paysResidence')}
                       </FormLabel>
                       <Select
+                        value={field.value ?? ''}
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
                       >
                         <FormControl>
                           <SelectTrigger className='w-[50%]'>
@@ -330,8 +336,8 @@ const Infos = () => {
                     <FormItem>
                       <FormLabel className='text-sm'>Statut de résidence</FormLabel>
                       <Select
+                        value={field.value ?? ''}
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
                       >
                         <FormControl>
                           <SelectTrigger className='w-fit min-w-[200px] max-w-full'>

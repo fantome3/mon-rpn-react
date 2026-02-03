@@ -23,7 +23,7 @@ import { Input } from '@/components/ui/input'
 import { Store } from '@/lib/Store'
 import { zodResolver } from '@hookform/resolvers/zod'
 import clsx from 'clsx'
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router-dom'
@@ -82,9 +82,15 @@ const Register = () => {
     },
   })
 
+  const registerResetSignatureRef = useRef('')
+
   useEffect(() => {
     if (userInfo?.register) {
-      form.reset(userInfo.register)
+      const nextSignature = JSON.stringify(userInfo.register)
+      if (registerResetSignatureRef.current !== nextSignature) {
+        form.reset(userInfo.register)
+        registerResetSignatureRef.current = nextSignature
+      }
     }
   }, [userInfo, form])
 
@@ -205,7 +211,10 @@ const Register = () => {
                         {t('enregistrement.occupationLabel')}
                       </FormLabel>
                       <FormControl>
-                        <Select onValueChange={field.onChange}>
+                        <Select
+                          value={field.value ?? ''}
+                          onValueChange={field.onChange}
+                        >
                           <SelectTrigger>
                             <SelectValue
                               placeholder={t(
@@ -242,6 +251,7 @@ const Register = () => {
                           </FormLabel>
                           <FormControl>
                             <Select
+                              value={field.value ?? ''}
                               onValueChange={(value) => {
                                 field.onChange(value)
                                 setIsOtherInstitution(value === 'other')
@@ -319,7 +329,7 @@ const Register = () => {
                           <FormControl>
                             <RadioGroup
                               onValueChange={field.onChange}
-                              defaultValue={field.value}
+                              value={field.value ?? ''}
                             >
                               <FormItem className='flex items-center space-x-3 space-y-0'>
                                 <FormControl>

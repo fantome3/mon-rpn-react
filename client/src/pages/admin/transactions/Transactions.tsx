@@ -36,7 +36,7 @@ import { Transaction } from '@/types/Transaction'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ColumnDef } from '@tanstack/react-table'
 import { ArrowUpDown, Pencil, Trash2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import BilanTransactions from './BilanTransactions'
@@ -84,15 +84,21 @@ const Transactions = () => {
     },
   })
 
+  const transactionResetSignatureRef = useRef('')
+
   useEffect(() => {
     if (editingTransaction) {
-      form.reset({
-        userId: editingTransaction.userId || '',
-        amount: editingTransaction.amount || 0,
-        type: editingTransaction.type || 'debit',
-        reason: editingTransaction.reason || '',
-        status: editingTransaction.status || 'completed',
-      })
+      const nextSignature = JSON.stringify(editingTransaction)
+      if (transactionResetSignatureRef.current !== nextSignature) {
+        form.reset({
+          userId: editingTransaction.userId || '',
+          amount: editingTransaction.amount || 0,
+          type: editingTransaction.type || 'debit',
+          reason: editingTransaction.reason || '',
+          status: editingTransaction.status || 'completed',
+        })
+        transactionResetSignatureRef.current = nextSignature
+      }
     }
   }, [editingTransaction, form])
 
@@ -327,9 +333,8 @@ const Transactions = () => {
                   <FormItem>
                     <FormLabel>Type</FormLabel>
                     <Select
+                      value={field.value ?? ''}
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      {...field}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -394,9 +399,8 @@ const Transactions = () => {
                   <FormItem>
                     <FormLabel>Statut</FormLabel>
                     <Select
+                      value={field.value ?? ''}
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      {...field}
                     >
                       <FormControl>
                         <SelectTrigger>

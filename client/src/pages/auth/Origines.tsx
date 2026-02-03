@@ -39,7 +39,7 @@ import {
 } from '@/components/ui/select'
 import { countries } from '@/lib/constant'
 import { useTranslation } from 'react-i18next'
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import { Store } from '@/lib/Store'
 import clsx from 'clsx'
 import Header from '@/components/Header'
@@ -85,16 +85,22 @@ const Origines = () => {
     },
   })
 
+  const originesResetSignatureRef = useRef('')
+
   useEffect(() => {
     if (origines) {
-      form.reset({
-        firstName: origines.firstName,
-        lastName: origines.lastName,
-        birthDate: new Date(origines.birthDate),
-        nativeCountry: origines.nativeCountry,
-        sex: origines.sex,
-        id_image: origines.id_image,
-      })
+      const nextSignature = JSON.stringify(origines)
+      if (originesResetSignatureRef.current !== nextSignature) {
+        form.reset({
+          firstName: origines.firstName,
+          lastName: origines.lastName,
+          birthDate: new Date(origines.birthDate),
+          nativeCountry: origines.nativeCountry,
+          sex: origines.sex,
+          id_image: origines.id_image,
+        })
+        originesResetSignatureRef.current = nextSignature
+      }
     }
   }, [origines, form])
 
@@ -316,8 +322,8 @@ const Origines = () => {
                         {t('infoPerso.sexe')}
                       </FormLabel>
                       <Select
+                        value={field.value ?? ''}
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
                       >
                         <FormControl>
                           <SelectTrigger className='w-[50%]'>
@@ -349,8 +355,8 @@ const Origines = () => {
                         {t('infoPerso.paysOrigine')}
                       </FormLabel>
                       <Select
+                        value={field.value ?? 'Cameroun'}
                         onValueChange={field.onChange}
-                        defaultValue={field.value || 'Cameroun'}
                       >
                         <FormControl>
                           <SelectTrigger className='w-[50%]'>
