@@ -12,7 +12,8 @@
     "pasDeToken": "No Token",
     "tokenAdminInvalide": "Invalid Admin Token",
     "erreurInattendue": "Unexpected Error",
-    "erreurInattendueMin": "Unexpected error"
+    "erreurInattendueMin": "Unexpected error",
+    "codeInvalide": "code invalide"
   },
   "utilisateur": {
     "misAJour": "Utilisateur mis à jour",

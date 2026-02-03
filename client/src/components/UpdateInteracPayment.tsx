@@ -162,7 +162,7 @@ const UpdateInteracPayment = ({ onSuccess, minAmount = 25 }: UpdateInteracPaymen
                       </HoverCard>
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="CAcM8D7L" {...field} />
+                      <Input placeholder="CzM8L" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
