@@ -73,6 +73,12 @@ const formSchema = z.object({
     .optional(),
 })
 
+const toLocalNoon = (value: Date | string) => {
+  const date = value instanceof Date ? new Date(value) : new Date(value)
+  date.setHours(12, 0, 0, 0)
+  return date
+}
+
 const Dependents = () => {
   const { state } = useContext(Store)
   const { userInfo } = state
@@ -102,7 +108,7 @@ const Dependents = () => {
         ? editingItem.residenceCountryStatus
         : 'worker',
       status: editingItem ? editingItem.status : '',
-      birthDate: editingItem ? editingItem.birthDate : new Date('1990-01-01'),
+      birthDate: editingItem ? toLocalNoon(editingItem.birthDate) : new Date(1990, 0, 1),
       tel: editingItem ? editingItem.tel : '',
     },
   })
@@ -119,7 +125,7 @@ const Dependents = () => {
           relationship: editingItem.relationship || '',
           status: editingItem.status || '',
           residenceCountryStatus: editingItem.residenceCountryStatus || 'worker',
-          birthDate: new Date(editingItem.birthDate),
+          birthDate: toLocalNoon(editingItem.birthDate),
           tel: editingItem.tel,
         })
         editResetSignatureRef.current = nextSignature
@@ -295,6 +301,8 @@ const Dependents = () => {
           relationship: values.relationship,
           residenceCountryStatus: values.residenceCountryStatus,
           status: values.status,
+          birthDate: values.birthDate,
+          tel: values.tel,
         }
         const updatedFamilyMembers = [...(user?.familyMembers ?? [])]
         updatedFamilyMembers[getIndex] = updatedMember
@@ -560,10 +568,10 @@ const Dependents = () => {
                           selected={field.value}
                           onSelect={field.onChange}
                           disabled={(date) =>
-                            date > new Date() || date < new Date('1960-01-01')
+                            date > new Date() || date < new Date('1930-01-01')
                           }
                           initialFocus
-                          fromYear={1960}
+                          fromYear={1930}
                           toYear={2030}
                         />
                       </PopoverContent>

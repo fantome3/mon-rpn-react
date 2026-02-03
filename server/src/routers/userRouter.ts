@@ -320,6 +320,10 @@ userRouter.put(
       const user = await UserModel.findById(req.params.id)
       if (user) {
         Object.assign(user, req.body)
+        if (req.body?.familyMembers) {
+          user.familyMembers = req.body.familyMembers
+          user.markModified('familyMembers')
+        }
         const updatedUser = await user.save()
         res.send({
           message: labels.utilisateur.misAJour,

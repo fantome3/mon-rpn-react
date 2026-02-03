@@ -297,10 +297,10 @@ const Announcements = () => {
                           selected={field.value}
                           onSelect={field.onChange}
                           disabled={(date) =>
-                            date > new Date() || date < new Date('1960-01-01')
+                            date > new Date() || date < new Date('1930-01-01')
                           }
                           initialFocus
-                          fromYear={1960}
+                          fromYear={1930}
                           toYear={2030}
                         />
                       </PopoverContent>

@@ -79,7 +79,7 @@ const AddMemberSection = () => {
       relationship: '',
       status: 'active',
       residenceCountryStatus: 'permanent_resident',
-      birthDate: new Date('1990-01-01'),
+      birthDate: new Date(1990, 0, 1),
       tel: '',
     },
   })
@@ -91,7 +91,7 @@ const AddMemberSection = () => {
       relationship: '',
       status: 'active',
       residenceCountryStatus: 'permanent_resident',
-      birthDate: new Date('1990-01-01'),
+      birthDate: new Date(1990, 0, 1),
       tel: '',
     })
   }, [form])

@@ -21,11 +21,15 @@ function Calendar({
   showOutsideDays = true,
   ...props
 }: CalendarProps) {
+  const selectedDate = props.selected instanceof Date ? props.selected : undefined
+  const defaultMonth = props.defaultMonth ?? selectedDate
+
   return (
     <DayPicker
       locale={fr}
       showOutsideDays={showOutsideDays}
       className={cn('p-3', className)}
+      defaultMonth={defaultMonth}
       classNames={{
         months: 'flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0',
         month: 'space-y-4',

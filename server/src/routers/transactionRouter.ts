@@ -8,6 +8,10 @@ import {
 } from '../services/membershipService'
 import { sendBalanceReminderIfNeeded } from '../services/checkMinimumBalanceAndSendReminder'
 import labels from '../common/libelles.json'
+import {
+  interacRefExists,
+  normalizeInteracRef,
+} from '../services/interacReferenceService'
 
 export const transactionRouter = express.Router()
 
@@ -15,6 +19,19 @@ transactionRouter.post(
   '/new',
   expressAsyncHandler(async (req: Request, res: Response) => {
     try {
+      if (req.body?.refInterac) {
+        req.body.refInterac = normalizeInteracRef(req.body.refInterac)
+        if (
+          await interacRefExists([req.body.refInterac], {
+            checkAccounts: false,
+            checkTransactions: true,
+          })
+        ) {
+          res.status(400).json({ message: labels.general.codeInvalide })
+          return
+        }
+      }
+
       const transaction = new TransactionModel(req.body)
       await transaction.save()
       res.send(transaction)
