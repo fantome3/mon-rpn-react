@@ -1,91 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/*import Loading from './Loading'
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from './ui/select'
-import Chart from 'react-google-charts'
-
-const GraphSection = ({ data }: any) => {
-  /**Ignore google charts warning */
-/*const originalWarn = console.warn
-  console.warn = function (...args) {
-    const arg = args && args[0]
-    if (arg && arg.includes("Attempting to load version '51' of Google Charts"))
-      return
-    originalWarn(...args)
-  }
-  /**End ignore google charts warnings */
-
-/*const monthStrings = [
-    'Jan',
-    'Fév',
-    'Mar',
-    'Avr',
-    'Mai',
-    'Juin',
-    'Juil',
-    'Août',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Déc',
-  ]
-
-  const date = 'date'
-  const count = 'décès'
-
-  //const month = new Date().getMonth() + 1
-
-  return (
-    <Card className='mt-4'>
-      <CardHeader className='flex flex-row justify-between items-center'>
-        <CardTitle>Graphique annuel</CardTitle>
-        <div>
-          <Select disabled>
-            <SelectTrigger className='w-[80px]'>
-              <SelectValue placeholder='2024' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>2024</SelectLabel>
-                <SelectItem value='2024'>2024</SelectItem>
-                <SelectItem value='2025'>2025</SelectItem>
-                <SelectItem value='2026'>2026</SelectItem>
-                <SelectItem value='2027'>2027</SelectItem>
-                <SelectItem value='2028'>2028</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <Chart
-          width='100%'
-          height='400px'
-          chartType='Bar'
-          loader={<Loading />}
-          data={[
-            [date, count],
-            ...data.map(({ x, y }: { x: number; y: number }) => [
-              monthStrings[x - 1],
-              y,
-            ]),
-          ]}
-        />
-      </CardContent>
-    </Card>
-  )
-}
-
-export default <GraphSection></GraphSection>*/
-
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -101,6 +13,7 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -146,15 +59,20 @@ const GraphSection = ({
     'Déc',
   ]
 
-  // Transformer les données pour Recharts
-  const chartData = data.map(({ x, y }) => ({
-    mois: monthStrings[x - 1],
-    décès: y,
-    moisNum: x, // Conserver le numéro du mois pour le tri
-  }))
-
-  // Trier les données par mois
-  chartData.sort((a, b) => a.moisNum - b.moisNum)
+  // Transformer les données pour Recharts (toujours 12 mois)
+  const deathsByMonth = new Map<number, number>(
+    data.map(({ x, y }) => [x, y])
+  )
+  const chartData = monthStrings.map((label, index) => {
+    const moisNum = index + 1
+    const value = deathsByMonth.get(moisNum) ?? 0
+    return {
+      mois: label,
+      décès: value,
+      moisNum,
+      isZero: value === 0,
+    }
+  })
 
   // Gérer le changement d'année
   const handleYearChange = (year: string) => {
@@ -216,6 +134,7 @@ const GraphSection = ({
                 tick={{ fontSize: 12 }}
                 tickFormatter={formatNumber}
                 width={60}
+                domain={[0, 'dataMax + 2']}
               />
               <Tooltip
                 formatter={(value: number) => [formatNumber(value), 'Décès']}
@@ -225,7 +144,14 @@ const GraphSection = ({
                 dataKey='décès'
                 fill='hsl(var(--primary))'
                 radius={[4, 4, 0, 0]}
-              />
+              >
+                {chartData.map((entry) => (
+                  <Cell
+                    key={`cell-${entry.moisNum}`}
+                    fill={entry.isZero ? 'hsl(var(--muted))' : 'hsl(var(--primary))'}
+                  />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
