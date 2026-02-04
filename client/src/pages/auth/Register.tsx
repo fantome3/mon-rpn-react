@@ -62,6 +62,7 @@ const Register = () => {
   const [conditionsError, setConditionsError] = useState(false)
   const [isOtherInstitution, setIsOtherInstitution] = useState(false)
   const [showConditionsModal, setShowConditionsModal] = useState(false)
+  const [isSelectedEmployementUser, setIsSelectedEmployementUser] = useState(false)
   const navigate = useNavigate()
   const params = useParams()
   const { t } = useTranslation(['common'])
@@ -210,11 +211,25 @@ const Register = () => {
                       <FormLabel className='text-sm'>
                         {t('enregistrement.occupationLabel')}
                       </FormLabel>
-                      <FormControl>
                         <Select
+                          open={isSelectedEmployementUser}
+                          onOpenChange={(nextOpen) => {
+                            console.info(
+                              '[register] occupation select open:',
+                              nextOpen
+                            )
+                            setIsSelectedEmployementUser(nextOpen)
+                          }}
                           value={field.value ?? ''}
-                          onValueChange={field.onChange}
+                          onValueChange={(nextValue) => {
+                            console.info(
+                              '[register] occupation selected:',
+                              nextValue
+                            )
+                            field.onChange(nextValue)
+                          }}
                         >
+                        <FormControl>
                           <SelectTrigger>
                             <SelectValue
                               placeholder={t(
@@ -222,23 +237,24 @@ const Register = () => {
                               )}
                             />
                           </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value='student'>
-                              {t('enregistrement.occupationStudent')}
-                            </SelectItem>
-                            <SelectItem value='worker'>
-                              {t('enregistrement.occupationWorker')}
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value='student'>
+                            {t('enregistrement.occupationStudent')}
+                          </SelectItem>
+                          <SelectItem value='worker'>
+                            {t('enregistrement.occupationWorker')}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
                 {/* Si Étudiant */}
-                {form.watch('occupation') === 'student' && (
+                {!isSelectedEmployementUser &&
+                  form.watch('occupation') === 'student' && (
                   <>
                     {/* Sélection Établissement */}
                     <FormField
@@ -249,14 +265,14 @@ const Register = () => {
                           <FormLabel className='text-sm'>
                             {t('enregistrement.institution')}
                           </FormLabel>
-                          <FormControl>
-                            <Select
-                              value={field.value ?? ''}
-                              onValueChange={(value) => {
-                                field.onChange(value)
-                                setIsOtherInstitution(value === 'other')
-                              }}
-                            >
+                          <Select
+                            value={field.value ?? ''}
+                            onValueChange={(value) => {
+                              field.onChange(value)
+                              setIsOtherInstitution(value === 'other')
+                            }}
+                          >
+                            <FormControl>
                               <SelectTrigger>
                                 <SelectValue
                                   placeholder={t(
@@ -264,18 +280,18 @@ const Register = () => {
                                   )}
                                 />
                               </SelectTrigger>
-                              <SelectContent>
-                                {academicInstitutionsList.map((institution) => (
-                                  <SelectItem
-                                    key={institution.value}
-                                    value={institution.value}
-                                  >
-                                    {institution.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
+                            </FormControl>
+                            <SelectContent>
+                              {academicInstitutionsList.map((institution) => (
+                                <SelectItem
+                                  key={institution.value}
+                                  value={institution.value}
+                                >
+                                  {institution.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -357,7 +373,8 @@ const Register = () => {
 
                 {/* Si travailleur */}
 
-                {form.watch('occupation') === 'worker' && (
+                {!isSelectedEmployementUser && 
+                  form.watch('occupation') === 'worker' && (
                   <>
                     <FormField
                       control={form.control}
