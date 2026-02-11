@@ -26,6 +26,26 @@ import { softDeleteUser } from '../services/userService'
 
 export const userRouter = express.Router()
 
+const trimStringsDeep = <T>(value: T, excludeKeys = new Set<string>()): T => {
+  if (value === null || value === undefined) return value
+  if (typeof value === 'string') {
+    return value.trim() as T
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => trimStringsDeep(item, excludeKeys)) as T
+  }
+  if (typeof value === 'object') {
+    const entries = Object.entries(value as Record<string, unknown>).map(
+      ([key, val]) => {
+        if (excludeKeys.has(key)) return [key, val]
+        return [key, trimStringsDeep(val, excludeKeys)]
+      }
+    )
+    return Object.fromEntries(entries) as T
+  }
+  return value
+}
+
 function updateUserPassword(id: string, newPassword: string): Promise<string> {
   return new Promise((resolve, reject) => {
     bcrypt
@@ -237,8 +257,12 @@ userRouter.post(
         return
       }
 
+      const sanitizedRegister = trimStringsDeep(register, new Set(['password', 'newPassword']))
+      const sanitizedOrigines = trimStringsDeep(origines)
+      const sanitizedInfos = trimStringsDeep(infos)
+
       const existingUser = await UserModel.findOne({
-        'register.email': register.email,
+        'register.email': sanitizedRegister.email,
       })
       if (existingUser) {
         res.status(409).json({ message: labels.general.emailExiste })
@@ -246,17 +270,17 @@ userRouter.post(
       }
 
       const referralCode = await generateUniqueReferralCode(
-        origines.lastName,
-        origines.firstName
+        sanitizedOrigines.lastName,
+        sanitizedOrigines.firstName
       )
 
       const newUser = new UserModel({
         register: {
-          ...register,
+          ...sanitizedRegister,
           password: bcrypt.hashSync(register.password, 10),
         },
-        origines,
-        infos,
+        origines: sanitizedOrigines,
+        infos: sanitizedInfos,
         rememberMe,
         isAdmin,
         cpdLng,

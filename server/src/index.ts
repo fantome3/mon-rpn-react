@@ -3,6 +3,7 @@ import express, { Request, Response } from 'express'
 import mongoose from 'mongoose'
 import cors from 'cors'
 import path from 'path'
+import { initLogger } from './logger'
 import { userRouter } from './routers/userRouter'
 import { accountRouter } from './routers/accountRouter'
 import { deathAnnouncementRouter } from './routers/deathAnnoucementRouter'
@@ -13,6 +14,7 @@ import './cron/membershipReminder'
 import { reservationRouter } from './routers/feteNoel2025Router'
 
 dotenv.config({ path: path.join(__dirname, '../.env'), override: true })
+initLogger()
 mongoose.set('strictQuery', true)
 
 mongoose
