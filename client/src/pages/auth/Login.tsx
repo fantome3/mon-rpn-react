@@ -49,11 +49,12 @@ const Login = () => {
     cpdLng: z.string(),
   })
 
-  const Lng =
-    'fr' === navigator.language || 'fr-FR' === navigator.language || 'fr-CA' === navigator.language ? 'fr'
-      : ('en' === navigator.language || 'en-US' === navigator.language
-          ? 'en'
-          : 'fr')
+  // je retire ceci pour le moment car la seule langue de correspondance est le francais.
+  // const Lng =
+  //   'fr' === navigator.language || 'fr-FR' === navigator.language || 'fr-CA' === navigator.language ? 'fr'
+  //     : ('en' === navigator.language || 'en-US' === navigator.language
+  //         ? 'en'
+  //         : 'fr')
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -61,7 +62,7 @@ const Login = () => {
       email: '',
       password: '',
       rememberMe: false,
-      cpdLng: Lng,
+      cpdLng: 'fr',
     },
   })
 

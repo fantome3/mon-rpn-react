@@ -29,6 +29,7 @@ import {
 import { Store } from '@/lib/Store'
 import {
   ToLocaleStringFunc,
+  formatCanadianPhone,
   functionReverse,
   toastAxiosError,
 } from '@/lib/utils'
@@ -156,7 +157,9 @@ const Accounts = () => {
           row.original.userId.subscription.status === 'inactive'
         const userTel: string = row.getValue('userTel')
         return (
-          <div className={isInactive ? 'text-gray-400' : ''}>{userTel}</div>
+          <div className={isInactive ? 'text-gray-400' : ''}>
+            {formatCanadianPhone(userTel)}
+          </div>
         )
       },
     },

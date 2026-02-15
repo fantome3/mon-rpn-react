@@ -2,7 +2,7 @@ import { useContext, useEffect, useRef, useState } from 'react'
 import { Button } from './ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from './ui/card'
 import { Store } from '@/lib/Store'
-import { functionReverse } from '@/lib/utils'
+import { formatCanadianPhone, functionReverse } from '@/lib/utils'
 import CustomModal from '@/components/CustomModal'
 import {
   Form,
@@ -31,20 +31,67 @@ import {
 import { toast } from './ui/use-toast'
 import Loading from './Loading'
 
+const normalizeEmergencyContacts = (
+  contacts?: Array<{ name?: string; phone?: string }>
+) => {
+  const fallback = [
+    { name: '', phone: '' },
+    { name: '', phone: '' },
+  ]
+
+  if (!contacts?.length) return fallback
+
+  return [0, 1].map((index) => ({
+    name: contacts[index]?.name ?? '',
+    phone: contacts[index]?.phone ?? '',
+  }))
+}
+
 const formSchema = z.object({
   residenceCountry: z.string(),
   postalCode: z
     .string()
     .regex(postalCodeRegex, { message: 'Champ Obligatoire' }),
   address: z.string().min(3, { message: 'Champ Obligatoire' }),
-  tel: z.string().regex(telRegex, { message: `Entrer numéro correct` }),
+  tel: z.string().regex(telRegex, { message: 'Entrer numero correct' }),
   hasInsurance: z.boolean(),
   residenceCountryStatus: z.enum(
     ['student', 'worker', 'canadian_citizen', 'permanent_resident', 'visitor'],
     {
-      required_error: 'Sélectionnez un status',
+      required_error: 'Selectionnez un status',
     }
   ),
+  emergencyContacts: z
+    .array(
+      z.object({
+        name: z.string().optional(),
+        phone: z.string().optional(),
+      })
+    )
+    .length(2)
+    .superRefine((contacts, ctx) => {
+      contacts.forEach((contact, index) => {
+        const hasName = Boolean(contact.name?.trim())
+        const hasPhone = Boolean(contact.phone?.trim())
+        if (hasName !== hasPhone) {
+          const message = 'Veuillez renseigner le nom et le numéro pour ce contact.'
+          if (!hasName) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: [index, 'name'],
+              message,
+            })
+          }
+          if (!hasPhone) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: [index, 'phone'],
+              message,
+            })
+          }
+        }
+      })
+    }),
 })
 
 const UserOriginInfo = () => {
@@ -61,71 +108,90 @@ const UserOriginInfo = () => {
     primaryMember,
     familyMembers,
   } = userInfo!
+
   const { data: userDetail } = useGetUserDetailsQuery(userInfo?._id ?? '')
   const { mutateAsync: editUserInfo, isPending } = useUpdateUserMutation()
   const [addEditModalVisibility, setAddEditModalVisibility] = useState(false)
-  const emergencyContactsFromDb = (
-    userDetail?.infos?.emergencyContacts ?? infos?.emergencyContacts ?? []
-  ).filter((contact) => contact?.name?.trim() && contact?.phone?.trim())
+
+  const infosSource = userDetail?.infos ?? infos
+  const emergencyContactsFromDb = (infosSource?.emergencyContacts ?? []).filter(
+    (contact) => contact?.name?.trim() && contact?.phone?.trim()
+  )
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      residenceCountry: infos ? infos.residenceCountry : '',
-      postalCode: infos ? infos.postalCode : '',
-      address: infos ? infos.address : '',
-      tel: infos ? infos.tel : '',
-      hasInsurance: infos ? infos.hasInsurance : false,
-      residenceCountryStatus: infos ? infos.residenceCountryStatus : 'worker',
+      residenceCountry: infosSource ? infosSource.residenceCountry : '',
+      postalCode: infosSource ? infosSource.postalCode : '',
+      address: infosSource ? infosSource.address : '',
+      tel: infosSource ? infosSource.tel : '',
+      hasInsurance: infosSource ? infosSource.hasInsurance : false,
+      residenceCountryStatus: infosSource
+        ? infosSource.residenceCountryStatus
+        : 'worker',
+      emergencyContacts: normalizeEmergencyContacts(
+        infosSource?.emergencyContacts
+      ),
     },
   })
 
   const infosResetSignatureRef = useRef('')
 
   useEffect(() => {
-    if (userInfo) {
-      const nextSignature = JSON.stringify(infos ?? {})
-      if (infosResetSignatureRef.current !== nextSignature) {
-        form.reset({
-          residenceCountry: infos?.residenceCountry,
-          postalCode: infos?.postalCode,
-          address: infos?.address,
-          tel: infos?.tel,
-          hasInsurance: infos?.hasInsurance,
-          residenceCountryStatus: infos?.residenceCountryStatus,
-        })
-        infosResetSignatureRef.current = nextSignature
-      }
+    if (!userInfo) return
+
+    const nextSignature = JSON.stringify(infosSource ?? {})
+    if (infosResetSignatureRef.current !== nextSignature) {
+      form.reset({
+        residenceCountry: infosSource?.residenceCountry,
+        postalCode: infosSource?.postalCode,
+        address: infosSource?.address,
+        tel: infosSource?.tel,
+        hasInsurance: infosSource?.hasInsurance,
+        residenceCountryStatus: infosSource?.residenceCountryStatus,
+        emergencyContacts: normalizeEmergencyContacts(
+          infosSource?.emergencyContacts
+        ),
+      })
+      infosResetSignatureRef.current = nextSignature
     }
-  }, [userInfo, form, infos])
+  }, [userInfo, form, infosSource])
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
+      const cleanedEmergencyContacts = values.emergencyContacts
+        .map((contact) => ({
+          name: contact.name?.trim() ?? '',
+          phone: contact.phone?.trim() ?? '',
+        }))
+        .filter((contact) => contact.name && contact.phone)
+
       const updatedData = {
-        _id: _id,
-        origines: origines,
+        _id,
+        origines,
         infos: {
           ...values,
-          emergencyContacts: emergencyContactsFromDb,
+          emergencyContacts: cleanedEmergencyContacts,
         },
-        rememberMe: rememberMe,
-        cpdLng: cpdLng,
-        isAdmin: isAdmin,
+        rememberMe,
+        cpdLng,
+        isAdmin,
         register: {
           ...userRegister,
           password: userDetail?.register.password ?? '',
         },
-        primaryMember: primaryMember,
-        familyMembers: familyMembers,
+        primaryMember,
+        familyMembers,
       }
+
       await editUserInfo(updatedData)
       toast({
         title: 'Modification',
-        description: 'Adresse modifiée',
+        description: 'Profil mis a jour',
       })
       setAddEditModalVisibility(false)
       ctxDispatch({ type: 'USER_LOGIN', payload: updatedData })
-    } catch (error) {
+    } catch {
       toast({
         variant: 'destructive',
         title: 'Oops!',
@@ -180,7 +246,9 @@ const UserOriginInfo = () => {
           <div className='mb-4 grid items-start pb-4 last:mb-0 last:pb-0'>
             <div className='space-y-1'>
               <p className='text-sm font-medium leading-none'>Téléphone</p>
-              <p className='text-sm text-muted-foreground'>{infos?.tel}</p>
+              <p className='text-sm text-muted-foreground'>
+                {formatCanadianPhone(infos?.tel)}
+              </p>
             </div>
           </div>
           <div className='mb-4 grid items-start pb-4 last:mb-0 last:pb-0'>
@@ -210,7 +278,7 @@ const UserOriginInfo = () => {
                       Nom: {contact.name}
                     </p>
                     <p className='text-sm text-muted-foreground'>
-                      Téléphone: {contact.phone}
+                      Téléphone: {formatCanadianPhone(contact.phone)}
                     </p>
                   </div>
                 ))}
@@ -238,7 +306,7 @@ const UserOriginInfo = () => {
           }}
           open={addEditModalVisibility}
           title='Modifications'
-          description='Modifier votre adresse'
+          description="Modifier vos coordonnees et contacts"
         >
           <Form {...form}>
             <form
@@ -251,7 +319,7 @@ const UserOriginInfo = () => {
                 name='tel'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className='text-sm'>Tél</FormLabel>
+                    <FormLabel className='text-sm'>Télephone</FormLabel>
                     <FormControl>
                       <Input placeholder='Votre numéro' {...field} />
                     </FormControl>
@@ -315,6 +383,53 @@ const UserOriginInfo = () => {
                   </FormItem>
                 )}
               />
+
+              <div className='space-y-4 rounded-md border p-4'>
+                <p className='text-sm font-medium leading-none'>
+                  Contacts d'urgence
+                </p>
+                {[0, 1].map((index) => (
+                  <div key={index} className='grid gap-4 md:grid-cols-2'>
+                    <FormField
+                      control={form.control}
+                      name={`emergencyContacts.${index}.name` as const}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className='text-sm'>
+                            Nom complet
+                          </FormLabel>
+                          <FormControl>
+                            <Input placeholder='Nom complet' {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name={`emergencyContacts.${index}.phone` as const}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className='text-sm'>
+                            Telephone
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder='Numero de telephone'
+                              type='tel'
+                              inputMode='tel'
+                              autoComplete='tel'
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                ))}
+              </div>
 
               {isPending ? <Loading /> : <Button type='submit'>Valider</Button>}
             </form>

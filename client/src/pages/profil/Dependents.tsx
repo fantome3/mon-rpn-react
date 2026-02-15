@@ -48,7 +48,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { cn, toastAxiosError } from '@/lib/utils'
+import { cn, formatCanadianPhone, toastAxiosError } from '@/lib/utils'
 import { format } from 'date-fns'
 import { Calendar } from '@/components/CustomCalendar'
 import IconButtonWithTooltip from '@/components/IconButtonWithTooltip'
@@ -198,6 +198,7 @@ const Dependents = () => {
     {
       accessorKey: 'tel',
       header: 'Téléphone',
+      cell: ({ row }) => formatCanadianPhone(row.original.tel),
     },
     {
       accessorKey: 'status',

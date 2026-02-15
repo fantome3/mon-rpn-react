@@ -6,6 +6,7 @@ import {
   useUpdateReservationAmountMutation,
   ReservationRecord,
 } from "@/hooks/evenementsAnnuelHook";
+import { formatCanadianPhone, formatCanadianPhoneHref } from "@/lib/utils";
 import { motion } from "framer-motion";
 
 export default function AdminBookingList() {
@@ -115,8 +116,8 @@ export default function AdminBookingList() {
               </p>
               <p>
                 <span className="text-slate-400 text-xs">Tél:</span>{" "}
-                <a href={`tel:${b.compte.telephone}`} className="text-sky-600 underline font-medium">
-                  {b.compte.telephone}
+                <a href={`tel:${formatCanadianPhoneHref(b.compte.telephone)}`} className="text-sky-600 underline font-medium">
+                  {formatCanadianPhone(b.compte.telephone)}
                 </a>
               </p>
               <p>
