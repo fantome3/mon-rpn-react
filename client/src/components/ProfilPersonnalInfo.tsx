@@ -30,7 +30,6 @@ import {
 } from '@/hooks/userHooks'
 import { toast } from './ui/use-toast'
 import Loading from './Loading'
-import { Checkbox } from './ui/checkbox'
 
 const formSchema = z.object({
   residenceCountry: z.string(),
@@ -65,6 +64,9 @@ const UserOriginInfo = () => {
   const { data: userDetail } = useGetUserDetailsQuery(userInfo?._id ?? '')
   const { mutateAsync: editUserInfo, isPending } = useUpdateUserMutation()
   const [addEditModalVisibility, setAddEditModalVisibility] = useState(false)
+  const emergencyContactsFromDb = (
+    userDetail?.infos?.emergencyContacts ?? infos?.emergencyContacts ?? []
+  ).filter((contact) => contact?.name?.trim() && contact?.phone?.trim())
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -102,7 +104,10 @@ const UserOriginInfo = () => {
       const updatedData = {
         _id: _id,
         origines: origines,
-        infos: { ...values },
+        infos: {
+          ...values,
+          emergencyContacts: emergencyContactsFromDb,
+        },
         rememberMe: rememberMe,
         cpdLng: cpdLng,
         isAdmin: isAdmin,
@@ -190,26 +195,28 @@ const UserOriginInfo = () => {
               </p>
             </div>
           </div>
-          <div className='mb-4 grid items-start pb-4 last:mb-0 last:pb-0'>
-            <div className='space-y-1'>
-              <p className='text-sm font-medium leading-none'>
-                Êtes-vous assurés?
-              </p>
-              <p className='text-sm text-muted-foreground'>
-                {infos?.hasInsurance ? 'Oui' : 'Non'}
-              </p>
+          {emergencyContactsFromDb.length > 0 && (
+            <div className='mb-4 grid items-start pb-4 last:mb-0 last:pb-0'>
+              <div className='space-y-3'>
+                <p className='text-sm font-medium leading-none'>
+                  Contacts d'urgence
+                </p>
+                {emergencyContactsFromDb.map((contact, index) => (
+                  <div key={index} className='rounded-md border p-3'>
+                    <p className='text-sm font-medium leading-none'>
+                      Contact d'urgence {index + 1}
+                    </p>
+                    <p className='mt-1 text-sm text-muted-foreground'>
+                      Nom: {contact.name}
+                    </p>
+                    <p className='text-sm text-muted-foreground'>
+                      Téléphone: {contact.phone}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-          <div className='mb-4 grid items-start pb-4 last:mb-0 last:pb-0'>
-            <div className='space-y-1'>
-              <p className='text-sm font-medium leading-none'>
-                Langue de correspondance
-              </p>
-              <p className='text-sm text-muted-foreground'>
-                {cpdLng === 'fr' ? 'Français' : 'English'}
-              </p>
-            </div>
-          </div>
+          )}
         </CardContent>
         <CardFooter className='flex justify-end'>
           <Button
@@ -309,23 +316,6 @@ const UserOriginInfo = () => {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name='hasInsurance'
-                render={({ field }) => (
-                  <FormItem className='flex flex-row items-start space-x-3 space-y-0 py-4'>
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormLabel className='text-sm'>
-                      Êtes-vous assurés?
-                    </FormLabel>
-                  </FormItem>
-                )}
-              />
               {isPending ? <Loading /> : <Button type='submit'>Valider</Button>}
             </form>
           </Form>

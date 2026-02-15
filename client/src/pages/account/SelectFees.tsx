@@ -127,7 +127,7 @@ export default function SelectFees({ updateTotal }: SelectFeesProps) {
   return (
     <div className="container mx-auto my-8 max-w-4xl px-4 space-y-8">
       <div className="space-y-4 text-center animate-in fade-in slide-in-from-bottom-2">
-        <h2 className="text-xl font-semibold">Instructions de sélection des frais</h2>
+        <h2 className="text-xl font-semibold">Calculatrice des frais à payer </h2>
         <p>
           Ajoutez les membres de votre famille afin de régler <strong>tous les frais en une seule transaction</strong>.
         </p>
@@ -180,7 +180,7 @@ export default function SelectFees({ updateTotal }: SelectFeesProps) {
       {/* ------------- Sélecteurs de quantité (cartes tailles égales) ------- */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4">
         <div className="flex flex-col bg-white p-6 shadow rounded grow">
-          <h3 className="text-lg font-medium mb-4 text-center">Vous souhaité ajouter combien d'adultes supplémentaires</h3>
+          <h3 className="text-lg font-medium mb-4 text-center">Vous souhaitez ajouter combien d'adultes supplémentaires</h3>
           <Input
             type="number"
             min={0}

@@ -7,6 +7,7 @@ const CheckoutSteps = (props: any) => {
       <div className={props.step3 ? 'active w-full' : 'w-full'}>
         Informations
       </div>
+      <div className={props.step4 ? 'active w-full' : 'w-full'}>Urgence</div>
     </div>
   )
 }

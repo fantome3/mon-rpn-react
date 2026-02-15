@@ -38,6 +38,17 @@ class Infos {
 
   @prop({ required: true })
   public hasInsurance!: boolean
+
+  @prop({ type: () => [EmergencyContact], default: [] })
+  public emergencyContacts?: EmergencyContact[]
+}
+
+class EmergencyContact {
+  @prop()
+  public name?: string
+
+  @prop()
+  public phone?: string
 }
 
 class Origines {

@@ -1,3 +1,8 @@
+export type EmergencyContact = {
+  name?: string
+  phone?: string
+}
+
 export type Register = {
   email: string
   password: string
@@ -31,6 +36,7 @@ export type Infos = {
   address: string
   tel: string
   hasInsurance: boolean
+  emergencyContacts?: EmergencyContact[]
 }
 
 export type FamilyMember = {

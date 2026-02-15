@@ -3,6 +3,7 @@ import Register from './auth/Register'
 import HomePage from './home/HomePage'
 import Origines from './auth/Origines'
 import Infos from './auth/Infos'
+import Urgence from './auth/Urgence'
 import Profil from './profil/Profil'
 import ForgotPassword from './auth/ForgotPassword'
 import ResetPassword from './auth/ResetPassword'
@@ -30,6 +31,7 @@ export {
   HomePage,
   Origines,
   Infos,
+  Urgence,
   Profil,
   ForgotPassword,
   ResetPassword,

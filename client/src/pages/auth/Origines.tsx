@@ -210,7 +210,7 @@ const Origines = () => {
         originesTime: new Date(),
       })
     )
-    navigate(-1)
+    navigate('/register')
   }
 
   return (

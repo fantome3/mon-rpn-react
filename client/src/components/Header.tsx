@@ -13,11 +13,12 @@ const Navbar = () => {
   const { userInfo } = state
   const navigate = useNavigate()
   const pathname = location.pathname
+  const isAuthenticatedUser = Boolean(userInfo?._id && userInfo.infos)
 
   return (
     <div
       className={
-        userInfo && userInfo.infos
+        isAuthenticatedUser
           ? 'bg-primary text-white p-4 flex items-center justify-between'
           : 'bg-white border-primary text-zinc-950 p-4 flex items-center justify-between'
       }
@@ -38,7 +39,7 @@ const Navbar = () => {
       </aside>
       <nav className='hidden lg:block absolute left-[15%]'>
         <ul className='flex items-center justify-center gap-8'>
-          {userInfo?.infos &&
+          {isAuthenticatedUser &&
             menuItemsConnected.map((item) => (
               <Link
                 className={clsx('', {
@@ -53,8 +54,8 @@ const Navbar = () => {
         </ul>
       </nav>
       <aside className=' items-center flex lg:flex gap-2'>
-        {userInfo && userInfo.isAdmin ? <AdminMenu /> : ''}
-        {userInfo && userInfo.infos ? (
+        {isAuthenticatedUser && userInfo?.isAdmin ? <AdminMenu /> : ''}
+        {isAuthenticatedUser ? (
           <>
             <Button
               className='text-destructive hover:text-destructive/90 hidden lg:flex'

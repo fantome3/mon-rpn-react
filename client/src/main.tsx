@@ -16,6 +16,7 @@ import {
   Login,
   Register,
   Infos,
+  Urgence,
   Profil,
   ForgotPassword,
   ResetPassword,
@@ -56,6 +57,7 @@ const router = createBrowserRouter(
       <Route path='/register/:id/:ref' element={<Register />} />
       <Route path='/origines' element={<Origines />} />
       <Route path='/infos' element={<Infos />} />
+      <Route path='/urgence' element={<Urgence />} />
       <Route path='/about' element={<About />} />
       <Route path='/contact-us' element={<Contact />} />
       <Route path='/conditions' element={<Conditions />} />

@@ -19,7 +19,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 import {
   Select,
@@ -36,32 +36,12 @@ import {
 } from '@/lib/constant'
 import { useTranslation } from 'react-i18next'
 import { Checkbox } from '@/components/ui/checkbox'
-import { useContext, useEffect, useRef, useState } from 'react'
+import { useContext, useEffect, useRef } from 'react'
 import { Store } from '@/lib/Store'
 import clsx from 'clsx'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
-import {
-  useNewUserNotificationMutation,
-  useRegisterMutation,
-  useSendPasswordMutation,
-  useVerifyTokenMutation,
-} from '@/hooks/userHooks'
-import { useNewAccountMutation } from '@/hooks/accountHooks'
-import { useNewTransactionMutation } from '@/hooks/transactionHooks'
-import { Transaction } from '@/types/Transaction'
-import { Account } from '@/types/Account'
-import Loading from '@/components/Loading'
-import { checkPostalCode, checkTel, toastAxiosError } from '@/lib/utils'
-import { User } from '@/types/User'
-import { createAwaitingInteracAccount } from '@/lib/interacAccount'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { checkPostalCode, checkTel } from '@/lib/utils'
 import { SearchEngineOptimization } from '@/components/SearchEngine/SearchEngineOptimization'
 
 const formSchema = z.object({
@@ -76,25 +56,15 @@ const formSchema = z.object({
     .string()
     .regex(postalCodeRegex, { message: 'Champ Obligatoire' }),
   address: z.string().min(3, { message: 'Champ Obligatoire' }),
-  tel: z.string().regex(telRegex, { message: `Entrer numéro correct` }),
+  tel: z.string().regex(telRegex, { message: 'Entrer numéro correct' }),
   hasInsurance: z.boolean(),
 })
 
 const Infos = () => {
-  const [showModal, setShowModal] = useState(false)
-  const { mutateAsync: registerfunc, isPending } = useRegisterMutation()
-  const { mutateAsync: sendPasswordToUser } = useSendPasswordMutation()
-  const { mutateAsync: verifyToken } = useVerifyTokenMutation()
-  const { mutateAsync: createAccount } = useNewAccountMutation()
-  const { mutateAsync: createTransaction } = useNewTransactionMutation()
-  const { mutateAsync: newUserNotification } = useNewUserNotificationMutation()
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { userInfo } = state
   const { infos } = userInfo!
   const navigate = useNavigate()
-  const { search } = useLocation()
-  const redirectInUrl = new URLSearchParams(search).get('redirect')
-  const redirect = redirectInUrl ? redirectInUrl : '/payment-method'
   const { t } = useTranslation(['common'])
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -121,100 +91,43 @@ const Infos = () => {
     }
   }, [userInfo, form])
 
-  const browserLanguage = navigator.language
-
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      const tempToken = JSON.parse(localStorage.getItem('tempToken') || '')
-      if (!tempToken) {
-        toastAxiosError({
-          title: 'Token not found',
-          description: 'Please try again later.',
-        })
-        return
-      }
-
-      const VerifyToken = await verifyToken(tempToken!)
-      if (!VerifyToken.valid) {
-        toastAxiosError({
-          title: 'Invalid Token',
-          description: 'Please try again later.',
-        })
-        return
-      }
-
-      const userData: User = {
-        register: userInfo?.register!,
-        origines: userInfo?.origines!,
-        infos: {
-          ...values,
-          tel: checkTel(values.tel),
-          postalCode: checkPostalCode(values.postalCode),
-        },
-        isAdmin: false,
-        rememberMe: false,
-        primaryMember: true,
-        familyMembers: [],
-        cpdLng: localStorage.getItem('i18nextLng')! || browserLanguage,
-        referredBy: localStorage.getItem('referralId')!,
-      }
-      const registerData = await registerfunc(userData)
-
-      const accountData = (await createAwaitingInteracAccount({
-        createAccount,
-        createTransaction: async (payload) => {
-          if (!payload.userId) {
-            throw new Error('userId is required');
-          }
-
-          return createTransaction(payload as Transaction);
-        },
-
-        userInfo: registerData,
-        transactionReason: "Compte créé en attente du premier paiement Interac (inscription)",
-      })) as Account
-
-      ctxDispatch({
-        type: 'USER_SIGNUP',
-        payload: registerData,
-      })
-      ctxDispatch({
-        type: 'ACCOUNT_INFOS',
-        payload: accountData,
-      })
-      localStorage.setItem('userInfo', JSON.stringify(registerData))
-      localStorage.setItem('accountInfo', JSON.stringify(accountData))
-
-      setShowModal(true)
-
-      await sendPasswordToUser({
-        email: userInfo?.register?.email!,
-        password: userInfo?.register?.password!,
-      })
-      await newUserNotification(userInfo?.register?.email!)
-    } catch (error: any) {
-      if (error.response && error.response.status === 409) {
-        const title = "Changer l'adresse courriel";
-        const description = "L'adresse courriel que vous avez entré existe déjà";
-        toastAxiosError(description, title)
-      } else {
-        toastAxiosError(error, 'Ooops!')
-      }
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    const normalizedInfos = {
+      ...values,
+      tel: checkTel(values.tel),
+      postalCode: checkPostalCode(values.postalCode),
     }
-  }
 
-  const handlePreviousClick = () => {
-    const currentValues = form.getValues()
-    ctxDispatch({ type: 'USER_INFOS', payload: currentValues })
+    ctxDispatch({ type: 'USER_INFOS', payload: normalizedInfos })
     localStorage.setItem(
       'userInfo',
       JSON.stringify({
         ...userInfo,
-        infos: currentValues,
+        infos: normalizedInfos,
         infosTime: new Date(),
       })
     )
-    navigate(-1)
+
+    navigate('/urgence')
+  }
+
+  const handlePreviousClick = () => {
+    const currentValues = form.getValues()
+    const normalizedInfos = {
+      ...currentValues,
+      tel: checkTel(currentValues.tel),
+      postalCode: checkPostalCode(currentValues.postalCode),
+    }
+    ctxDispatch({ type: 'USER_INFOS', payload: normalizedInfos })
+    localStorage.setItem(
+      'userInfo',
+      JSON.stringify({
+        ...userInfo,
+        infos: normalizedInfos,
+        infosTime: new Date(),
+      })
+    )
+    navigate('/origines')
   }
 
   return (
@@ -226,7 +139,7 @@ const Infos = () => {
           <CardHeader className='text-center mb-5'>
             <CheckoutSteps step3 />
             <CardTitle className='font-bold text-4xl text-primary'>
-              Vos informations
+              Vos coordonnées
             </CardTitle>
             <CardDescription className=' text-sm'>
               {t('connexion.slogan')}
@@ -234,10 +147,7 @@ const Infos = () => {
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className='space-y-8'
-              >
+              <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
                 <FormField
                   control={form.control}
                   name='tel'
@@ -314,10 +224,7 @@ const Infos = () => {
                         </FormControl>
                         <SelectContent>
                           {countries.map((country) => (
-                            <SelectItem
-                              key={country.value}
-                              value={country.value}
-                            >
+                            <SelectItem key={country.value} value={country.value}>
                               {country.label}
                             </SelectItem>
                           ))}
@@ -328,20 +235,19 @@ const Infos = () => {
                   )}
                 />
 
-                {/*  Statut du pays de résidence */}
                 <FormField
                   control={form.control}
                   name='residenceCountryStatus'
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className='text-sm'>Statut de résidence</FormLabel>
+                      <FormLabel className='text-sm'>Statut de residence</FormLabel>
                       <Select
                         value={field.value ?? ''}
                         onValueChange={field.onChange}
                       >
                         <FormControl>
                           <SelectTrigger className='w-fit min-w-[200px] max-w-full'>
-                            <SelectValue placeholder='Sélectionnez votre statut' />
+                            <SelectValue placeholder='Selectionnez votre statut' />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -374,22 +280,19 @@ const Infos = () => {
                     </FormItem>
                   )}
                 />
-                {isPending ? (
-                  <Loading />
-                ) : (
-                  <div>
-                    <Button className='mr-4' type='submit'>
-                      {t('enregistrement.enregistrer')}
-                    </Button>
-                    <Button
-                      onClick={handlePreviousClick}
-                      className='bg-white text-primary border-2 hover:bg-slate-100 hover:text-primary/80 border-primary'
-                      type='reset'
-                    >
-                      Précédent
-                    </Button>
-                  </div>
-                )}
+
+                <div>
+                  <Button className='mr-4' type='submit'>
+                    {t('enregistrement.suivant')}
+                  </Button>
+                  <Button
+                    onClick={handlePreviousClick}
+                    className='bg-white text-primary border-2 hover:bg-slate-100 hover:text-primary/80 border-primary'
+                    type='reset'
+                  >
+                    {t('enregistrement.prev')}
+                  </Button>
+                </div>
               </form>
             </Form>
           </CardContent>
@@ -397,31 +300,6 @@ const Infos = () => {
       </div>
 
       <Footer />
-
-      {/* Modal de confirmation */}
-      <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className='font-bold text-xl p-4'>
-              Inscription réussie
-            </DialogTitle>
-            <DialogDescription className='p-4 text-justify'>
-              Un e-mail contenant votre mot de passe vous a été envoyé. Veuillez
-              vérifier votre boîte de réception.
-            </DialogDescription>
-          </DialogHeader>
-          <div className='p-4'>
-            <Button
-              onClick={() => {
-                setShowModal(false)
-                navigate(redirect)
-              }}
-            >
-              OK
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </>
   )
 }
