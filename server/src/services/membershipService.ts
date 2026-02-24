@@ -13,6 +13,14 @@ import {
 import labels from '../common/libelles.json'
 import { handleFailedPrelevement } from './subscriptionService'
 
+const getMembershipBalance = (account: any): number =>
+  typeof account?.membership_balance === 'number'
+    ? account.membership_balance
+    : account?.solde || 0
+
+const getRpnBalance = (account: any): number =>
+  typeof account?.rpn_balance === 'number' ? account.rpn_balance : 0
+
 const calculateMembershipAmount = (
   user: DocumentType<User>,
   workerAmount: number,
@@ -49,7 +57,6 @@ export const processAnnualMembershipPayment = async () => {
   const currentYear = new Date().getFullYear()
 
   for (const user of users) {
-    //Ignorer si paiement déjà effectué cette année
     if (
       user.subscription?.lastMembershipPaymentYear === currentYear &&
       user.subscription?.membershipPaidThisYear
@@ -57,7 +64,6 @@ export const processAnnualMembershipPayment = async () => {
       continue
     }
 
-    //Calcul du nombre de personnes à charge + user (18+)
     const totalPersons = calculateTotalPersons(user)
     const totalToDeduct = calculateMembershipAmount(
       user,
@@ -65,14 +71,16 @@ export const processAnnualMembershipPayment = async () => {
       MEMBERSHIP_STUDENT_AMOUNT,
     )
 
-    //Chercher le compte lié à l'utilisateur
     const account = await AccountModel.findOne({ userId: user._id })
     if (!account) continue
 
-    if (account.solde >= totalToDeduct) {
-      //Prélèvement
+    const membershipBalance = getMembershipBalance(account)
+    const rpnBalance = getRpnBalance(account)
 
-      account.solde -= totalToDeduct
+    if (membershipBalance >= totalToDeduct) {
+      account.membership_balance = membershipBalance - totalToDeduct
+      account.rpn_balance = rpnBalance
+      account.solde = account.membership_balance + account.rpn_balance
       await account.save()
 
       await TransactionModel.create({
@@ -100,7 +108,6 @@ export const processAnnualMembershipPayment = async () => {
       user.subscription.scheduledDeactivationDate = undefined
       await user.save()
     } else {
-      //Paiement échoué
       await TransactionModel.create({
         userId: user._id,
         amount: totalToDeduct,
@@ -113,7 +120,7 @@ export const processAnnualMembershipPayment = async () => {
         user,
         type: 'membership',
         totalToDeduct,
-        solde: account.solde,
+        solde: membershipBalance,
         maxMissed,
         totalPersons,
       })
@@ -150,8 +157,13 @@ export const processMembershipForUser = async (userId: string) => {
 
   if (!account) return { status: 'NO_ACCOUNT' }
 
-  if (account.solde >= totalToDeduct) {
-    account.solde -= totalToDeduct
+  const membershipBalance = getMembershipBalance(account)
+  const rpnBalance = getRpnBalance(account)
+
+  if (membershipBalance >= totalToDeduct) {
+    account.membership_balance = membershipBalance - totalToDeduct
+    account.rpn_balance = rpnBalance
+    account.solde = account.membership_balance + account.rpn_balance
     await account.save()
 
     await TransactionModel.create({
@@ -162,22 +174,18 @@ export const processMembershipForUser = async (userId: string) => {
       status: 'completed',
     })
 
-    user!.subscription.lastMembershipPaymentYear = currentYear
-    user!.subscription.membershipPaidThisYear = true
-    user!.subscription.status = 'active'
-    user!.subscription.startDate = new Date()
-    user!.subscription.endDate = new Date(
+    user.subscription.lastMembershipPaymentYear = currentYear
+    user.subscription.membershipPaidThisYear = true
+    user.subscription.status = 'active'
+    user.subscription.startDate = new Date()
+    user.subscription.endDate = new Date(
       new Date().setFullYear(currentYear + 1)
     )
-    user!.subscription.missedRemindersCount = 0
-    user!.subscription.scheduledDeactivationDate = undefined
-    await user!.save()
+    user.subscription.missedRemindersCount = 0
+    user.subscription.scheduledDeactivationDate = undefined
+    await user.save()
 
-    await sendMembershipSuccessEmail(
-      user!.register.email,
-      totalToDeduct,
-      currentYear
-    )
+    await sendMembershipSuccessEmail(user.register.email, totalToDeduct, currentYear)
     return { status: 'SUCCESS', amount: totalToDeduct }
   } else {
     await TransactionModel.create({
@@ -192,7 +200,7 @@ export const processMembershipForUser = async (userId: string) => {
       user,
       type: 'membership',
       totalToDeduct,
-      solde: account.solde,
+      solde: membershipBalance,
       maxMissed,
       totalPersons,
     })
@@ -200,7 +208,7 @@ export const processMembershipForUser = async (userId: string) => {
     return {
       status: 'INSUFFICIENT_FUNDS',
       required: totalToDeduct,
-      balance: account.solde,
+      balance: membershipBalance,
     }
   }
 }
@@ -221,12 +229,10 @@ export const processInactiveUsers = async () => {
     await user.save()
 
     await sendAccountDeactivatedEmail(user.register.email)
-    console.log(`🛑 Compte désactivé : ${user.register.email}`)
+    console.log(`Compte desactive : ${user.register.email}`)
   }
 
-  console.log(
-    `✅ ${usersToDeactivate.length} comptes désactivés automatiquement.`
-  )
+  console.log(`${usersToDeactivate.length} comptes desactives automatiquement.`)
 }
 
 export const desactivateUserAccount = async (userId: string) => {
@@ -240,7 +246,7 @@ export const desactivateUserAccount = async (userId: string) => {
   user.subscription.scheduledDeactivationDate = undefined
   await user.save()
   await sendAccountDeactivatedEmail(user.register.email)
-  console.log(`🛑 Compte désactivé manuellement pour : ${user.register.email}`)
+  console.log(`Compte desactive manuellement pour : ${user.register.email}`)
 
   return { status: 'SUCCESS', message: labels.compte.desactiveSucces }
 }
@@ -263,7 +269,7 @@ export const reactivateUserAccount = async (userId: string) => {
   user.subscription.scheduledDeactivationDate = undefined
   await user.save()
 
-  console.log(`✅ Compte réactivé pour : ${user.register.email}`)
+  console.log(`Compte reactive pour : ${user.register.email}`)
 
   return { status: 'SUCCESS', message: labels.compte.reactiveSucces }
 }

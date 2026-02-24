@@ -170,7 +170,10 @@ userRouter.post(
         residenceCountry: user?.infos.residenceCountry,
         contactNumber: user?.infos.tel,
         paymentMethod: accountByUserId?.paymentMethod,
-        balanceAmount: accountByUserId?.solde,
+        balanceAmount:
+          (accountByUserId?.membership_balance || 0) +
+          (accountByUserId?.rpn_balance || 0) ||
+          accountByUserId?.solde,
       })
     } catch (error) {
       console.log(error)

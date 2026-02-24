@@ -19,11 +19,15 @@ export const checkMinimumBalanceAndSendReminder = async () => {
     if (!account) continue
 
     const minRequired = totalPersons * MINIMUM_UNIT
+    const rpnBalance =
+      typeof account.rpn_balance === 'number'
+        ? account.rpn_balance
+        : account.solde
 
-    if (account.solde < minRequired) {
+    if (rpnBalance < minRequired) {
       await sendLowBalanceNotification(
         user.register.email,
-        account.solde,
+        rpnBalance,
         minRequired
       )
     }
@@ -43,32 +47,34 @@ export const sendBalanceReminderIfNeeded = async (userId: string) => {
 
   const account = await AccountModel.findOne({ userId })
   if (!account) return { status: 'NO_ACCOUNT' }
+  const rpnBalance =
+    typeof account.rpn_balance === 'number' ? account.rpn_balance : account.solde
 
-  if (account.solde < minimumRequired) {
+  if (rpnBalance < minimumRequired) {
     await handleFailedPrelevement({
       user,
       type: 'balance',
       totalToDeduct: minimumRequired,
-      solde: account.solde,
+      solde: rpnBalance,
       maxMissed: MAX_MISSED,
       totalPersons,
     })
 
     await sendLowBalanceNotification(
       user.register.email,
-      account.solde,
+      rpnBalance,
       minimumRequired
     )
 
     return {
       status: 'REMINDER_SENT',
       required: minimumRequired,
-      balance: account.solde,
+      balance: rpnBalance,
     }
   } else {
     return {
       status: 'ENOUGH_BALANCE',
-      balance: account.solde,
+      balance: rpnBalance,
     }
   }
 }

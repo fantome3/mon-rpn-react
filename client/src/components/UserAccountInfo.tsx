@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useMemo, useState } from 'react'
 import {
   Card,
   CardContent,
@@ -9,40 +9,51 @@ import {
 import { Store } from '@/lib/Store'
 import { useGetAccountsByUserIdQuery } from '@/hooks/accountHooks'
 import { refresh, ToLocaleStringFunc } from '@/lib/utils'
-import { getAccountStatusLabel } from '@/lib/accountUtils'
 import { Button } from './ui/button'
 import UpdateInteracPayment from './UpdateInteracPayment'
 import UpdateCreditCardPayment from './UpdateCreditCardPayment'
-import { useGetTransactionsByUserIdQuery } from '@/hooks/transactionHooks'
+
+type TopUpTarget = 'membership' | 'rpn'
 
 const UserAccountInfo = () => {
   const { state } = useContext(Store)
   const { userInfo } = state
   const userId = userInfo?._id ?? ''
   const { data: account } = useGetAccountsByUserIdQuery(userId)
-  const { data: transactions } = useGetTransactionsByUserIdQuery(userId)
+
   const [modalVisibility, setModalVisibility] = useState(false)
-  const [currentSolde, setCurrentSolde] = useState<number | null>(null)
+  const [activeTarget, setActiveTarget] = useState<TopUpTarget>('rpn')
+  const [membershipBalance, setMembershipBalance] = useState<number>(0)
+  const [rpnBalance, setRpnBalance] = useState<number>(0)
 
-  const paymentMethod = account && account[0]?.paymentMethod
-  
-  const lastTransaction =
-    transactions && transactions.length > 0 ? transactions[0] : undefined
-  const statusLabel = getAccountStatusLabel(account?.[0], lastTransaction?.status)
+  const paymentMethod = account?.[0]?.paymentMethod
+  const subscriptionStatus = userInfo?.subscription?.status
 
-  const handleTransactionSuccess = async (amount: number) => {
-    setCurrentSolde((prevSolde) =>
-      prevSolde !== null && prevSolde !== undefined
-        ? prevSolde + amount
-        : amount
-    )
+  const membershipStatusLabel = useMemo(() => {
+    if (subscriptionStatus === 'active') return 'A jour'
+    if (subscriptionStatus === 'registered') return 'En retard'
+    return 'Renouvellement bientot'
+  }, [subscriptionStatus])
+
+  const membershipMinAmount = useMemo(() => {
+    if (subscriptionStatus === 'active') return 25
+    if (subscriptionStatus === 'registered') return 50
+    return 50
+  }, [subscriptionStatus])
+
+  const handleTransactionSuccess = async (_amount: number) => {
     setModalVisibility(false)
     refresh()
   }
 
   useEffect(() => {
-    if (account && account[0]?.solde !== undefined) {
-      setCurrentSolde(account?.[0]?.solde)
+    if (account?.[0]) {
+      const nextMembership =
+        account[0].membership_balance ??
+        (account[0].solde ?? 0)
+      const nextRpn = account[0].rpn_balance ?? 0
+      setMembershipBalance(nextMembership)
+      setRpnBalance(nextRpn)
     }
   }, [account])
 
@@ -51,38 +62,60 @@ const UserAccountInfo = () => {
       setModalVisibility(false)
     }
   }
+
   return (
     <>
-      <Card className='mt-10'>
-        <CardHeader>
-          <CardTitle>Mon solde</CardTitle>
-          <CardDescription>Montant actuel</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className='flex justify-between items-center'>
-            <div
-              className={`text-2xl font-bold ${
-                statusLabel ? 'text-gray-300 italic' : ''
-              }`}
-            >
-              $&nbsp;{ToLocaleStringFunc(currentSolde ?? 0)}
-              {statusLabel && (
-                <span className='ml-1 text-xs text-muted-foreground'>
-                  {statusLabel}
-                </span>
-              )}
+      <div className='col-span-1 sm:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 mt-10'>
+        <Card>
+          <CardHeader>
+            <CardTitle>Membership</CardTitle>
+            <CardDescription>{membershipStatusLabel}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className='flex justify-between items-center'>
+              <div className='text-2xl font-bold'>
+                $&nbsp;{ToLocaleStringFunc(membershipBalance)}
+              </div>
+              <Button
+                onClick={() => {
+                  setActiveTarget('membership')
+                  setModalVisibility(true)
+                }}
+                variant='outline'
+                size='sm'
+                className='ml-4 text-primary border-primary text-xs'
+              >
+                Renouveller
+              </Button>
             </div>
-            <Button
-              onClick={() => setModalVisibility(true)}
-              variant='outline'
-              size='sm'
-              className='ml-4 text-primary border-primary text-xs'
-            >
-              Renflouer
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Fonds RPN</CardTitle>
+            <CardDescription>Contribution volontaire</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className='flex justify-between items-center'>
+              <div className='text-2xl font-bold'>
+                $&nbsp;{ToLocaleStringFunc(rpnBalance)}
+              </div>
+              <Button
+                onClick={() => {
+                  setActiveTarget('rpn')
+                  setModalVisibility(true)
+                }}
+                variant='outline'
+                size='sm'
+                className='ml-4 text-primary border-primary text-xs'
+              >
+                Ajouter au fonds RPN
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {modalVisibility && (
         <div
@@ -90,13 +123,13 @@ const UserAccountInfo = () => {
           onClick={handleClickOutside}
         >
           {paymentMethod === 'credit_card' ? (
-            <>
-              <UpdateCreditCardPayment />
-            </>
+            <UpdateCreditCardPayment />
           ) : (
-            <>
-              <UpdateInteracPayment onSuccess={handleTransactionSuccess} />
-            </>
+            <UpdateInteracPayment
+              onSuccess={handleTransactionSuccess}
+              minAmount={activeTarget === 'membership' ? membershipMinAmount : 20}
+              topUpTarget={activeTarget}
+            />
           )}
         </div>
       )}

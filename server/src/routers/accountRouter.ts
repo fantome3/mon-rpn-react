@@ -11,6 +11,32 @@ import {
 
 export const accountRouter = express.Router()
 
+const toNumber = (value: unknown, fallback = 0): number => {
+  if (typeof value === 'number' && Number.isFinite(value)) return value
+  if (typeof value === 'string') {
+    const parsed = Number(value)
+    if (Number.isFinite(parsed)) return parsed
+  }
+  return fallback
+}
+
+const resolveBalancesFromBody = (body: any) => {
+  const hasMembership = body.membership_balance !== undefined
+  const hasRpn = body.rpn_balance !== undefined
+
+  const membershipBalance = hasMembership
+    ? toNumber(body.membership_balance, 0)
+    : toNumber(body.solde, 0)
+
+  const rpnBalance = hasRpn ? toNumber(body.rpn_balance, 0) : 0
+
+  return {
+    membership_balance: membershipBalance,
+    rpn_balance: rpnBalance,
+    solde: membershipBalance + rpnBalance,
+  }
+}
+
 accountRouter.post(
   '/new',
   expressAsyncHandler(async (req: Request, res: Response) => {
@@ -36,7 +62,9 @@ accountRouter.post(
         }
       }
 
+      const balances = resolveBalancesFromBody(req.body)
       const newAccount = new AccountModel(req.body)
+      Object.assign(newAccount, balances)
       await newAccount.save()
       res.send(newAccount.toObject())
     } catch (error) {
@@ -128,8 +156,13 @@ accountRouter.put(
         const previousLastName = account.lastName
         const previousTel = account.userTel
         const previousResidenceCountry = account.userResidenceCountry
+        const balances = resolveBalancesFromBody({
+          ...account.toObject(),
+          ...req.body,
+        })
 
         Object.assign(account, req.body)
+        Object.assign(account, balances)
         const updatedAccount = await account.save()
         if (updatedAccount.userId) {
           const updateFields: any = {}

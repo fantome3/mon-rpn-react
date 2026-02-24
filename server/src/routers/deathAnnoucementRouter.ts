@@ -22,7 +22,6 @@ deathAnnouncementRouter.post(
       const newDeathAnnouncement = new DeathAnnouncementModel(req.body)
       await newDeathAnnouncement.save()
 
-      // Récupération du montant global à prélever
       const settings = await SettingsModel.findOne()
 
       if (!settings || !settings.amountPerDependent) {
@@ -47,83 +46,65 @@ deathAnnouncementRouter.post(
           const nbActive =
             user.familyMembers?.filter((member) => member.status === 'active')
               .length || 0
-          const totalPersons = nbActive + 1 // +1 pour le membre principal
+          const totalPersons = nbActive + 1
           const totalToDeduct = totalPersons * amountPerPerson
 
           const account = await AccountModel.findOne({ userId }).lean()
-          console.log(
-            '🔍 userId:',
-            userId.toString(),
-            '➡️ Account:',
-            account?.solde
-          )
-
           if (!account) {
-            console.log(
-              `⛔ Aucun compte trouvé pour l'utilisateur ${user.register.email}`
-            )
             errors.push({
               user: user.register.email,
-              error: 'Aucun compte trouvé',
+              error: 'Aucun compte trouve',
             })
             continue
           }
 
-          if (account.solde < totalToDeduct) {
+          const currentRpnBalance =
+            typeof account.rpn_balance === 'number'
+              ? account.rpn_balance
+              : account.solde || 0
+
+          if (currentRpnBalance < totalToDeduct) {
             const userDoc = await UserModel.findById(userId)
             if (userDoc) {
               await handleFailedPrelevement({
                 user: userDoc,
                 type: 'balance',
                 totalToDeduct,
-                solde: account.solde,
+                solde: currentRpnBalance,
                 maxMissed: settings?.maxMissedReminders,
-                totalPersons: totalPersons,
+                totalPersons,
               })
             }
             errors.push({
               userId,
               email: user.register.email,
               reason: 'Solde insuffisant',
-              solde: account.solde,
+              solde: currentRpnBalance,
               required: totalToDeduct,
             })
             continue
           }
 
-          //Déduction
-          account.solde -= totalToDeduct
           await AccountModel.updateOne(
             { userId },
-            { $inc: { solde: -totalToDeduct } }
+            { $inc: { rpn_balance: -totalToDeduct, solde: -totalToDeduct } }
           )
 
-          //Tranctions
           await TransactionModel.create({
             userId,
             amount: totalToDeduct,
             type: 'debit',
-            reason: `Prélèvement décès pour ${totalPersons} personnes`,
+            reason: `Prelevement deces pour ${totalPersons} personnes`,
           })
-
-          console.log(
-            `💸 Prélèvement de ${totalToDeduct} pour ${user.register.email}`
-          )
         } catch (error: any) {
-          console.error(`❗Erreur pour l'utilisateur ${user._id}:`, error)
           errors.push({
             userId: user._id,
             email: user.register?.email,
-            reason: 'Erreur système',
+            reason: 'Erreur systeme',
             error: error.message,
           })
         }
       }
-
-      console.log(
-        `✅ Prélèvements terminés. Utilisateurs ignorés ou en échec:`,
-        errors.length
-      )
 
       await notifyAllUsers({
         firstName: newDeathAnnouncement.firstName,
@@ -145,9 +126,7 @@ deathAnnouncementRouter.post(
 
 deathAnnouncementRouter.get(
   '/all',
-  //isAuth,
-  //isAdmin,
-  expressAsyncHandler(async (req: Request, res: Response) => {
+  expressAsyncHandler(async (_req: Request, res: Response) => {
     try {
       const deathAnnouncements = await DeathAnnouncementModel.find()
       res.send(deathAnnouncements.reverse())
@@ -159,8 +138,6 @@ deathAnnouncementRouter.get(
 
 deathAnnouncementRouter.put(
   '/:id',
-  //isAuth,
-  //isAdmin,
   expressAsyncHandler(async (req: Request, res: Response) => {
     try {
       const deathAnnouncement = await DeathAnnouncementModel.findById(
@@ -182,7 +159,7 @@ deathAnnouncementRouter.put(
 
 deathAnnouncementRouter.get(
   '/summary',
-  expressAsyncHandler(async (req: Request, res: Response) => {
+  expressAsyncHandler(async (_req: Request, res: Response) => {
     const deaths = await DeathAnnouncementModel.aggregate([
       {
         $group: {

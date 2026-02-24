@@ -14,6 +14,7 @@ import Sponsorship from './profil/Sponsorship'
 import Page404 from './page404/Page404'
 import PaymentMethod from './account/PaymentMethod'
 import Accounts from './admin/accounts/Accounts'
+import AccountProfile from './admin/accounts/AccountProfile'
 import Announcements from './admin/announcements/Announcements'
 import UpdateMethod from './account/UpdateMethod'
 import Conditions from './conditions/Conditions'
@@ -42,6 +43,7 @@ export {
   Page404,
   PaymentMethod,
   Accounts,
+  AccountProfile,
   Announcements,
   UpdateMethod,
   Conditions,

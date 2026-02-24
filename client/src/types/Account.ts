@@ -18,6 +18,8 @@ export type Account = {
   userTel: string
   userResidenceCountry: string
   solde: number
+  membership_balance: number
+  rpn_balance: number
   paymentMethod: 'credit_card' | 'interac' | string
   card?: CardType[]
   interac?: Interac[]

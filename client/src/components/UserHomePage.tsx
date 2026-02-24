@@ -46,7 +46,7 @@ const UserHomPage = () => {
           </div>
         </div>
         <AddMemberSection />
-        <div className='grid sm:grid-cols-3 gap-4'>
+        <div className='grid sm:grid-cols-4 gap-4'>
           <UserAccountInfo />
           <CurrentMonthStat
             data={

@@ -65,6 +65,7 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
   initialPageIndex?: number
+  initialColumnVisibility?: VisibilityState
   onPaginationChange?: (page: number) => void
   pageName?: string
 }
@@ -73,12 +74,15 @@ export function DataTable<TData, TValue>({
   columns,
   data,
   initialPageIndex = 0,
+  initialColumnVisibility = {},
   pageName,
   onPaginationChange,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+    initialColumnVisibility
+  )
   const [globalFilter, setGlobalFilter] = useState('')
 
   const table = useReactTable({

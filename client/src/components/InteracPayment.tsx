@@ -38,9 +38,15 @@ const createSchema = (minAmount: number) =>
 
 type InteracPaymentProps = {
   total: number
+  membershipAmount: number
+  rpnAmount: number
 }
 
-const InteracPayment = ({ total }: InteracPaymentProps) => {
+const InteracPayment = ({
+  total,
+  membershipAmount,
+  rpnAmount,
+}: InteracPaymentProps) => {
   const [modalVisibility, setModalVisibility] = useState(false)
   const { state, dispatch: ctxDispatch } = useContext(Store)
   const { userInfo } = state
@@ -71,6 +77,10 @@ const InteracPayment = ({ total }: InteracPaymentProps) => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
+      const extra = Math.max(0, values.amountInterac - total)
+      const computedMembershipBalance = membershipAmount
+      const computedRpnBalance = rpnAmount + extra
+
       const existingInteracTransactions: Interac[] = []
       const newInteracTransaction = { ...values }
       const updatedInteracTransactions = [
@@ -83,6 +93,8 @@ const InteracPayment = ({ total }: InteracPaymentProps) => {
         userTel: userInfo?.infos.tel!,
         userResidenceCountry: userInfo?.infos.residenceCountry!,
         solde: values.amountInterac,
+        membership_balance: computedMembershipBalance,
+        rpn_balance: computedRpnBalance,
         paymentMethod: 'interac',
         userId: userInfo?._id!,
         interac: updatedInteracTransactions,
@@ -92,7 +104,8 @@ const InteracPayment = ({ total }: InteracPaymentProps) => {
         userId: userInfo?._id,
         amount: values.amountInterac,
         type: 'credit',
-        reason: 'premier paiement via Interac',
+        reason:
+          'Premier paiement via Interac (membership + frais + contribution RPN)',
         refInterac: values.refInterac,
         status: 'pending',
       })

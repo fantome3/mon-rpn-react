@@ -17,6 +17,8 @@ type AwaitingAccountParams = {
     userTel: string
     userResidenceCountry: string
     solde: number
+    membership_balance: number
+    rpn_balance: number
     paymentMethod: 'interac'
     userId: string
     isAwaitingFirstPayment: boolean
@@ -56,6 +58,8 @@ export const createAwaitingInteracAccount = async ({
     userTel: userInfo.infos.tel,
     userResidenceCountry: userInfo.infos.residenceCountry,
     solde: 0,
+    membership_balance: 0,
+    rpn_balance: 0,
     paymentMethod: 'interac',
     userId: userInfo._id,
     isAwaitingFirstPayment: true,

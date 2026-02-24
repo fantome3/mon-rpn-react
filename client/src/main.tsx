@@ -27,6 +27,7 @@ import {
   Page404,
   PaymentMethod,
   Accounts,
+  AccountProfile,
   Announcements,
   UpdateMethod,
   Conditions,
@@ -84,6 +85,7 @@ const router = createBrowserRouter(
         {/**Admin Users */}
         <Route path='/admin' element={<AdminRoute />}>
           <Route path='accounts' element={<Accounts />} />
+          <Route path='accounts/:userId/profile' element={<AccountProfile />} />
           <Route path='announcements' element={<Announcements />} />
           <Route path='transactions' element={<Transactions />} />
         </Route>
