@@ -5,26 +5,29 @@ import { useGetAccountsByUserIdQuery } from '@/hooks/accountHooks'
 import { ToLocaleStringFunc } from '@/lib/utils'
 import { Button } from './ui/button'
 import { buildPaymentMessage, computeFamilyFeesSummary } from '@/lib/familyFees'
-import { buildBillingPaymentUrl } from '@/lib/billing'
+import {
+  buildBillingPaymentUrl,
+  formatNextMembershipDueDate,
+  getMembershipPaymentBadgeClass,
+  getMembershipPaymentBadgeLabel,
+  getMembershipPaymentUiState,
+  shouldResetMembershipDisplayForCurrentYear,
+} from '@/lib/billing'
 import { useNavigate } from 'react-router-dom'
+import { useGetTransactionsByUserIdQuery } from '@/hooks/transactionHooks'
+import { Badge } from './ui/badge'
+import { CircleCheckBig } from 'lucide-react'
 
 const UserAccountInfo = () => {
   const { state } = useContext(Store)
   const { userInfo } = state
   const userId = userInfo?._id ?? ''
   const { data: account } = useGetAccountsByUserIdQuery(userId)
+  const { data: transactions = [] } = useGetTransactionsByUserIdQuery(userId)
   const navigate = useNavigate()
 
   const [membershipBalance, setMembershipBalance] = useState<number>(0)
   const [rpnBalance, setRpnBalance] = useState<number>(0)
-
-  const subscriptionStatus = userInfo?.subscription?.status
-
-  const membershipStatusLabel = useMemo(() => {
-    if (subscriptionStatus === 'active') return 'A jour'
-    if (subscriptionStatus === 'registered') return 'En retard'
-    return 'Renouvellement bientot'
-  }, [subscriptionStatus])
 
   const familyFeesSummary = useMemo(
     () => computeFamilyFeesSummary(userInfo),
@@ -46,6 +49,31 @@ const UserAccountInfo = () => {
       ),
     [familyFeesSummary]
   )
+  const membershipPaymentState = useMemo(
+    () => getMembershipPaymentUiState(transactions, new Date().getFullYear(), userInfo?.subscription),
+    [transactions, userInfo?.subscription]
+  )
+  const membershipBadgeLabel = useMemo(
+    () => getMembershipPaymentBadgeLabel(membershipPaymentState),
+    [membershipPaymentState]
+  )
+  const membershipBadgeClass = useMemo(
+    () => getMembershipPaymentBadgeClass(membershipPaymentState),
+    [membershipPaymentState]
+  )
+  const nextMembershipDueDate = useMemo(
+    () => formatNextMembershipDueDate(userInfo?.subscription?.endDate),
+    [userInfo?.subscription?.endDate]
+  )
+  const shouldResetMembershipDisplay = useMemo(
+    () => shouldResetMembershipDisplayForCurrentYear(userInfo?.subscription, new Date().getFullYear()),
+    [userInfo?.subscription]
+  )
+  const displayedMembershipBalance = useMemo(() => {
+    if (membershipPaymentState === 'success') return null
+    if (shouldResetMembershipDisplay) return 0
+    return membershipBalance
+  }, [membershipBalance, membershipPaymentState, shouldResetMembershipDisplay])
 
   useEffect(() => {
     if (account?.[0]) {
@@ -61,26 +89,52 @@ const UserAccountInfo = () => {
       <Card>
         <CardHeader>
           <CardTitle>Membership</CardTitle>
-          <CardDescription>{membershipStatusLabel}</CardDescription>
+          <CardDescription>
+            {
+              membershipPaymentState === 'success' ? (
+                <p className='mt-2 text-xs text-muted-foreground'>
+                  Prochaine cotisation prevue le : {nextMembershipDueDate}
+                </p>
+              ) : <p className='inline-block rounded bg-yellow-200 px-2 py-1 font-medium text-yellow-900'>
+                    {membershipPaymentMessage}
+                  </p>
+            }
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className='flex items-center justify-between'>
-            <div className='text-2xl font-bold'>
-              $&nbsp;{ToLocaleStringFunc(membershipBalance)}
+            {membershipPaymentState === 'success' ? (
+              <div className='flex items-center gap-2'>
+                <Badge className={`${membershipBadgeClass} px-3 py-1 text-sm font-semibold`}>
+                  {membershipBadgeLabel}
+                </Badge>
+                <CircleCheckBig className='h-6 w-6 text-green-600' />
+              </div>
+            ) : (
+              <div className='text-2xl font-bold'>
+                $&nbsp;{ToLocaleStringFunc(displayedMembershipBalance ?? 0)}
+              </div>
+            )}
+            <div className='ml-4 flex items-center gap-2'>
+              {membershipPaymentState !== 'success' ? (
+                <Badge className={membershipBadgeClass}>{membershipBadgeLabel}</Badge>
+              ) : null}
+              {membershipPaymentState !== 'success' ? (
+                <Button
+                  onClick={() => navigate(buildBillingPaymentUrl('membership'))}
+                  variant='outline'
+                  size='sm'
+                  disabled={membershipPaymentState === 'pending'}
+                  className={
+                    membershipPaymentState === 'pending'
+                      ? 'border-yellow-500 bg-yellow-100 text-yellow-900 text-xs'
+                      : 'border-primary text-primary text-xs'
+                  }
+                >
+                  Renflouer
+                </Button>
+              ) : null}
             </div>
-            <Button
-              onClick={() => navigate(buildBillingPaymentUrl('membership'))}
-              variant='outline'
-              size='sm'
-              className='ml-4 border-primary text-primary text-xs'
-            >
-              Renflouer
-            </Button>
-          </div>
-          <div className='mt-3 text-sm leading-relaxed text-muted-foreground'>
-            <p className='inline-block rounded bg-yellow-200 px-2 py-1 font-medium text-yellow-900'>
-              {membershipPaymentMessage}
-            </p>
           </div>
         </CardContent>
       </Card>

@@ -57,6 +57,9 @@ export type FamilyMember = {
 export type Subscription = {
   startDate: Date
   status: string
+  endDate?: Date
+  lastMembershipPaymentYear?: number
+  membershipPaidThisYear?: boolean
 }
 
 export type User = {

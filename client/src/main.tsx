@@ -37,7 +37,8 @@ import {
   AccountDeactivated,
   BalNoelLanding,
   AdminBookingList,
-  WeddingMenu
+  WeddingMenu,
+  Billing,
 } from './pages/index.ts'
 import './lib/i18n'
 import { StoreProvider } from './lib/Store.tsx'
@@ -74,6 +75,7 @@ const router = createBrowserRouter(
           <Route path='/dependents' element={<Dependents />} />
           <Route path='/sponsorship' element={<Sponsorship />} />
           <Route path='/payment-method' element={<PaymentMethod />} />
+          <Route path='/billing' element={<Billing />} />
           <Route path='/change-method' element={<UpdateMethod />} />
           <Route
             path='/transactions/:id/all'
