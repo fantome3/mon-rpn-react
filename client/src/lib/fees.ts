@@ -61,6 +61,16 @@ export const calculateMembershipTotal = (
     0
   )
 
+export const calculateMembershipOnlyTotal = (
+  rows: Pick<FeeDetail, 'quantity' | 'type' | 'isMembershipActive'>[],
+): number =>
+  rows.reduce(
+    (sum, row) =>
+      sum +
+      row.quantity * (row.isMembershipActive ? MEMBERSHIP_FEES[row.type] : 0),
+    0,
+  )
+
 export const calculateRpnTotal = (
   rows: Pick<FeeDetail, 'quantity' | 'type' | 'isRpnActive'>[],
 ): number =>

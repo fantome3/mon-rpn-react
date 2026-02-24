@@ -12,6 +12,10 @@ import { refresh, ToLocaleStringFunc } from '@/lib/utils'
 import { Button } from './ui/button'
 import UpdateInteracPayment from './UpdateInteracPayment'
 import UpdateCreditCardPayment from './UpdateCreditCardPayment'
+import {
+  buildPaymentMessage,
+  computeFamilyFeesSummary,
+} from '@/lib/familyFees'
 
 type TopUpTarget = 'membership' | 'rpn'
 
@@ -40,8 +44,28 @@ const UserAccountInfo = () => {
     if (subscriptionStatus === 'registered') return 50
     return 50
   }, [subscriptionStatus])
+  const familyFeesSummary = useMemo(
+    () => computeFamilyFeesSummary(userInfo),
+    [userInfo],
+  )
+  const membershipPaymentMessage = useMemo(
+    () =>
+      buildPaymentMessage(
+        familyFeesSummary.membershipAmount,
+        familyFeesSummary.dependantCount,
+      ),
+    [familyFeesSummary],
+  )
+  const rpnPaymentMessage = useMemo(
+    () =>
+      buildPaymentMessage(
+        familyFeesSummary.rpnAmount,
+        familyFeesSummary.dependantCount,
+      ),
+    [familyFeesSummary],
+  )
 
-  const handleTransactionSuccess = async (_amount: number) => {
+  const handleTransactionSuccess = async () => {
     setModalVisibility(false)
     refresh()
   }
@@ -88,6 +112,11 @@ const UserAccountInfo = () => {
                 Renouveller
               </Button>
             </div>
+            <div className='mt-3 text-sm leading-relaxed text-muted-foreground'>
+              <p className='inline-block rounded bg-yellow-200 px-2 py-1 font-medium text-yellow-900'>
+                {membershipPaymentMessage}
+              </p>
+            </div>
           </CardContent>
         </Card>
 
@@ -113,6 +142,11 @@ const UserAccountInfo = () => {
                 Ajouter au fonds RPN
               </Button>
             </div>
+            <div className='mt-3 text-sm leading-relaxed text-muted-foreground'>
+              <p className='inline-block rounded bg-yellow-200 px-2 py-1 font-medium text-yellow-900'>
+                {rpnPaymentMessage}
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -127,7 +161,11 @@ const UserAccountInfo = () => {
           ) : (
             <UpdateInteracPayment
               onSuccess={handleTransactionSuccess}
-              minAmount={activeTarget === 'membership' ? membershipMinAmount : 20}
+              minAmount={
+                activeTarget === 'membership'
+                  ? Math.max(membershipMinAmount, familyFeesSummary.membershipAmount)
+                  : Math.max(20, familyFeesSummary.rpnAmount)
+              }
               topUpTarget={activeTarget}
             />
           )}
