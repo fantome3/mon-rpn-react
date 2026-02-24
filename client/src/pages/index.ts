@@ -25,6 +25,7 @@ import AccountDeactivated from './account-deactivated/AccountDeactivated'
 import BalNoelLanding from './evenements/feteNoel'
 import AdminBookingList from './evenements/pageAdministrateur'
 import WeddingMenu from './evenements/WeddingMenu'
+import Billing from './billing/Billing'
 
 export {
   Login,
@@ -54,4 +55,5 @@ export {
   BalNoelLanding,
   AdminBookingList,
   WeddingMenu,
+  Billing,
 }

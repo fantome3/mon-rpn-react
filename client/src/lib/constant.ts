@@ -292,6 +292,7 @@ export const menuItemsDisconnected = [
 export const menuItemsConnected = [
   { name: 'Accueil', link: '/' },
   { name: 'Sommaire', link: '/summary' },
+  { name: 'Facturation', link: '/billing' },
   { name: 'Profile', link: '/profil' },
   { name: 'À Propos', link: '/about' },
   // { name: 'Nous contacter', link: '/contact-us' },
