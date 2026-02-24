@@ -36,18 +36,18 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import { format } from 'date-fns'
 import { CalendarIcon } from 'lucide-react'
 import { Calendar } from './CustomCalendar'
+import { FAMILY_MEMBER_STATUSES, RESIDENCE_COUNTRY_STATUSES } from '@/types'
 
 const formSchema = z.object({
   firstName: z.string(),
   lastName: z.string(),
   relationship: z.string(),
-  residenceCountryStatus: z.enum(
-    ['student', 'worker', 'canadian_citizen', 'permanent_resident', 'visitor'],
+  residenceCountryStatus: z.enum(RESIDENCE_COUNTRY_STATUSES,
     {
       required_error: 'Veuillez sélectionner le status au Canada.',
     }
   ),
-  status: z.string(),
+  status: z.enum(FAMILY_MEMBER_STATUSES),
   birthDate: z.date({
     required_error: 'La date de naissance est exigée.',
   }),
@@ -199,7 +199,7 @@ const AddMemberSection = () => {
                   <FormItem>
                     <FormLabel className='text-sm'>Prénoms</FormLabel>
                     <FormControl>
-                      <Input placeholder='Son prénom' {...field} />
+                      <Input placeholder='Son prÃ©nom' {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -378,3 +378,4 @@ const AddMemberSection = () => {
 }
 
 export default AddMemberSection
+

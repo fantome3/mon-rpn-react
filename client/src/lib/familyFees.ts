@@ -3,7 +3,7 @@ import {
   calculateRpnTotal,
   FeeDetail,
 } from './fees'
-import { User } from '@/types/User'
+import { User } from '@/types'
 
 export type FamilyFeesSummary = {
   dependantCount: number

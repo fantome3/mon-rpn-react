@@ -41,18 +41,19 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { academicInstitutionsList } from '@/lib/constant'
 import { SearchEngineOptimization } from '@/components/SearchEngine/SearchEngineOptimization'
+import { OCCUPATIONS, STUDENT_STATUSES } from '@/types'
 
 const formSchema = z.object({
   email: z.string().email({ message: `Email invalide` }),
   password: z.string().optional(),
   conditions: z.boolean(),
-  occupation: z.enum(['student', 'worker'], {
+  occupation: z.enum(OCCUPATIONS, {
     required_error: 'Sélectionnez un occupation',
   }),
   institution: z.string().optional(),
   otherInstitution: z.string().optional(),
   studentNumber: z.string().optional(),
-  studentStatus: z.enum(['part-time', 'full-time']).optional(),
+  studentStatus: z.enum(STUDENT_STATUSES).optional(),
   workField: z.string().optional(),
 })
 

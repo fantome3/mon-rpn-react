@@ -33,8 +33,8 @@ import {
   functionReverse,
   toastAxiosError,
 } from '@/lib/utils'
-import { Account } from '@/types/Account'
-import { User } from '@/types/User'
+import { Account } from '@/types'
+import { User } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ColumnDef } from '@tanstack/react-table'
 import { ArrowUpDown, Pencil } from 'lucide-react'

@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Account } from '@/types/Account'
+import { Account } from '@/types'
 import { toast } from '@/components/ui/use-toast'
 
 /**

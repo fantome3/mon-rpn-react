@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import React, { useCallback, useEffect } from 'react'
-import { Infos, Origines, Register, User } from '@/types/User'
-import { Account } from '@/types/Account'
+import { Infos, Origines, Register, User, Account } from '@/types'
 
 type AppState = {
   userInfo?: User

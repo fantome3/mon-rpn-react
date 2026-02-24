@@ -30,6 +30,7 @@ import {
 } from '@/hooks/userHooks'
 import { toast } from './ui/use-toast'
 import Loading from './Loading'
+import { RESIDENCE_COUNTRY_STATUSES } from '@/types'
 
 const normalizeEmergencyContacts = (
   contacts?: Array<{ name?: string; phone?: string }>
@@ -55,8 +56,7 @@ const formSchema = z.object({
   address: z.string().min(3, { message: 'Champ Obligatoire' }),
   tel: z.string().regex(telRegex, { message: 'Entrer numero correct' }),
   hasInsurance: z.boolean(),
-  residenceCountryStatus: z.enum(
-    ['student', 'worker', 'canadian_citizen', 'permanent_resident', 'visitor'],
+  residenceCountryStatus: z.enum(RESIDENCE_COUNTRY_STATUSES,
     {
       required_error: 'Selectionnez un status',
     }

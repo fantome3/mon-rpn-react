@@ -23,7 +23,7 @@ import {
 import Loading from './Loading'
 import { toast } from './ui/use-toast'
 import { Link } from 'react-router-dom'
-import { User } from '@/types/User'
+import { User } from '@/types'
 
 const UserConnexion = () => {
   const { t } = useTranslation(['common'])

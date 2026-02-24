@@ -26,13 +26,12 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card'
 import { useNewTransactionMutation } from '@/hooks/transactionHooks'
 import { ToLocaleStringFunc, toastAxiosError } from '@/lib/utils'
 import { createInteracFormSchema } from '@/lib/createInteracFormSchema'
-
-type TopUpTarget = 'membership' | 'rpn' | 'both'
+import type { TopUpTargetWithBoth } from '@/types'
 
 type UpdateInteracPaymentProps = {
   onSuccess: (amount: number) => void
   minAmount?: number
-  topUpTarget?: TopUpTarget
+  topUpTarget?: TopUpTargetWithBoth
   membershipAmount?: number
   rpnAmount?: number
 }

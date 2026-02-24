@@ -1,10 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import apiClient from '@/apiClient'
 import { ReservationPayload } from '@/pages/evenements/reservation'
+import { ReservationStatus } from '@/types'
 
 export interface ReservationRecord extends ReservationPayload {
   _id: string
-  status: 'pending' | 'confirmed' | 'refunded'
+  status: ReservationStatus
   createdAt: string
   updatedAt: string
 }

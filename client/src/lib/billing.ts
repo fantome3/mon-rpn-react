@@ -1,20 +1,18 @@
-import { Transaction } from '@/types/Transaction'
+import {
+  TOP_UP_TARGETS,
+  Transaction,
+  type BillingSection,
+  type MembershipPaymentUiState,
+  type Subscription,
+  type TopUpTarget,
+} from '@/types'
 
-export type TopUpTarget = 'membership' | 'rpn'
-export type BillingSection = 'payment' | 'history'
-export type MembershipPaymentUiState =
-  | 'initial'
-  | 'rejected'
-  | 'pending'
-  | 'success'
+export type { TopUpTarget, BillingSection, MembershipPaymentUiState }
 
-type MembershipSubscriptionSnapshot = {
-  status?: string
-  lastMembershipPaymentYear?: number
-  membershipPaidThisYear?: boolean
-  startDate?: Date | string
-  endDate?: Date | string
-}
+type MembershipSubscriptionSnapshot = Pick<
+  Subscription,
+  'status' | 'lastMembershipPaymentYear' | 'membershipPaidThisYear' | 'startDate' | 'endDate'
+>
 
 const MEMBERSHIP_PATTERNS = ['membership', 'cotisation', 'premier paiement']
 const MEMBERSHIP_TOPUP_PATTERNS = ['renflouement membership', 'premier paiement']
@@ -28,7 +26,9 @@ const includesAny = (value: string, patterns: string[]) =>
 export const getTargetFromQuery = (
   value?: string | null
 ): TopUpTarget | null => {
-  if (value === 'membership' || value === 'rpn') return value
+  if (value && TOP_UP_TARGETS.includes(value as TopUpTarget)) {
+    return value as TopUpTarget
+  }
   return null
 }
 
@@ -199,3 +199,5 @@ export const shouldResetMembershipDisplayForCurrentYear = (
   if (!subscription || subscription.status !== 'active') return false
   return !isMembershipPaidForCurrentYear(subscription, year)
 }
+
+

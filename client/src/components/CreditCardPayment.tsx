@@ -34,7 +34,7 @@ import {
 } from './ui/input-otp'
 import { Button } from './ui/button'
 import { useNewUserNotificationMutation } from '@/hooks/userHooks'
-import { CardType } from '@/types/Account'
+import { CardType } from '@/types'
 
 const formSchema = z.object({
   network: z.string(),

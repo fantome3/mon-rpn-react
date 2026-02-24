@@ -9,7 +9,11 @@ import {
   useUpdateUserMutation,
 } from '@/hooks/userHooks'
 import { Store } from '@/lib/Store'
-import { FamilyMember } from '@/types/User'
+import {
+  FamilyMember,
+  FAMILY_MEMBER_STATUSES,
+  RESIDENCE_COUNTRY_STATUSES,
+} from '@/types'
 import { ColumnDef } from '@tanstack/react-table'
 import clsx from 'clsx'
 import { useContext, useEffect, useRef, useState } from 'react'
@@ -57,13 +61,12 @@ const formSchema = z.object({
   firstName: z.string(),
   lastName: z.string(),
   relationship: z.string(),
-  residenceCountryStatus: z.enum(
-    ['student', 'worker', 'canadian_citizen', 'permanent_resident', 'visitor'],
+  residenceCountryStatus: z.enum(RESIDENCE_COUNTRY_STATUSES,
     {
       required_error: 'Veuillez sélectionner le status au Canada.',
     }
   ),
-  status: z.string(),
+  status: z.enum(FAMILY_MEMBER_STATUSES),
   birthDate: z.date({
     required_error: 'La date de naissance est exigée.',
   }),
@@ -107,7 +110,7 @@ const Dependents = () => {
       residenceCountryStatus: editingItem
         ? editingItem.residenceCountryStatus
         : 'worker',
-      status: editingItem ? editingItem.status : '',
+      status: editingItem ? editingItem.status : 'active',
       birthDate: editingItem ? toLocalNoon(editingItem.birthDate) : new Date(1990, 0, 1),
       tel: editingItem ? editingItem.tel : '',
     },
@@ -123,7 +126,7 @@ const Dependents = () => {
           firstName: editingItem.firstName || '',
           lastName: editingItem.lastName || '',
           relationship: editingItem.relationship || '',
-          status: editingItem.status || '',
+          status: editingItem.status || 'active',
           residenceCountryStatus: editingItem.residenceCountryStatus || 'worker',
           birthDate: toLocalNoon(editingItem.birthDate),
           tel: editingItem.tel,

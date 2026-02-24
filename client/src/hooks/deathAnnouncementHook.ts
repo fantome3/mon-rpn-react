@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from '@tanstack/react-query'
 import apiClient from '@/apiClient'
-import { DeathAnnouncement } from '@/types/DeathAnnouncement'
+import { DeathAnnouncement } from '@/types'
 
 export const useNewDeathAnnouncementMutation = () =>
   useMutation({

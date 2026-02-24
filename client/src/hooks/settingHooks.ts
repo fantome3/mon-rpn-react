@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import apiClient from '@/apiClient'
-import { SettingType } from '@/types/Setting'
+import { SettingType } from '@/types'
 
 export const useGetSettingsQuery = () =>
   useQuery({

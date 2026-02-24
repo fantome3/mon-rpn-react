@@ -34,11 +34,10 @@ import {
 } from '@/hooks/userHooks'
 import { useNewAccountMutation } from '@/hooks/accountHooks'
 import { useNewTransactionMutation } from '@/hooks/transactionHooks'
-import { Transaction } from '@/types/Transaction'
-import { Account } from '@/types/Account'
+import { Transaction, Account } from '@/types'
 import Loading from '@/components/Loading'
 import { checkPostalCode, checkTel, toastAxiosError } from '@/lib/utils'
-import { User } from '@/types/User'
+import { User } from '@/types'
 import { createAwaitingInteracAccount } from '@/lib/interacAccount'
 import {
   Dialog,

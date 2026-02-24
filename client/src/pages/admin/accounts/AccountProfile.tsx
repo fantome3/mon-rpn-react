@@ -24,7 +24,7 @@ import {
   functionReverse,
   toastAxiosError,
 } from '@/lib/utils'
-import { Account } from '@/types/Account'
+import { Account } from '@/types'
 import { ArrowLeft, ArrowRight, UserRound, Wallet } from 'lucide-react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 

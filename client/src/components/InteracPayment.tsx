@@ -30,7 +30,7 @@ import {
 import { Input } from './ui/input'
 import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card'
 import { useNewUserNotificationMutation } from '@/hooks/userHooks'
-import { Interac } from '@/types/Account'
+import { Interac } from '@/types'
 import { useNewTransactionMutation } from '@/hooks/transactionHooks'
 
 const createSchema = (minAmount: number) =>
