@@ -19,6 +19,7 @@ import clsx from 'clsx'
 import { useContext, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowUpDown, Pencil, Trash2, Tally1, CalendarIcon } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 import CustomModal from '@/components/CustomModal'
 import {
   Form,
@@ -83,8 +84,9 @@ const toLocalNoon = (value: Date | string) => {
 }
 
 const Dependents = () => {
-  const { state } = useContext(Store)
+  const { state, dispatch } = useContext(Store)
   const { userInfo } = state
+  const queryClient = useQueryClient()
   const {
     data: user,
     isPending,
@@ -272,10 +274,19 @@ const Dependents = () => {
         }
         const updatedFamilyMembers = [...(user?.familyMembers ?? [])]
         updatedFamilyMembers[getIndex] = deletedMember
-        await updateUser({
+        const response = await updateUser({
           ...user!,
           familyMembers: updatedFamilyMembers,
           _id: user?._id,
+        })
+        const nextUserInfo: typeof userInfo = {
+          ...userInfo!,
+          ...response.user,
+        }
+        dispatch({ type: 'USER_LOGIN', payload: nextUserInfo! })
+        localStorage.setItem('userInfo', JSON.stringify(nextUserInfo))
+        await queryClient.invalidateQueries({
+          queryKey: ['user', userInfo?._id ?? ''],
         })
         toast({
           variant: 'default',
@@ -310,10 +321,19 @@ const Dependents = () => {
         }
         const updatedFamilyMembers = [...(user?.familyMembers ?? [])]
         updatedFamilyMembers[getIndex] = updatedMember
-        await updateUser({
+        const response = await updateUser({
           ...user!,
           familyMembers: updatedFamilyMembers,
           _id: user?._id,
+        })
+        const nextUserInfo: typeof userInfo = {
+          ...userInfo!,
+          ...response.user,
+        }
+        dispatch({ type: 'USER_LOGIN', payload: nextUserInfo! })
+        localStorage.setItem('userInfo', JSON.stringify(nextUserInfo))
+        await queryClient.invalidateQueries({
+          queryKey: ['user', userInfo?._id ?? ''],
         })
         toast({
           variant: 'default',

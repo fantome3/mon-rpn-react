@@ -26,7 +26,11 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card'
 import { useNewTransactionMutation } from '@/hooks/transactionHooks'
 import { ToLocaleStringFunc, toastAxiosError } from '@/lib/utils'
 import { createInteracFormSchema } from '@/lib/createInteracFormSchema'
-import type { TopUpTargetWithBoth } from '@/types'
+import {
+  buildTopUpReason,
+  computeTopUpAllocation,
+  type TopUpTargetWithBoth,
+} from '@/lib/billing'
 
 type UpdateInteracPaymentProps = {
   onSuccess: (amount: number) => void
@@ -69,18 +73,15 @@ const UpdateInteracPayment = ({
       const updatedInteracTransactions = [...existingInteracTransactions, { ...values }]
       const amountToAdd = values.amountInterac
 
-      let nextMembershipBalance = currentMembership
-      let nextRpnBalance = currentRpn
+      const allocation = computeTopUpAllocation({
+        target: topUpTarget,
+        amountInterac: amountToAdd,
+        membershipDueAmount: membershipAmount,
+        rpnDueAmount: rpnAmount,
+      })
 
-      if (topUpTarget === 'membership') {
-        nextMembershipBalance += amountToAdd
-      } else if (topUpTarget === 'rpn') {
-        nextRpnBalance += amountToAdd
-      } else {
-        const extra = Math.max(0, amountToAdd - (membershipAmount + rpnAmount))
-        nextMembershipBalance += membershipAmount
-        nextRpnBalance += rpnAmount + extra
-      }
+      const nextMembershipBalance = currentMembership + allocation.membershipAmount
+      const nextRpnBalance = currentRpn + allocation.rpnAmount
 
       const newSolde = nextMembershipBalance + nextRpnBalance
 
@@ -97,12 +98,7 @@ const UpdateInteracPayment = ({
         userId: userInfo?._id!,
         amount: values.amountInterac,
         type: 'credit',
-        reason:
-          topUpTarget === 'membership'
-            ? 'Renflouement membership via Interac'
-            : topUpTarget === 'rpn'
-            ? 'Renflouement fonds RPN via Interac'
-            : 'Premier paiement via Interac (membership + RPN)',
+        reason: buildTopUpReason(topUpTarget),
         refInterac: values.refInterac,
         status: 'pending',
       })

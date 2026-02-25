@@ -1,13 +1,19 @@
 import {
-  TOP_UP_TARGETS,
+  TOP_UP_TARGETS_WITH_BOTH,
   Transaction,
   type BillingSection,
   type MembershipPaymentUiState,
   type Subscription,
   type TopUpTarget,
+  type TopUpTargetWithBoth,
 } from '@/types'
 
-export type { TopUpTarget, BillingSection, MembershipPaymentUiState }
+export type {
+  TopUpTarget,
+  TopUpTargetWithBoth,
+  BillingSection,
+  MembershipPaymentUiState,
+}
 
 type MembershipSubscriptionSnapshot = Pick<
   Subscription,
@@ -15,7 +21,11 @@ type MembershipSubscriptionSnapshot = Pick<
 >
 
 const MEMBERSHIP_PATTERNS = ['membership', 'cotisation', 'premier paiement']
-const MEMBERSHIP_TOPUP_PATTERNS = ['renflouement membership', 'premier paiement']
+const MEMBERSHIP_TOPUP_PATTERNS = [
+  'renflouement membership',
+  'premier paiement',
+  'paiement combine membership',
+]
 const RPN_TOPUP_PATTERNS = ['fonds rpn', 'rpn', 'premier paiement']
 
 const normalize = (value?: string) => (value || '').toLowerCase()
@@ -25,14 +35,14 @@ const includesAny = (value: string, patterns: string[]) =>
 
 export const getTargetFromQuery = (
   value?: string | null
-): TopUpTarget | null => {
-  if (value && TOP_UP_TARGETS.includes(value as TopUpTarget)) {
-    return value as TopUpTarget
+): TopUpTargetWithBoth | null => {
+  if (value && TOP_UP_TARGETS_WITH_BOTH.includes(value as TopUpTargetWithBoth)) {
+    return value as TopUpTargetWithBoth
   }
   return null
 }
 
-export const buildBillingPaymentUrl = (target: TopUpTarget) =>
+export const buildBillingPaymentUrl = (target: TopUpTargetWithBoth) =>
   `/billing?section=payment&target=${target}`
 
 export const getTransactionDate = (transaction: Transaction) =>
@@ -74,10 +84,46 @@ export const getTransactionStatusLabel = (status: Transaction['status']) => {
   return 'En approbation'
 }
 
-export const buildTopUpReason = (target: TopUpTarget) =>
-  target === 'membership'
-    ? 'Renflouement membership via Interac'
-    : 'Renflouement fonds RPN via Interac'
+export const buildTopUpReason = (target: TopUpTargetWithBoth) => {
+  if (target === 'membership') return 'Renflouement membership via Interac'
+  if (target === 'rpn') return 'Renflouement fonds RPN via Interac'
+  return 'Paiement combine membership et fonds RPN via Interac'
+}
+
+export type TopUpAllocationInput = {
+  target: TopUpTargetWithBoth
+  amountInterac: number
+  membershipDueAmount: number
+  rpnDueAmount: number
+}
+
+export type TopUpAllocation = {
+  membershipAmount: number
+  rpnAmount: number
+}
+
+export const computeTopUpAllocation = ({
+  target,
+  amountInterac,
+  membershipDueAmount,
+  rpnDueAmount,
+}: TopUpAllocationInput): TopUpAllocation => {
+  if (target === 'membership') {
+    return { membershipAmount: amountInterac, rpnAmount: 0 }
+  }
+
+  if (target === 'rpn') {
+    return { membershipAmount: 0, rpnAmount: amountInterac }
+  }
+
+  const requiredCombined = membershipDueAmount + rpnDueAmount
+  const extraAmount = Math.max(0, amountInterac - requiredCombined)
+
+  return {
+    membershipAmount: membershipDueAmount,
+    rpnAmount: rpnDueAmount + extraAmount,
+  }
+}
 
 const isMembershipTopUp = (transaction: Transaction) => {
   const reason = normalize(transaction.reason)
@@ -160,7 +206,7 @@ export const getMembershipPaymentUiState = (
 export const getMembershipPaymentBadgeLabel = (
   state: MembershipPaymentUiState
 ) => {
-  if (state === 'success') return 'A jour'
+  if (state === 'success') return 'Vous êtes à jour'
   if (state === 'pending') return 'En verification'
   if (state === 'rejected') return 'Rejeter'
   return 'Initial'
@@ -199,5 +245,3 @@ export const shouldResetMembershipDisplayForCurrentYear = (
   if (!subscription || subscription.status !== 'active') return false
   return !isMembershipPaidForCurrentYear(subscription, year)
 }
-
-

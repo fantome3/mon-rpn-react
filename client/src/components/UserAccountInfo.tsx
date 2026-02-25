@@ -142,7 +142,10 @@ const UserAccountInfo = () => {
       <Card>
         <CardHeader>
           <CardTitle>Fonds RPN</CardTitle>
-          <CardDescription>Contribution volontaire</CardDescription>
+          <CardDescription>
+            <p className='inline-block rounded bg-yellow-200 px-2 py-1 font-medium text-yellow-900'>
+              {rpnPaymentMessage}
+            </p></CardDescription>
         </CardHeader>
         <CardContent>
           <div className='flex items-center justify-between'>
@@ -157,11 +160,6 @@ const UserAccountInfo = () => {
             >
               Renflouer
             </Button>
-          </div>
-          <div className='mt-3 text-sm leading-relaxed text-muted-foreground'>
-            <p className='inline-block rounded bg-yellow-200 px-2 py-1 font-medium text-yellow-900'>
-              {rpnPaymentMessage}
-            </p>
           </div>
         </CardContent>
       </Card>

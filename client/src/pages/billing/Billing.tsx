@@ -1,5 +1,5 @@
 import { useContext, useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Store } from '@/lib/Store'
 import { SearchEngineOptimization } from '@/components/SearchEngine/SearchEngineOptimization'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -20,13 +20,18 @@ import {
 import { createInteracFormSchema } from '@/lib/createInteracFormSchema'
 import {
   buildTopUpReason,
+  computeTopUpAllocation,
   getLastRpnTopUpTransactions,
   getMembershipCurrentYearTransactions,
   getTargetFromQuery,
   getTransactionStatusLabel,
-  TopUpTarget,
+  type TopUpTargetWithBoth,
 } from '@/lib/billing'
-import { computeFamilyFeesSummary } from '@/lib/familyFees'
+import {
+  computeFamilyFeesBreakdown,
+  computeFamilyFeesSummary,
+  type FamilyFeeBreakdownItem,
+} from '@/lib/familyFees'
 import { formatCurrency, functionReverse, toastAxiosError } from '@/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -35,6 +40,38 @@ type FormErrors = {
   refInterac?: string
   target?: string
 }
+
+const TOP_UP_TARGET_OPTIONS: TopUpTargetWithBoth[] = [
+  'both',
+  'membership',
+  'rpn',
+]
+
+const TARGET_LABELS: Record<TopUpTargetWithBoth, string> = {
+  membership: 'Membership',
+  rpn: 'Fonds RPN',
+  both: 'Membership + Fonds RPN',
+}
+
+const TARGET_DESCRIPTIONS: Record<TopUpTargetWithBoth, string> = {
+  membership: 'Vous reglez uniquement la cotisation membership.',
+  rpn: 'Vous alimentez uniquement le fonds RPN.',
+  both: 'Vous reglez membership et RPN en une seule transaction.',
+}
+
+const getRowAmountByTarget = (
+  item: FamilyFeeBreakdownItem,
+  target: TopUpTargetWithBoth,
+) => {
+  if (target === 'membership') return item.membershipAmount
+  if (target === 'rpn') return item.rpnAmount
+  return item.totalAmount
+}
+
+const getBreakdownRowsForTarget = (
+  rows: FamilyFeeBreakdownItem[],
+  target: TopUpTargetWithBoth,
+) => rows.filter((row) => getRowAmountByTarget(row, target) > 0)
 
 const Billing = () => {
   const { state, dispatch } = useContext(Store)
@@ -53,7 +90,11 @@ const Billing = () => {
   const account = accounts?.[0]
   const familyFeesSummary = useMemo(
     () => computeFamilyFeesSummary(userInfo),
-    [userInfo]
+    [userInfo],
+  )
+  const familyFeeBreakdown = useMemo(
+    () => computeFamilyFeesBreakdown(userInfo),
+    [userInfo],
   )
 
   const membershipMinAmount = useMemo(() => {
@@ -61,28 +102,34 @@ const Billing = () => {
     return 50
   }, [userInfo?.subscription?.status])
 
+  const defaultMembershipAmount = useMemo(
+    () => Math.max(membershipMinAmount, familyFeesSummary.membershipAmount),
+    [familyFeesSummary.membershipAmount, membershipMinAmount],
+  )
+  const defaultRpnAmount = useMemo(
+    () => Math.max(20, familyFeesSummary.rpnAmount),
+    [familyFeesSummary.rpnAmount],
+  )
+
   const defaultAmounts = useMemo(
     () => ({
-      membership: Math.max(
-        membershipMinAmount,
-        familyFeesSummary.membershipAmount
-      ),
-      rpn: Math.max(20, familyFeesSummary.rpnAmount),
+      membership: defaultMembershipAmount,
+      rpn: defaultRpnAmount,
+      both: defaultMembershipAmount + defaultRpnAmount,
     }),
-    [familyFeesSummary.membershipAmount, familyFeesSummary.rpnAmount, membershipMinAmount]
+    [defaultMembershipAmount, defaultRpnAmount],
   )
 
   const initialTarget = useMemo(
     () => getTargetFromQuery(searchParams.get('target')),
-    [searchParams]
+    [searchParams],
   )
   const section = searchParams.get('section')
 
-  const [selectedTarget, setSelectedTarget] = useState<TopUpTarget | null>(
-    initialTarget
-  )
+  const [selectedTarget, setSelectedTarget] =
+    useState<TopUpTargetWithBoth | null>(initialTarget)
   const [amountInterac, setAmountInterac] = useState<number>(
-    initialTarget ? defaultAmounts[initialTarget] : 0
+    initialTarget ? defaultAmounts[initialTarget] : 0,
   )
   const [refInterac, setRefInterac] = useState('')
   const [errors, setErrors] = useState<FormErrors>({})
@@ -90,12 +137,16 @@ const Billing = () => {
 
   const membershipTransactions = useMemo(
     () => getMembershipCurrentYearTransactions(transactions),
-    [transactions]
+    [transactions],
   )
   const rpnTopUps = useMemo(
     () => getLastRpnTopUpTransactions(transactions),
-    [transactions]
+    [transactions],
   )
+  const breakdownRows = useMemo(() => {
+    if (!selectedTarget) return []
+    return getBreakdownRowsForTarget(familyFeeBreakdown, selectedTarget)
+  }, [familyFeeBreakdown, selectedTarget])
 
   useEffect(() => {
     if (!selectedTarget) return
@@ -112,7 +163,7 @@ const Billing = () => {
 
   const onSubmit = async () => {
     if (!selectedTarget) {
-      setErrors({ target: 'Veuillez selectionner un type de renflouement.' })
+      setErrors({ target: 'Veuillez selectionner un type de paiement.' })
       return
     }
 
@@ -143,13 +194,15 @@ const Billing = () => {
       const currentMembership = account.membership_balance ?? account.solde ?? 0
       const currentRpn = account.rpn_balance ?? 0
       const existingInteracTransactions = account.interac ?? []
+      const allocation = computeTopUpAllocation({
+        target: selectedTarget,
+        amountInterac,
+        membershipDueAmount: defaultMembershipAmount,
+        rpnDueAmount: defaultRpnAmount,
+      })
 
-      const nextMembership =
-        selectedTarget === 'membership'
-          ? currentMembership + amountInterac
-          : currentMembership
-      const nextRpn =
-        selectedTarget === 'rpn' ? currentRpn + amountInterac : currentRpn
+      const nextMembership = currentMembership + allocation.membershipAmount
+      const nextRpn = currentRpn + allocation.rpnAmount
       const nextSolde = nextMembership + nextRpn
 
       const response = await updateAccount({
@@ -176,7 +229,7 @@ const Billing = () => {
 
       setRefInterac('')
       setConfirmationMessage(
-        "Merci ! Votre paiement sera verifie dans les prochains jours et votre profil sera mis a jour en consequent. Retrouvez le suivi dans l'onglet Mes Cotisations."
+        "Merci ! Votre paiement sera verifie dans les prochains jours et votre profil sera mis a jour en consequent. Retrouvez le suivi dans l'onglet Mes Cotisations.",
       )
     } catch (error) {
       toastAxiosError(error)
@@ -185,7 +238,10 @@ const Billing = () => {
 
   return (
     <>
-      <SearchEngineOptimization title='Facturation' description='Paiement et historique des transactions' />
+      <SearchEngineOptimization
+        title='Facturation'
+        description='Paiement et historique des transactions'
+      />
       <div className='container mb-10 pt-10'>
         <h1 className='text-3xl font-semibold'>Facturation</h1>
 
@@ -195,7 +251,7 @@ const Billing = () => {
           </CardHeader>
           <CardContent className='space-y-5'>
             <div>
-              <p className='mb-2 font-medium'>Type de renflouement</p>
+              <p className='mb-2 font-medium'>Type de paiement</p>
               <RadioGroup
                 value={selectedTarget ?? ''}
                 onValueChange={(value) => {
@@ -203,16 +259,35 @@ const Billing = () => {
                   setSelectedTarget(nextValue)
                   setErrors((prev) => ({ ...prev, target: undefined }))
                 }}
-                className='flex flex-col gap-3 sm:flex-row'
+                className='grid sm:grid-cols-3 gap-3'
               >
-                <div className='flex items-center space-x-2'>
-                  <RadioGroupItem value='membership' id='membership' />
-                  <Label htmlFor='membership'>Membership</Label>
-                </div>
-                <div className='flex items-center space-x-2'>
-                  <RadioGroupItem value='rpn' id='rpn' />
-                  <Label htmlFor='rpn'>Fonds RPN</Label>
-                </div>
+                {TOP_UP_TARGET_OPTIONS.map((target) => {
+                  const isSelected = selectedTarget === target
+                  return (
+                    <Label
+                      key={target}
+                      htmlFor={target}
+                      className={`flex cursor-pointer items-start justify-between gap-3 rounded-lg border p-3 transition-colors ${
+                        isSelected ? 'border-primary bg-primary/5' : 'border-border'
+                      }`}
+                    >
+                      <span className='flex items-start gap-3'>
+                        <RadioGroupItem value={target} id={target} className='mt-1' />
+                        <span>
+                          <span className='block text-sm font-semibold'>
+                            {TARGET_LABELS[target]}
+                          </span>
+                          <span className='block text-xs text-muted-foreground'>
+                            {TARGET_DESCRIPTIONS[target]}
+                          </span>
+                        </span>
+                      </span>
+                      <span className='whitespace-nowrap text-sm font-semibold'>
+                        {formatCurrency(defaultAmounts[target])}
+                      </span>
+                    </Label>
+                  )
+                })}
               </RadioGroup>
               {errors.target ? (
                 <p className='mt-1 text-sm text-destructive'>{errors.target}</p>
@@ -221,7 +296,7 @@ const Billing = () => {
 
             <div className='grid gap-4 sm:grid-cols-2'>
               <div>
-                <Label htmlFor='amountInterac'>Montant a payer</Label>
+                <Label htmlFor='amountInterac'>Montant envoyé</Label>
                 <Input
                   id='amountInterac'
                   type='number'
@@ -231,6 +306,14 @@ const Billing = () => {
                     setAmountInterac(Number(event.target.value || 0))
                   }
                 />
+                {selectedTarget ? (
+                  <p className='mt-1 text-xs text-muted-foreground'>
+                    Montant minimal: {formatCurrency(defaultAmounts[selectedTarget])}
+                    {selectedTarget === 'both'
+                      ? ' (tout surplus sera ajoute au fonds RPN).'
+                      : '.'}
+                  </p>
+                ) : null}
                 {errors.amountInterac ? (
                   <p className='mt-1 text-sm text-destructive'>
                     {errors.amountInterac}
@@ -239,7 +322,7 @@ const Billing = () => {
               </div>
               <div>
                 <Label htmlFor='refInterac'>
-                  Code interactif fourni par la banque
+                  Code interact fourni par la banque (regarde dans tes courriels)
                 </Label>
                 <Input
                   id='refInterac'
@@ -255,9 +338,74 @@ const Billing = () => {
               </div>
             </div>
 
-            <Button onClick={onSubmit} disabled={isSubmitting}>
+            <Button onClick={onSubmit} disabled={isSubmitting} className='w-full sm:w-auto'>
               Valider Paiement
             </Button>
+
+            <div className='rounded-lg border bg-slate-50 p-4'>
+              <div className='flex items-start justify-between gap-3'>
+                <div>
+                  <p className='font-medium'>Récapitulatif à payer</p>
+                  <p className='text-xs text-muted-foreground'>
+                    Montants calculés selon votre situation familiale.
+                  </p>
+                </div>
+                <Button asChild variant='link' className='h-auto p-0 text-xs'>
+                  <Link to='/dependents'>Ajouter une personne à charge</Link>
+                </Button>
+              </div>
+
+              {selectedTarget ? (
+                <div className='mt-3 space-y-2'>
+                  {breakdownRows.map((item) => (
+                    <div key={item.id} className='rounded-lg border bg-background p-3'>
+                      <div className='flex items-start justify-between gap-3'>
+                        <div>
+                          <p className='text-sm font-semibold leading-tight'>
+                            {item.fullName}
+                          </p>
+                          <p className='text-xs text-muted-foreground'>
+                            {item.relationshipLabel}
+                          </p>
+                        </div>
+                        <p className='text-sm font-semibold'>
+                          {formatCurrency(getRowAmountByTarget(item, selectedTarget))}
+                        </p>
+                      </div>
+                      {selectedTarget === 'both' ? (
+                        <div className='mt-2 grid grid-cols-2 gap-1 text-xs text-muted-foreground'>
+                          <p>Membership: {formatCurrency(item.membershipAmount)}</p>
+                          <p>RPN Minimal: {formatCurrency(item.rpnAmount)}</p>
+                        </div>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className='mt-3 text-sm text-muted-foreground'>
+                  Selectionnez un type de paiement pour afficher le détail.
+                </p>
+              )}
+
+              <div className='mt-3 rounded-lg bg-background p-3 text-sm'>
+                <div className='flex items-center justify-between'>
+                  <span>Total Membership</span>
+                  <strong>{formatCurrency(defaultMembershipAmount)}</strong>
+                </div>
+                <div className='mt-1 flex items-center justify-between'>
+                  <span>Total Fonds RPN</span>
+                  <strong>{formatCurrency(defaultRpnAmount)}</strong>
+                </div>
+                <div className='mt-2 flex items-center justify-between border-t pt-2 text-base'>
+                  <span className='font-semibold'>Total à payer maintenant</span>
+                  <strong>
+                    {formatCurrency(
+                      selectedTarget ? defaultAmounts[selectedTarget] : 0,
+                    )}
+                  </strong>
+                </div>
+              </div>
+            </div>
 
             {confirmationMessage ? (
               <Alert>
@@ -271,24 +419,24 @@ const Billing = () => {
         <div className='mt-10 grid gap-6 lg:grid-cols-2'>
           <Card>
             <CardHeader>
-              <CardTitle>Historique Membership (annee courante)</CardTitle>
+              <CardTitle>Historique Membership</CardTitle>
             </CardHeader>
             <CardContent>
               <BillingTable
                 transactions={membershipTransactions}
-                emptyMessage='Aucune transaction Membership pour cette annee.'
+                emptyMessage='Aucune transaction Membership pour cette année.'
               />
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Historique Fonds RPN (5 dernieres recharges)</CardTitle>
+              <CardTitle>Historique Fonds RPN</CardTitle>
             </CardHeader>
             <CardContent>
               <BillingTable
                 transactions={rpnTopUps}
-                emptyMessage='Aucune recharge RPN trouvee.'
+                emptyMessage='Aucune recharge RPN trouvée.'
               />
             </CardContent>
           </Card>
@@ -312,10 +460,7 @@ const BillingTable = ({
   return (
     <div className='space-y-3'>
       {transactions.map((transaction) => (
-        <div
-          key={transaction._id}
-          className='rounded border p-3 text-sm'
-        >
+        <div key={transaction._id} className='rounded border p-3 text-sm'>
           <div className='flex flex-wrap items-center justify-between gap-2'>
             <p className='font-medium'>
               {transaction.createdAt
@@ -327,8 +472,8 @@ const BillingTable = ({
                 transaction.status === 'completed'
                   ? 'bg-green-600'
                   : transaction.status === 'failed'
-                  ? 'bg-red-600'
-                  : 'bg-orange-500'
+                    ? 'bg-red-600'
+                    : 'bg-orange-500'
               }
             >
               {getTransactionStatusLabel(transaction.status)}

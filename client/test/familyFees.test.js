@@ -1,6 +1,7 @@
 import { test, equal } from 'node:test'
 import {
   buildPaymentMessage,
+  computeFamilyFeesBreakdown,
   computeFamilyFeesSummary,
 } from '../src/lib/familyFees.ts'
 
@@ -62,4 +63,46 @@ test('active child is treated as adult when age is 18+', () => {
 
   equal(summary.membershipAmount, 100)
   equal(summary.dependantCount, 1)
+})
+
+test('computeFamilyFeesBreakdown exposes per-person membership and rpn amounts', () => {
+  const breakdown = computeFamilyFeesBreakdown({
+    origines: { firstName: 'X', lastName: 'Y' },
+    register: { occupation: 'worker' },
+    familyMembers: [
+      {
+        firstName: 'W',
+        lastName: 'K',
+        relationship: 'Conjointe',
+        status: 'active',
+        residenceCountryStatus: 'worker',
+        birthDate: '1991-02-10',
+      },
+      {
+        firstName: 'V',
+        lastName: 'K',
+        relationship: 'Enfant',
+        status: 'active',
+        residenceCountryStatus: 'student',
+        birthDate: '2016-02-10',
+      },
+      {
+        firstName: 'T',
+        lastName: 'K',
+        relationship: 'Enfant',
+        status: 'active',
+        residenceCountryStatus: 'student',
+        birthDate: '2000-02-10',
+      },
+    ],
+  })
+
+  equal(breakdown.length, 4)
+  equal(breakdown[0].fullName, 'X Y')
+  equal(breakdown[0].membershipAmount, 50)
+  equal(breakdown[1].membershipAmount, 50)
+  equal(breakdown[2].membershipAmount, 0)
+  equal(breakdown[3].membershipAmount, 25)
+  equal(breakdown[0].rpnAmount, 20)
+  equal(breakdown[2].rpnAmount, 20)
 })

@@ -28,7 +28,7 @@ import {
 } from '@/hooks/userHooks'
 import { toast } from './ui/use-toast'
 import Loading from './Loading'
-import { cn, refresh, toastAxiosError } from '@/lib/utils'
+import { cn, toastAxiosError } from '@/lib/utils'
 import { useNavigate } from 'react-router-dom'
 import copy from 'copy-to-clipboard'
 import clsx from 'clsx'
@@ -36,7 +36,8 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import { format } from 'date-fns'
 import { CalendarIcon } from 'lucide-react'
 import { Calendar } from './CustomCalendar'
-import { FAMILY_MEMBER_STATUSES, RESIDENCE_COUNTRY_STATUSES } from '@/types'
+import { FAMILY_MEMBER_STATUSES, RESIDENCE_COUNTRY_STATUSES, User } from '@/types'
+import { useQueryClient } from '@tanstack/react-query'
 
 const formSchema = z.object({
   firstName: z.string(),
@@ -61,10 +62,11 @@ const AddMemberSection = () => {
   const [modalVisibility, setModalVisibility] = useState(false)
   const [referralModalVisibility, setReferralModalVisibility] = useState(false)
 
-  const { state } = useContext(Store)
+  const { state, dispatch } = useContext(Store)
   const { userInfo } = state
   const { data: user } = useGetUserDetailsQuery(userInfo?._id ?? '')
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const pathname = location.pathname
 
   const { mutateAsync: updateUser, isPending } = useUpdateUserMutation()
@@ -98,16 +100,23 @@ const AddMemberSection = () => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      await updateUser({
+      const response = await updateUser({
         ...user!,
         familyMembers: [...(user?.familyMembers ?? []), values],
         _id: user?._id,
       })
-      if (pathname === '/dependents') {
-        refresh()
-      } else {
-        navigate('/dependents')
+      const nextUserInfo: User = {
+        ...(userInfo as User),
+        ...response.user,
       }
+
+      dispatch({ type: 'USER_LOGIN', payload: nextUserInfo })
+      localStorage.setItem('userInfo', JSON.stringify(nextUserInfo))
+      await queryClient.invalidateQueries({
+        queryKey: ['user', userInfo?._id ?? ''],
+      })
+
+      if (pathname !== '/dependents') navigate('/dependents')
       toast({
         variant: 'default',
         title: 'Membre ajouté avec succès',
@@ -199,7 +208,7 @@ const AddMemberSection = () => {
                   <FormItem>
                     <FormLabel className='text-sm'>Prénoms</FormLabel>
                     <FormControl>
-                      <Input placeholder='Son prÃ©nom' {...field} />
+                      <Input placeholder='Son prénom' {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

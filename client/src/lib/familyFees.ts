@@ -5,6 +5,15 @@ import {
 } from './fees'
 import { User } from '@/types'
 
+export type FamilyFeeBreakdownItem = {
+  id: string
+  fullName: string
+  relationshipLabel: string
+  membershipAmount: number
+  rpnAmount: number
+  totalAmount: number
+}
+
 export type FamilyFeesSummary = {
   dependantCount: number
   membershipAmount: number
@@ -28,17 +37,33 @@ const calculateAge = (birthDate?: Date | string): number => {
   return age
 }
 
-const mapUserToFeeRows = (user?: User): FeeDetail[] => {
+type FamilyFeePerson = {
+  id: string
+  fullName: string
+  relationshipLabel: string
+  type: FeeDetail['type']
+  isMembershipActive: boolean
+  isRpnActive: boolean
+}
+
+const formatDisplayName = (firstName?: string, lastName?: string): string => {
+  const name = [firstName, lastName].filter(Boolean).join(' ').trim()
+  return name || 'Personne a charge'
+}
+
+const buildFamilyFeePeople = (user?: User): FamilyFeePerson[] => {
   if (!user?.register) return []
 
-  const rows: FeeDetail[] = [
+  const people: FamilyFeePerson[] = [
     {
       id: 'primary-member',
-      feeDescription: 'Membre principal',
-      quantity: 1,
+      fullName: formatDisplayName(
+        user.origines?.firstName,
+        user.origines?.lastName,
+      ),
+      relationshipLabel: 'Membre principal',
       type: user.register.occupation === 'student' ? 'student' : 'worker',
       isMembershipActive: true,
-      isAdhesionActive: true,
       isRpnActive: true,
     },
   ]
@@ -50,21 +75,47 @@ const mapUserToFeeRows = (user?: User): FeeDetail[] => {
   activeMembers.forEach((member, index) => {
     const age = calculateAge(member.birthDate)
     const isMinor = age < ADULT_AGE
-    const adultType = member.residenceCountryStatus === 'student' ? 'student' : 'worker'
+    const adultType =
+      member.residenceCountryStatus === 'student' ? 'student' : 'worker'
 
-    rows.push({
+    people.push({
       id: `dependent-${index}`,
-      feeDescription: member.relationship || 'Personne a charge',
-      quantity: 1,
+      fullName: formatDisplayName(member.firstName, member.lastName),
+      relationshipLabel: member.relationship || 'Personne a charge',
       type: isMinor ? 'minor' : adultType,
       isMembershipActive: !isMinor,
-      isAdhesionActive: true,
       isRpnActive: true,
     })
   })
 
-  return rows
+  return people
 }
+
+const toMembershipAmount = (row: Pick<FeeDetail, 'type' | 'isMembershipActive'>) =>
+  calculateMembershipOnlyTotal([
+    { quantity: 1, type: row.type, isMembershipActive: row.isMembershipActive },
+  ])
+
+const toRpnAmount = (row: Pick<FeeDetail, 'type' | 'isRpnActive'>) =>
+  calculateRpnTotal([
+    { quantity: 1, type: row.type, isRpnActive: row.isRpnActive },
+  ])
+
+export const computeFamilyFeesBreakdown = (
+  user?: User,
+): FamilyFeeBreakdownItem[] =>
+  buildFamilyFeePeople(user).map((person) => {
+    const membershipAmount = toMembershipAmount(person)
+    const rpnAmount = toRpnAmount(person)
+    return {
+      id: person.id,
+      fullName: person.fullName,
+      relationshipLabel: person.relationshipLabel,
+      membershipAmount,
+      rpnAmount,
+      totalAmount: membershipAmount + rpnAmount,
+    }
+  })
 
 const countActiveDependants = (user?: User): number => {
   const activeMembers = (user?.familyMembers || []).filter(
@@ -75,12 +126,15 @@ const countActiveDependants = (user?: User): number => {
 }
 
 export const computeFamilyFeesSummary = (user?: User): FamilyFeesSummary => {
-  const rows = mapUserToFeeRows(user)
+  const breakdown = computeFamilyFeesBreakdown(user)
 
   return {
     dependantCount: countActiveDependants(user),
-    membershipAmount: calculateMembershipOnlyTotal(rows),
-    rpnAmount: calculateRpnTotal(rows),
+    membershipAmount: breakdown.reduce(
+      (total, item) => total + item.membershipAmount,
+      0,
+    ),
+    rpnAmount: breakdown.reduce((total, item) => total + item.rpnAmount, 0),
   }
 }
 
