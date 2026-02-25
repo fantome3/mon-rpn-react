@@ -1,5 +1,6 @@
 import AddMemberSection from '@/components/AddMemberSection'
 import { DataTable } from '@/components/CustomTable'
+import FirstPaymentOnboardingCard from '@/components/FirstPaymentOnboardingCard'
 import Loading from '@/components/Loading'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -16,8 +17,8 @@ import {
 } from '@/types'
 import { ColumnDef } from '@tanstack/react-table'
 import clsx from 'clsx'
-import { useContext, useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { ArrowUpDown, Pencil, Trash2, Tally1, CalendarIcon } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import CustomModal from '@/components/CustomModal'
@@ -85,7 +86,7 @@ const toLocalNoon = (value: Date | string) => {
 
 const Dependents = () => {
   const { state, dispatch } = useContext(Store)
-  const { userInfo } = state
+  const { userInfo, accountInfo } = state
   const queryClient = useQueryClient()
   const {
     data: user,
@@ -101,6 +102,16 @@ const Dependents = () => {
     useUpdateUserMutation()
 
   const pathname = location.pathname
+  const [searchParams] = useSearchParams()
+  const isOnboardingQueryActive = searchParams.get('onboarding') === '1'
+  const activeDependentsCount = useMemo(
+    () =>
+      (user?.familyMembers ?? []).filter((member) => member?.status === 'active')
+        .length,
+    [user?.familyMembers],
+  )
+  const shouldShowFirstPaymentOnboarding =
+    isOnboardingQueryActive || Boolean(accountInfo?.isAwaitingFirstPayment)
 
   const form = useForm<z.infer<typeof formSchema>>({
     mode: 'onChange',
@@ -358,6 +369,12 @@ const Dependents = () => {
         <p className='text-center text-xl font-light mb-10'>
           Ensemble, nous sommes plus forts.
         </p>
+
+        {shouldShowFirstPaymentOnboarding ? (
+          <FirstPaymentOnboardingCard
+            activeDependentsCount={activeDependentsCount}
+          />
+        ) : null}
 
         <AddMemberSection />
         <div className='mt-10'>

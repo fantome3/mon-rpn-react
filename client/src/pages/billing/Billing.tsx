@@ -1,5 +1,5 @@
 import { useContext, useEffect, useMemo, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Store } from '@/lib/Store'
 import { SearchEngineOptimization } from '@/components/SearchEngine/SearchEngineOptimization'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -7,8 +7,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
+import { toast } from '@/components/ui/use-toast'
 import {
   useGetAccountsByUserIdQuery,
   useUpdateAccountMutation,
@@ -77,6 +77,7 @@ const Billing = () => {
   const { state, dispatch } = useContext(Store)
   const { userInfo } = state
   const userId = userInfo?._id ?? ''
+  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const queryClient = useQueryClient()
 
@@ -133,7 +134,6 @@ const Billing = () => {
   )
   const [refInterac, setRefInterac] = useState('')
   const [errors, setErrors] = useState<FormErrors>({})
-  const [confirmationMessage, setConfirmationMessage] = useState('')
 
   const membershipTransactions = useMemo(
     () => getMembershipCurrentYearTransactions(transactions),
@@ -228,9 +228,13 @@ const Billing = () => {
       await queryClient.invalidateQueries({ queryKey: ['transactions', userId] })
 
       setRefInterac('')
-      setConfirmationMessage(
-        "Merci ! Votre paiement sera verifie dans les prochains jours et votre profil sera mis a jour en consequent. Retrouvez le suivi dans l'onglet Mes Cotisations.",
-      )
+      toast({
+        variant: 'success',
+        title: 'Paiement enregistré',
+        description:
+          'Merci ! Votre paiement sera vérifié dans les prochains jours.',
+      })
+      navigate('/summary?payment=submitted', { replace: true })
     } catch (error) {
       toastAxiosError(error)
     }
@@ -407,12 +411,6 @@ const Billing = () => {
               </div>
             </div>
 
-            {confirmationMessage ? (
-              <Alert>
-                <AlertTitle>Confirmation</AlertTitle>
-                <AlertDescription>{confirmationMessage}</AlertDescription>
-              </Alert>
-            ) : null}
           </CardContent>
         </Card>
 

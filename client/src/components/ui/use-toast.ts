@@ -8,6 +8,10 @@ import type {
 
 const TOAST_LIMIT = 1
 const TOAST_REMOVE_DELAY = 1000000
+const MIN_TOAST_DURATION = 6000
+const MAX_TOAST_DURATION = 20000
+const WORDS_PER_MINUTE = 190
+const READING_BUFFER_MS = 2500
 
 type ToasterToast = ToastProps & {
   id: string
@@ -140,8 +144,43 @@ function dispatch(action: Action) {
 
 type Toast = Omit<ToasterToast, "id">
 
+const extractTextFromNode = (node: React.ReactNode): string => {
+  if (node === null || node === undefined || typeof node === "boolean") {
+    return ""
+  }
+
+  if (typeof node === "string" || typeof node === "number") {
+    return String(node)
+  }
+
+  if (Array.isArray(node)) {
+    return node.map(extractTextFromNode).join(" ")
+  }
+
+  if (React.isValidElement(node)) {
+    return extractTextFromNode(node.props?.children)
+  }
+
+  return ""
+}
+
+const estimateDuration = ({ title, description }: Toast) => {
+  const text = `${extractTextFromNode(title)} ${extractTextFromNode(description)}`
+    .trim()
+    .replace(/\s+/g, " ")
+
+  if (!text) return MIN_TOAST_DURATION
+
+  const words = text.split(" ").filter(Boolean).length
+  const readingTimeMs = Math.ceil((words / WORDS_PER_MINUTE) * 60 * 1000)
+  const withBuffer = readingTimeMs + READING_BUFFER_MS
+
+  return Math.max(MIN_TOAST_DURATION, Math.min(MAX_TOAST_DURATION, withBuffer))
+}
+
 function toast({ ...props }: Toast) {
   const id = genId()
+  const duration = props.duration ?? estimateDuration(props)
 
   const update = (props: ToasterToast) =>
     dispatch({
@@ -154,6 +193,7 @@ function toast({ ...props }: Toast) {
     type: "ADD_TOAST",
     toast: {
       ...props,
+      duration,
       id,
       open: true,
       onOpenChange: (open) => {

@@ -161,7 +161,7 @@ const AddMemberSection = () => {
             variant='outline'
             className=' text-primary border-primary'
           >
-            Ajouter une personne
+            Ajouter une personne à charge
           </Button>
         </div>
       </div>
