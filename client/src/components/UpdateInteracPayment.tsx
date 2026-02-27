@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import { Card, CardContent, CardFooter } from './ui/card'
 import Loading from './Loading'
 import { ArrowRightLeft } from 'lucide-react'
-import { useContext, useState } from 'react'
+import { useContext, useMemo, useState } from 'react'
 import { Store } from '@/lib/Store'
 import {
   useGetAccountsByUserIdQuery,
@@ -28,9 +28,14 @@ import { ToLocaleStringFunc, toastAxiosError } from '@/lib/utils'
 import { createInteracFormSchema } from '@/lib/createInteracFormSchema'
 import {
   buildTopUpReason,
+  canPrimaryMemberTopUpRpn,
   computeTopUpAllocation,
+  isRpnTopUpTarget,
+  RPN_PAYMENT_BLOCK_MESSAGE,
   type TopUpTargetWithBoth,
 } from '@/lib/billing'
+import { useGetTransactionsByUserIdQuery } from '@/hooks/transactionHooks'
+import { toast } from './ui/use-toast'
 
 type UpdateInteracPaymentProps = {
   onSuccess: (amount: number) => void
@@ -52,8 +57,20 @@ const UpdateInteracPayment = ({
 
   const { userInfo } = state
   const { data: accountByUserId } = useGetAccountsByUserIdQuery(userInfo?._id ?? '')
+  const { data: transactions = [] } = useGetTransactionsByUserIdQuery(
+    userInfo?._id ?? ''
+  )
   const { mutateAsync: updateAccount, isPending } = useUpdateAccountMutation()
   const { mutateAsync: newTransaction } = useNewTransactionMutation()
+  const canPayRpn = useMemo(
+    () =>
+      canPrimaryMemberTopUpRpn({
+        isPrimaryMember: userInfo?.primaryMember,
+        transactions,
+        subscription: userInfo?.subscription,
+      }),
+    [transactions, userInfo?.primaryMember, userInfo?.subscription]
+  )
 
   const formSchema = createInteracFormSchema(minAmount)
   const form = useForm<z.infer<typeof formSchema>>({
@@ -66,6 +83,15 @@ const UpdateInteracPayment = ({
   })
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (isRpnTopUpTarget(topUpTarget) && !canPayRpn) {
+      toast({
+        variant: 'destructive',
+        title: 'Paiement RPN bloque',
+        description: RPN_PAYMENT_BLOCK_MESSAGE,
+      })
+      return
+    }
+
     try {
       const currentMembership = accountByUserId?.[0]?.membership_balance ?? 0
       const currentRpn = accountByUserId?.[0]?.rpn_balance ?? 0
@@ -117,7 +143,17 @@ const UpdateInteracPayment = ({
     <>
       <motion.div whileHover={{ scale: 1.2 }}>
         <Card
-          onClick={() => setModalVisibility(true)}
+          onClick={() => {
+            if (isRpnTopUpTarget(topUpTarget) && !canPayRpn) {
+              toast({
+                variant: 'destructive',
+                title: 'Paiement RPN bloque',
+                description: RPN_PAYMENT_BLOCK_MESSAGE,
+              })
+              return
+            }
+            setModalVisibility(true)
+          }}
           className='w-[250px] cursor-pointer bg-sky-400 text-white'
         >
           <CardContent className='flex justify-center items-center aspect-square p-6'>

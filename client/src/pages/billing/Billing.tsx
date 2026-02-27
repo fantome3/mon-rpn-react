@@ -20,11 +20,14 @@ import {
 import { createInteracFormSchema } from '@/lib/createInteracFormSchema'
 import {
   buildTopUpReason,
+  canPrimaryMemberTopUpRpn,
   computeTopUpAllocation,
   getLastRpnTopUpTransactions,
   getMembershipCurrentYearTransactions,
   getTargetFromQuery,
   getTransactionStatusLabel,
+  isRpnTopUpTarget,
+  RPN_PAYMENT_BLOCK_MESSAGE,
   type TopUpTargetWithBoth,
 } from '@/lib/billing'
 import {
@@ -143,6 +146,15 @@ const Billing = () => {
     () => getLastRpnTopUpTransactions(transactions),
     [transactions],
   )
+  const canPayRpn = useMemo(
+    () =>
+      canPrimaryMemberTopUpRpn({
+        isPrimaryMember: userInfo?.primaryMember,
+        transactions,
+        subscription: userInfo?.subscription,
+      }),
+    [transactions, userInfo?.primaryMember, userInfo?.subscription],
+  )
   const breakdownRows = useMemo(() => {
     if (!selectedTarget) return []
     return getBreakdownRowsForTarget(familyFeeBreakdown, selectedTarget)
@@ -152,6 +164,12 @@ const Billing = () => {
     if (!selectedTarget) return
     setAmountInterac(defaultAmounts[selectedTarget])
   }, [defaultAmounts, selectedTarget])
+
+  useEffect(() => {
+    if (!selectedTarget || !isRpnTopUpTarget(selectedTarget) || canPayRpn) return
+    setSelectedTarget('membership')
+    setErrors((prev) => ({ ...prev, target: RPN_PAYMENT_BLOCK_MESSAGE }))
+  }, [canPayRpn, selectedTarget])
 
   useEffect(() => {
     if (section !== 'payment') return
@@ -164,6 +182,16 @@ const Billing = () => {
   const onSubmit = async () => {
     if (!selectedTarget) {
       setErrors({ target: 'Veuillez selectionner un type de paiement.' })
+      return
+    }
+
+    if (isRpnTopUpTarget(selectedTarget) && !canPayRpn) {
+      setErrors({ target: RPN_PAYMENT_BLOCK_MESSAGE })
+      toast({
+        variant: 'destructive',
+        title: 'Paiement RPN bloque',
+        description: RPN_PAYMENT_BLOCK_MESSAGE,
+      })
       return
     }
 
@@ -260,6 +288,13 @@ const Billing = () => {
                 value={selectedTarget ?? ''}
                 onValueChange={(value) => {
                   const nextValue = getTargetFromQuery(value)
+                  if (nextValue && isRpnTopUpTarget(nextValue) && !canPayRpn) {
+                    setErrors((prev) => ({
+                      ...prev,
+                      target: RPN_PAYMENT_BLOCK_MESSAGE,
+                    }))
+                    return
+                  }
                   setSelectedTarget(nextValue)
                   setErrors((prev) => ({ ...prev, target: undefined }))
                 }}
@@ -267,16 +302,26 @@ const Billing = () => {
               >
                 {TOP_UP_TARGET_OPTIONS.map((target) => {
                   const isSelected = selectedTarget === target
+                  const isDisabled = isRpnTopUpTarget(target) && !canPayRpn
                   return (
                     <Label
                       key={target}
                       htmlFor={target}
-                      className={`flex cursor-pointer items-start justify-between gap-3 rounded-lg border p-3 transition-colors ${
+                      className={`flex items-start justify-between gap-3 rounded-lg border p-3 transition-colors ${
+                        isDisabled
+                          ? 'cursor-not-allowed opacity-60'
+                          : 'cursor-pointer'
+                      } ${
                         isSelected ? 'border-primary bg-primary/5' : 'border-border'
                       }`}
                     >
                       <span className='flex items-start gap-3'>
-                        <RadioGroupItem value={target} id={target} className='mt-1' />
+                        <RadioGroupItem
+                          value={target}
+                          id={target}
+                          className='mt-1'
+                          disabled={isDisabled}
+                        />
                         <span>
                           <span className='block text-sm font-semibold'>
                             {TARGET_LABELS[target]}
@@ -295,6 +340,12 @@ const Billing = () => {
               </RadioGroup>
               {errors.target ? (
                 <p className='mt-1 text-sm text-destructive'>{errors.target}</p>
+              ) : null}
+              {!canPayRpn ? (
+                <p className='mt-1 text-xs text-muted-foreground'>
+                  Le mode RPN seul est bloque tant que votre membership annuel
+                  (membre principal + personnes a charge) n&apos;est pas valide.
+                </p>
               ) : null}
             </div>
 

@@ -7,16 +7,19 @@ import { Button } from './ui/button'
 import { buildPaymentMessage, computeFamilyFeesSummary } from '@/lib/familyFees'
 import {
   buildBillingPaymentUrl,
+  canPrimaryMemberTopUpRpn,
   formatNextMembershipDueDate,
   getMembershipPaymentBadgeClass,
   getMembershipPaymentBadgeLabel,
   getMembershipPaymentUiState,
+  RPN_PAYMENT_BLOCK_MESSAGE,
   shouldResetMembershipDisplayForCurrentYear,
 } from '@/lib/billing'
 import { useNavigate } from 'react-router-dom'
 import { useGetTransactionsByUserIdQuery } from '@/hooks/transactionHooks'
 import { Badge } from './ui/badge'
 import { CircleCheckBig } from 'lucide-react'
+import { toast } from './ui/use-toast'
 
 const UserAccountInfo = () => {
   const { state } = useContext(Store)
@@ -52,6 +55,15 @@ const UserAccountInfo = () => {
   const membershipPaymentState = useMemo(
     () => getMembershipPaymentUiState(transactions, new Date().getFullYear(), userInfo?.subscription),
     [transactions, userInfo?.subscription]
+  )
+  const canPayRpn = useMemo(
+    () =>
+      canPrimaryMemberTopUpRpn({
+        isPrimaryMember: userInfo?.primaryMember,
+        transactions,
+        subscription: userInfo?.subscription,
+      }),
+    [transactions, userInfo?.primaryMember, userInfo?.subscription]
   )
   const membershipBadgeLabel = useMemo(
     () => getMembershipPaymentBadgeLabel(membershipPaymentState),
@@ -153,7 +165,17 @@ const UserAccountInfo = () => {
               $&nbsp;{ToLocaleStringFunc(rpnBalance)}
             </div>
             <Button
-              onClick={() => navigate(buildBillingPaymentUrl('rpn'))}
+              onClick={() => {
+                if (!canPayRpn) {
+                  toast({
+                    variant: 'destructive',
+                    title: 'Paiement RPN bloque',
+                    description: RPN_PAYMENT_BLOCK_MESSAGE,
+                  })
+                  return
+                }
+                navigate(buildBillingPaymentUrl('rpn'))
+              }}
               variant='outline'
               size='sm'
               className='ml-4 border-primary text-primary text-xs'
@@ -161,6 +183,11 @@ const UserAccountInfo = () => {
               Renflouer
             </Button>
           </div>
+          {!canPayRpn ? (
+            <p className='mt-3 text-xs text-destructive'>
+              Le fonds RPN est disponible après validation du membership annuel.
+            </p>
+          ) : null}
         </CardContent>
       </Card>
     </div>

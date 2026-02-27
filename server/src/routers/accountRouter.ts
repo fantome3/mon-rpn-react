@@ -8,6 +8,7 @@ import {
   interacRefExists,
   normalizeInteracRef,
 } from '../services/interacReferenceService'
+import { canIncreaseRpnBalance } from '../services/rpnPaymentEligibilityService'
 
 export const accountRouter = express.Router()
 
@@ -163,6 +164,36 @@ accountRouter.put(
           ...account.toObject(),
           ...req.body,
         })
+        const previousMembershipBalance = toNumber(account.membership_balance, 0)
+        const previousRpnBalance = toNumber(account.rpn_balance, 0)
+        const nextMembershipBalance = balances.membership_balance
+        const nextRpnBalance = balances.rpn_balance
+
+        if (nextRpnBalance > previousRpnBalance) {
+          const accountOwner = account.userId
+            ? await UserModel.findById(account.userId)
+                .select(
+                  'primaryMember subscription.membershipPaidThisYear subscription.lastMembershipPaymentYear'
+                )
+                .lean()
+            : null
+
+          const canProceed = canIncreaseRpnBalance({
+            user: accountOwner,
+            previousMembershipBalance,
+            previousRpnBalance,
+            nextMembershipBalance,
+            nextRpnBalance,
+            isActorAdmin: req.user?.isAdmin,
+          })
+
+          if (!canProceed) {
+            res.status(400).json({
+              message: labels.compte.rpnBloqueMembership,
+            })
+            return
+          }
+        }
 
         Object.assign(account, req.body)
         Object.assign(account, balances)

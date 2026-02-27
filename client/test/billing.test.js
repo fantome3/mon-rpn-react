@@ -1,9 +1,11 @@
 import { test, equal } from 'node:test'
 import {
   buildTopUpReason,
+  canPrimaryMemberTopUpRpn,
   computeTopUpAllocation,
   getLatestMembershipTopUpTransaction,
   getTargetFromQuery,
+  isRpnTopUpTarget,
 } from '../src/lib/billing.ts'
 
 test('getTargetFromQuery accepts membership, rpn and both', () => {
@@ -66,4 +68,38 @@ test('combined payment reason is detected as membership top up', () => {
   ])
 
   equal(latest?.reason, 'Paiement combine membership et fonds RPN via Interac')
+})
+
+test('isRpnTopUpTarget only matches rpn', () => {
+  equal(isRpnTopUpTarget('rpn'), true)
+  equal(isRpnTopUpTarget('membership'), false)
+  equal(isRpnTopUpTarget('both'), false)
+})
+
+test('primary member cannot top up rpn when membership is not up to date', () => {
+  const canTopUp = canPrimaryMemberTopUpRpn({
+    isPrimaryMember: true,
+    subscription: {
+      status: 'active',
+      membershipPaidThisYear: false,
+      lastMembershipPaymentYear: new Date().getFullYear(),
+    },
+    transactions: [],
+  })
+
+  equal(canTopUp, false)
+})
+
+test('non-primary member is not blocked by membership gate for rpn top up', () => {
+  const canTopUp = canPrimaryMemberTopUpRpn({
+    isPrimaryMember: false,
+    subscription: {
+      status: 'registered',
+      membershipPaidThisYear: false,
+      lastMembershipPaymentYear: new Date().getFullYear(),
+    },
+    transactions: [],
+  })
+
+  equal(canTopUp, true)
 })

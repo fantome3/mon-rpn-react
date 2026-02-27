@@ -27,6 +27,8 @@ const MEMBERSHIP_TOPUP_PATTERNS = [
   'paiement combine membership',
 ]
 const RPN_TOPUP_PATTERNS = ['fonds rpn', 'rpn', 'premier paiement']
+export const RPN_PAYMENT_BLOCK_MESSAGE =
+  'Le paiement du fonds RPN est disponible uniquement quand la cotisation membership du membre principal et des personnes à charge est a jour.'
 
 const normalize = (value?: string) => (value || '').toLowerCase()
 
@@ -100,6 +102,13 @@ export type TopUpAllocationInput = {
 export type TopUpAllocation = {
   membershipAmount: number
   rpnAmount: number
+}
+
+type RpnTopUpEligibilityInput = {
+  isPrimaryMember?: boolean
+  transactions?: Transaction[]
+  subscription?: MembershipSubscriptionSnapshot
+  year?: number
 }
 
 export const computeTopUpAllocation = ({
@@ -244,4 +253,18 @@ export const shouldResetMembershipDisplayForCurrentYear = (
 ) => {
   if (!subscription || subscription.status !== 'active') return false
   return !isMembershipPaidForCurrentYear(subscription, year)
+}
+
+export const isRpnTopUpTarget = (target: TopUpTargetWithBoth) =>
+  target === 'rpn'
+
+export const canPrimaryMemberTopUpRpn = ({
+  isPrimaryMember = true,
+  transactions = [],
+  subscription,
+  year = new Date().getFullYear(),
+}: RpnTopUpEligibilityInput) => {
+  if (!isPrimaryMember) return true
+
+  return getMembershipPaymentUiState(transactions, year, subscription) === 'success'
 }

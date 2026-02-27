@@ -30,6 +30,7 @@
     "introuvable": "Compte introuvable",
     "desactiveSucces": "Compte désactivé avec succès",
     "reactiveSucces": "Compte réactivé avec succès",
+    "rpnBloqueMembership": "Paiement RPN bloqué : veuillez régulariser la cotisation membership du membre principal et des personnes a charge.",
     "erreurDesactivation": "Erreur lors de la désactivation du compte",
     "erreurReactivation": "Erreur lors de la réactivation du compte",
     "compteInactif": "Compte inactif. Veuillez contacter l'administrateur."
