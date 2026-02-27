@@ -201,15 +201,15 @@ const Accounts = () => {
       },
     },
     {
-      accessorKey: 'solde',
-      header: 'Solde',
+      accessorKey: 'rpn_balance',
+      header: 'Solde Rpn',
       cell: ({ row }) => {
-        const solde: number = row.getValue('solde')
+        const rpnBalance: number = row.getValue('rpn_balance')
         const status = row.original.userId.subscription.status
         return (
           <div className={status === 'inactive' ? 'text-gray-400' : ''}>
             {' '}
-            {ToLocaleStringFunc(solde)}{' '}
+            {ToLocaleStringFunc(rpnBalance)}{' '}
           </div>
         )
       },

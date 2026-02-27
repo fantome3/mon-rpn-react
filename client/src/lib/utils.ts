@@ -110,6 +110,9 @@ export const functionTranslate = (str: string) => {
   if (str === 'solde') {
     return 'Solde'
   }
+  if (str === 'rpn_balance') {
+    return 'Solde Rpn'
+  }
 
   if (str === 'paymentMethod') {
     return 'Mode de paiement'

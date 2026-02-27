@@ -47,18 +47,21 @@ import { functionTranslate } from '@/lib/utils'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const globalFilterFunction: FilterFn<any> = (row, columnId, filterValue) => {
-  const cellValue = row.original[columnId]
-  //Gestion des objets imbriqués
+  const normalizedFilter = String(filterValue ?? '').toLowerCase()
+  const valueFromAccessor = row.getValue(columnId)
+  const valueFromOriginal = row.original?.[columnId]
+  const cellValue = valueFromAccessor ?? valueFromOriginal
+  // Handle nested objects/arrays by stringifying them.
   if (typeof cellValue === 'object' && cellValue !== null) {
     const stringValue = JSON.stringify(cellValue).toLowerCase()
-    return stringValue.includes(filterValue.toLowerCase())
+    return stringValue.includes(normalizedFilter)
   }
 
   if (typeof cellValue === 'number') {
-    return cellValue?.toString().includes(filterValue)
+    return cellValue.toString().includes(normalizedFilter)
   }
 
-  return cellValue?.toLowerCase().includes(filterValue.toLowerCase())
+  return String(cellValue ?? '').toLowerCase().includes(normalizedFilter)
 }
 
 interface DataTableProps<TData, TValue> {
@@ -280,3 +283,4 @@ export function DataTable<TData, TValue>({
     </>
   )
 }
+
