@@ -25,6 +25,7 @@ export const handleFailedPrelevement = async ({
   await TransactionModel.create({
     userId: user._id,
     amount: totalToDeduct,
+    fundType: type === 'membership' ? 'membership' : 'rpn',
     reason:
       type === 'membership'
         ? 'Cotisation annuelle'

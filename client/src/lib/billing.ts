@@ -6,6 +6,7 @@ import {
   type Subscription,
   type TopUpTarget,
   type TopUpTargetWithBoth,
+  type TransactionFundType,
 } from '@/types'
 
 export type {
@@ -17,23 +18,83 @@ export type {
 
 type MembershipSubscriptionSnapshot = Pick<
   Subscription,
-  'status' | 'lastMembershipPaymentYear' | 'membershipPaidThisYear' | 'startDate' | 'endDate'
+  | 'status'
+  | 'lastMembershipPaymentYear'
+  | 'membershipPaidThisYear'
+  | 'startDate'
+  | 'endDate'
 >
 
-const MEMBERSHIP_PATTERNS = ['membership', 'cotisation', 'premier paiement']
-const MEMBERSHIP_TOPUP_PATTERNS = [
-  'renflouement membership',
-  'premier paiement',
-  'paiement combine membership',
-]
-const RPN_TOPUP_PATTERNS = ['fonds rpn', 'rpn', 'premier paiement']
-export const RPN_PAYMENT_BLOCK_MESSAGE =
-  'Le paiement du fonds RPN est disponible uniquement quand la cotisation membership du membre principal et des personnes à charge est a jour.'
+type FundFilter = Exclude<TransactionFundType, 'both'>
 
-const normalize = (value?: string) => (value || '').toLowerCase()
+export type FundAmountContext = {
+  membershipDueAmount: number
+  rpnDueAmount: number
+}
+
+type RpnTopUpEligibilityInput = {
+  isPrimaryMember?: boolean
+  transactions?: Transaction[]
+  subscription?: MembershipSubscriptionSnapshot
+  year?: number
+}
+
+const MEMBERSHIP_HISTORY_REASON_PATTERNS = [
+  'cotisation annuelle',
+  'renflouement membership',
+]
+
+const RPN_HISTORY_REASON_PATTERNS = [
+  'renflouement fonds rpn',
+  'prelevement deces',
+]
+
+const BOTH_HISTORY_REASON_PATTERNS = [
+  'paiement combine membership et fonds rpn',
+  'premier paiement',
+  'premier paiement via interac',
+  'contribution rpn',
+]
+
+export const RPN_PAYMENT_BLOCK_MESSAGE =
+  'Le paiement du fonds RPN est disponible uniquement quand la cotisation membership du membre principal et des personnes a charge est a jour.'
+
+const stripDiacritics = (value: string) =>
+  value.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+
+const normalize = (value?: string) =>
+  stripDiacritics(value || '').toLowerCase().trim()
 
 const includesAny = (value: string, patterns: string[]) =>
   patterns.some((pattern) => value.includes(pattern))
+
+const sortByDateDesc = (a: Transaction, b: Transaction) => {
+  const aTime = getTransactionDate(a)?.getTime() ?? 0
+  const bTime = getTransactionDate(b)?.getTime() ?? 0
+  return bTime - aTime
+}
+
+const isFundType = (value: unknown): value is TransactionFundType =>
+  value === 'membership' || value === 'rpn' || value === 'both'
+
+const inferFundTypeFromReason = (
+  reason?: string
+): TransactionFundType | null => {
+  const normalizedReason = normalize(reason)
+  if (!normalizedReason) return null
+
+  if (includesAny(normalizedReason, BOTH_HISTORY_REASON_PATTERNS)) {
+    return 'both'
+  }
+  if (includesAny(normalizedReason, MEMBERSHIP_HISTORY_REASON_PATTERNS)) {
+    return 'membership'
+  }
+  if (includesAny(normalizedReason, RPN_HISTORY_REASON_PATTERNS)) {
+    return 'rpn'
+  }
+
+  return null
+}
 
 export const getTargetFromQuery = (
   value?: string | null
@@ -50,33 +111,88 @@ export const buildBillingPaymentUrl = (target: TopUpTargetWithBoth) =>
 export const getTransactionDate = (transaction: Transaction) =>
   transaction.createdAt ? new Date(transaction.createdAt) : null
 
-export const getMembershipCurrentYearTransactions = (
-  transactions: Transaction[] = []
-) => {
-  const currentYear = new Date().getFullYear()
-  return transactions.filter((transaction) => {
-    const reason = normalize(transaction.reason)
-    const date = getTransactionDate(transaction)
-    return (
-      !!date &&
-      date.getFullYear() === currentYear &&
-      includesAny(reason, MEMBERSHIP_PATTERNS)
-    )
-  })
+export const getTransactionFundType = (
+  transaction: Transaction
+): TransactionFundType | null => {
+  if (isFundType(transaction.fundType)) return transaction.fundType
+  return inferFundTypeFromReason(transaction.reason)
 }
+
+export const transactionTouchesFund = (
+  transaction: Transaction,
+  fund: FundFilter
+) => {
+  const fundType = getTransactionFundType(transaction)
+  if (!fundType) return false
+  return fundType === fund || fundType === 'both'
+}
+
+const toPositiveAmount = (value: number) =>
+  Number.isFinite(value) ? Math.max(0, value) : 0
+
+export const getTransactionAmountByFund = (
+  transaction: Transaction,
+  fund: FundFilter,
+  context: FundAmountContext
+) => {
+  if (fund === 'membership' && typeof transaction.membershipAmount === 'number') {
+    return toPositiveAmount(transaction.membershipAmount)
+  }
+
+  if (fund === 'rpn' && typeof transaction.rpnAmount === 'number') {
+    return toPositiveAmount(transaction.rpnAmount)
+  }
+
+  const fundType = getTransactionFundType(transaction)
+  const fullAmount = toPositiveAmount(transaction.amount)
+  if (fundType !== 'both') return fullAmount
+
+  const membershipDue = toPositiveAmount(context.membershipDueAmount)
+  const rpnDue = toPositiveAmount(context.rpnDueAmount)
+  const totalDue = membershipDue + rpnDue
+
+  if (totalDue <= 0) return fullAmount / 2
+
+  const inferredMembership = Math.min(fullAmount, membershipDue)
+  const inferredRpn = Math.max(0, fullAmount - inferredMembership)
+
+  return fund === 'membership' ? inferredMembership : inferredRpn
+}
+
+const isTransactionInYear = (transaction: Transaction, year: number) => {
+  const transactionDate = getTransactionDate(transaction)
+  return !!transactionDate && transactionDate.getFullYear() === year
+}
+
+export const getFundCurrentYearTransactions = (
+  transactions: Transaction[] = [],
+  fund: FundFilter,
+  year = new Date().getFullYear()
+) =>
+  transactions
+    .filter(
+      (transaction) =>
+        isTransactionInYear(transaction, year) &&
+        transactionTouchesFund(transaction, fund)
+    )
+    .sort(sortByDateDesc)
+
+export const getMembershipCurrentYearTransactions = (
+  transactions: Transaction[] = [],
+  year = new Date().getFullYear()
+) => getFundCurrentYearTransactions(transactions, 'membership', year)
+
+export const getRpnCurrentYearTransactions = (
+  transactions: Transaction[] = [],
+  year = new Date().getFullYear()
+) => getFundCurrentYearTransactions(transactions, 'rpn', year)
 
 export const getLastRpnTopUpTransactions = (
   transactions: Transaction[] = [],
   limit = 5
 ) =>
-  transactions
-    .filter((transaction) => {
-      const reason = normalize(transaction.reason)
-      return (
-        transaction.type === 'credit' &&
-        includesAny(reason, RPN_TOPUP_PATTERNS)
-      )
-    })
+  getRpnCurrentYearTransactions(transactions)
+    .filter((transaction) => transaction.type === 'credit')
     .slice(0, limit)
 
 export const getTransactionStatusLabel = (status: Transaction['status']) => {
@@ -104,13 +220,6 @@ export type TopUpAllocation = {
   rpnAmount: number
 }
 
-type RpnTopUpEligibilityInput = {
-  isPrimaryMember?: boolean
-  transactions?: Transaction[]
-  subscription?: MembershipSubscriptionSnapshot
-  year?: number
-}
-
 export const computeTopUpAllocation = ({
   target,
   amountInterac,
@@ -134,15 +243,9 @@ export const computeTopUpAllocation = ({
   }
 }
 
-const isMembershipTopUp = (transaction: Transaction) => {
-  const reason = normalize(transaction.reason)
-  return transaction.type === 'credit' && includesAny(reason, MEMBERSHIP_TOPUP_PATTERNS)
-}
-
-const isTransactionInYear = (transaction: Transaction, year: number) => {
-  const transactionDate = getTransactionDate(transaction)
-  return !!transactionDate && transactionDate.getFullYear() === year
-}
+const isMembershipTopUp = (transaction: Transaction) =>
+  transaction.type === 'credit' &&
+  transactionTouchesFund(transaction, 'membership')
 
 export const getLatestMembershipTopUpTransaction = (
   transactions: Transaction[] = [],
@@ -153,11 +256,7 @@ export const getLatestMembershipTopUpTransaction = (
       (transaction) =>
         isMembershipTopUp(transaction) && isTransactionInYear(transaction, year)
     )
-    .sort((a, b) => {
-      const aTime = getTransactionDate(a)?.getTime() ?? 0
-      const bTime = getTransactionDate(b)?.getTime() ?? 0
-      return bTime - aTime
-    })[0]
+    .sort(sortByDateDesc)[0]
 
 export const isMembershipPaidForCurrentYear = (
   subscription?: MembershipSubscriptionSnapshot,
@@ -171,7 +270,7 @@ export const isMembershipPaidForCurrentYear = (
     if (typeof subscription.lastMembershipPaymentYear === 'number') {
       return subscription.lastMembershipPaymentYear === year
     }
-    
+
     return true
   }
 

@@ -104,6 +104,9 @@ const InteracPayment = ({
         userId: userInfo?._id,
         amount: values.amountInterac,
         type: 'credit',
+        fundType: 'both',
+        membershipAmount: computedMembershipBalance,
+        rpnAmount: computedRpnBalance,
         reason:
           'Premier paiement via Interac (membership + frais + contribution RPN)',
         refInterac: values.refInterac,

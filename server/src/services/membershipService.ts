@@ -86,6 +86,7 @@ export const processAnnualMembershipPayment = async () => {
       await TransactionModel.create({
         userId: user._id,
         amount: totalToDeduct,
+        fundType: 'membership',
         reason: 'Cotisation annuelle',
         type: 'debit',
         status: 'completed',
@@ -111,6 +112,7 @@ export const processAnnualMembershipPayment = async () => {
       await TransactionModel.create({
         userId: user._id,
         amount: totalToDeduct,
+        fundType: 'membership',
         reason: 'Cotisation annuelle',
         type: 'debit',
         status: 'failed',
@@ -169,6 +171,7 @@ export const processMembershipForUser = async (userId: string) => {
     await TransactionModel.create({
       userId,
       amount: totalToDeduct,
+      fundType: 'membership',
       reason: 'Cotisation annuelle',
       type: 'debit',
       status: 'completed',
@@ -191,6 +194,7 @@ export const processMembershipForUser = async (userId: string) => {
     await TransactionModel.create({
       userId,
       amount: totalToDeduct,
+      fundType: 'membership',
       reason: 'Cotisation annuelle',
       type: 'debit',
       status: 'failed',

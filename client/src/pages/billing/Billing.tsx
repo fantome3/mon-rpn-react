@@ -22,12 +22,14 @@ import {
   buildTopUpReason,
   canPrimaryMemberTopUpRpn,
   computeTopUpAllocation,
-  getLastRpnTopUpTransactions,
+  getTransactionAmountByFund,
   getMembershipCurrentYearTransactions,
+  getRpnCurrentYearTransactions,
   getTargetFromQuery,
   getTransactionStatusLabel,
   isRpnTopUpTarget,
   RPN_PAYMENT_BLOCK_MESSAGE,
+  type FundAmountContext,
   type TopUpTargetWithBoth,
 } from '@/lib/billing'
 import {
@@ -37,6 +39,7 @@ import {
 } from '@/lib/familyFees'
 import { formatCurrency, functionReverse, toastAxiosError } from '@/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
+import type { Transaction } from '@/types'
 
 type FormErrors = {
   amountInterac?: string
@@ -142,8 +145,8 @@ const Billing = () => {
     () => getMembershipCurrentYearTransactions(transactions),
     [transactions],
   )
-  const rpnTopUps = useMemo(
-    () => getLastRpnTopUpTransactions(transactions),
+  const rpnTransactions = useMemo(
+    () => getRpnCurrentYearTransactions(transactions),
     [transactions],
   )
   const canPayRpn = useMemo(
@@ -245,6 +248,9 @@ const Billing = () => {
         userId,
         amount: amountInterac,
         type: 'credit',
+        fundType: selectedTarget,
+        membershipAmount: allocation.membershipAmount,
+        rpnAmount: allocation.rpnAmount,
         reason: buildTopUpReason(selectedTarget),
         refInterac,
         status: 'pending',
@@ -473,6 +479,11 @@ const Billing = () => {
             <CardContent>
               <BillingTable
                 transactions={membershipTransactions}
+                fund='membership'
+                amountContext={{
+                  membershipDueAmount: defaultMembershipAmount,
+                  rpnDueAmount: defaultRpnAmount,
+                }}
                 emptyMessage='Aucune transaction Membership pour cette année.'
               />
             </CardContent>
@@ -484,8 +495,13 @@ const Billing = () => {
             </CardHeader>
             <CardContent>
               <BillingTable
-                transactions={rpnTopUps}
-                emptyMessage='Aucune recharge RPN trouvée.'
+                transactions={rpnTransactions}
+                fund='rpn'
+                amountContext={{
+                  membershipDueAmount: defaultMembershipAmount,
+                  rpnDueAmount: defaultRpnAmount,
+                }}
+                emptyMessage='Aucune transaction RPN pour cette annee.'
               />
             </CardContent>
           </Card>
@@ -497,9 +513,13 @@ const Billing = () => {
 
 const BillingTable = ({
   transactions,
+  fund,
+  amountContext,
   emptyMessage,
 }: {
-  transactions: ReturnType<typeof getMembershipCurrentYearTransactions>
+  transactions: Transaction[]
+  fund: 'membership' | 'rpn'
+  amountContext: FundAmountContext
   emptyMessage: string
 }) => {
   if (!transactions.length) {
@@ -529,7 +549,12 @@ const BillingTable = ({
             </Badge>
           </div>
           <p className='mt-1'>
-            Montant: <strong>{formatCurrency(transaction.amount)}</strong>
+            Montant:{' '}
+            <strong>
+              {formatCurrency(
+                getTransactionAmountByFund(transaction, fund, amountContext),
+              )}
+            </strong>
           </p>
           <p className='mt-1'>Motif: {transaction.reason}</p>
           <p className='mt-1'>Code Interac: {transaction.refInterac || '-'}</p>

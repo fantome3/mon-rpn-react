@@ -53,6 +53,9 @@ export type MembershipPaymentUiState =
 export const TRANSACTION_TYPES = ['debit', 'credit'] as const
 export type TransactionType = (typeof TRANSACTION_TYPES)[number]
 
+export const TRANSACTION_FUND_TYPES = ['membership', 'rpn', 'both'] as const
+export type TransactionFundType = (typeof TRANSACTION_FUND_TYPES)[number]
+
 export const TRANSACTION_STATUSES = [
   'completed',
   'failed',

@@ -94,6 +94,7 @@ deathAnnouncementRouter.post(
             userId,
             amount: totalToDeduct,
             type: 'debit',
+            fundType: 'rpn',
             reason: `Prelevement deces pour ${totalPersons} personnes`,
           })
         } catch (error: any) {
