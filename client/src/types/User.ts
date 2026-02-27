@@ -1,3 +1,11 @@
+import type {
+  Occupation,
+  ResidenceCountryStatus,
+  StudentStatus,
+  SubscriptionStatus,
+} from './Status'
+import type { FamilyMember } from './FamilyMember'
+
 export type EmergencyContact = {
   name?: string
   phone?: string
@@ -7,11 +15,11 @@ export type Register = {
   email: string
   password: string
   conditions: boolean
-  occupation: 'student' | 'worker'
+  occupation: Occupation
   institution?: string
   otherInstitution?: string
   studentNumber?: string
-  studentStatus?: 'part-time' | 'full-time'
+  studentStatus?: StudentStatus
   workField?: string
 }
 
@@ -26,12 +34,7 @@ export type Origines = {
 
 export type Infos = {
   residenceCountry: string
-  residenceCountryStatus:
-    | 'student'
-    | 'worker'
-    | 'canadian_citizen'
-    | 'permanent_resident'
-    | 'visitor'
+  residenceCountryStatus: ResidenceCountryStatus
   postalCode: string
   address: string
   tel: string
@@ -39,24 +42,12 @@ export type Infos = {
   emergencyContacts?: EmergencyContact[]
 }
 
-export type FamilyMember = {
-  firstName: string
-  lastName: string
-  relationship: string
-  status: string
-  residenceCountryStatus:
-    | 'student'
-    | 'worker'
-    | 'canadian_citizen'
-    | 'permanent_resident'
-    | 'visitor'
-  birthDate: Date
-  tel?: string
-}
-
 export type Subscription = {
   startDate: Date
-  status: string
+  status: SubscriptionStatus
+  endDate?: Date
+  lastMembershipPaymentYear?: number
+  membershipPaidThisYear?: boolean
 }
 
 export type User = {
@@ -68,7 +59,7 @@ export type User = {
   isAdmin: boolean
   cpdLng?: string
   primaryMember: boolean
-  familyMembers: FamilyMember[] | []
+  familyMembers: FamilyMember[]
   subscription?: Subscription
   referralCode?: string
   referredBy?: string

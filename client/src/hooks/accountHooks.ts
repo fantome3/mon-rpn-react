@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from '@tanstack/react-query'
 import apiClient from '@/apiClient'
-import { Account } from '@/types/Account'
+import { Account } from '@/types'
 
 export const useNewAccountMutation = () =>
   useMutation({

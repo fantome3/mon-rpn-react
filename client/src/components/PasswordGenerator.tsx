@@ -1,4 +1,4 @@
-import { PasswordSettings } from '@/types/PasswordSettings'
+import { PasswordSettings } from '@/types'
 
 const PasswordGenerator = () => {
   const passwordSettings: PasswordSettings = {

@@ -3,7 +3,7 @@ import Loading from '@/components/Loading'
 import { Button } from '@/components/ui/button'
 import { useGetAnnouncementsQuery } from '@/hooks/deathAnnouncementHook'
 import { functionReverse, toastAxiosError } from '@/lib/utils'
-import { DeathAnnouncement } from '@/types/DeathAnnouncement'
+import { DeathAnnouncement } from '@/types'
 import { ColumnDef } from '@tanstack/react-table'
 import { ArrowUpDown } from 'lucide-react'
 

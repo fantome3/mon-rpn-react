@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from '@tanstack/react-query'
 import apiClient from '@/apiClient'
-import { User } from '@/types/User'
+import { User } from '@/types'
 
 export const useVerifyTokenMutation = () =>
   useMutation({

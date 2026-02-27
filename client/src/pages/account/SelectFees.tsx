@@ -3,6 +3,8 @@ import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   calculateSubtotal,
+  calculateMembershipTotal,
+  calculateRpnTotal,
   calculateTotal,
   FeeDetail,
 } from '@/lib/fees'
@@ -19,10 +21,14 @@ import { Store } from '@/lib/Store'
  */
 
 type SelectFeesProps = {
-  updateTotal: (total: number) => void
+  updateAmounts: (values: {
+    total: number
+    membershipAmount: number
+    rpnAmount: number
+  }) => void
 }
 
-export default function SelectFees({ updateTotal }: SelectFeesProps) {
+export default function SelectFees({ updateAmounts }: SelectFeesProps) {
   const { state } = useContext(Store)
   const { userInfo } = state
   const isStudent = userInfo?.register?.occupation === 'student'
@@ -84,7 +90,11 @@ export default function SelectFees({ updateTotal }: SelectFeesProps) {
           isRpnActive: previousSelections.get('minors')?.isRpnActive ?? true,
         })
 
-      updateTotal(calculateTotal(rows))
+      updateAmounts({
+        total: calculateTotal(rows),
+        membershipAmount: calculateMembershipTotal(rows),
+        rpnAmount: calculateRpnTotal(rows),
+      })
       return rows
     })
   }
@@ -105,7 +115,11 @@ export default function SelectFees({ updateTotal }: SelectFeesProps) {
       r.id === id ? { ...r, isRpnActive: !r.isRpnActive } : r,
     )
     setFeeDetails(updated)
-    updateTotal(calculateTotal(updated))
+    updateAmounts({
+      total: calculateTotal(updated),
+      membershipAmount: calculateMembershipTotal(updated),
+      rpnAmount: calculateRpnTotal(updated),
+    })
   }
 
   const toggleAdhesion = (id: string) => {
@@ -113,7 +127,11 @@ export default function SelectFees({ updateTotal }: SelectFeesProps) {
       r.id === id ? { ...r, isAdhesionActive: !r.isAdhesionActive } : r,
     )
     setFeeDetails(updated)
-    updateTotal(calculateTotal(updated))
+    updateAmounts({
+      total: calculateTotal(updated),
+      membershipAmount: calculateMembershipTotal(updated),
+      rpnAmount: calculateRpnTotal(updated),
+    })
   }
 
   /* ------------------- Calculs sous‑totaux & total -------------- */
@@ -121,8 +139,12 @@ export default function SelectFees({ updateTotal }: SelectFeesProps) {
   const total = useMemo(() => calculateTotal(feeDetails), [feeDetails])
 
   useEffect(() => {
-    updateTotal(total)
-  }, [total, updateTotal])
+    updateAmounts({
+      total,
+      membershipAmount: calculateMembershipTotal(feeDetails),
+      rpnAmount: calculateRpnTotal(feeDetails),
+    })
+  }, [feeDetails, total, updateAmounts])
 
   return (
     <div className="container mx-auto my-8 max-w-4xl px-4 space-y-8">

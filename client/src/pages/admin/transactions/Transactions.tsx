@@ -32,7 +32,7 @@ import {
   ToLocaleStringFunc,
   toastAxiosError,
 } from '@/lib/utils'
-import { Transaction } from '@/types/Transaction'
+import { Transaction } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ColumnDef } from '@tanstack/react-table'
 import { ArrowUpDown, Pencil, Trash2 } from 'lucide-react'
@@ -45,13 +45,14 @@ import TransactionPageSubmenu from './TransactionPageSubmenu'
 import ManualUserPaymentButton from '@/components/ManualUserPaymentButton'
 import ManualBalanceReminderButton from '@/components/ManualBalanceReminderButton'
 import IconButtonWithTooltip from '@/components/IconButtonWithTooltip'
+import { TRANSACTION_STATUSES, TRANSACTION_TYPES } from '@/types'
 
 const formSchema = z.object({
   userId: z.union([z.string(), z.any()]),
   amount: z.number().min(0, { message: 'Le montant doit être positif' }),
-  type: z.enum(['debit', 'credit']),
+  type: z.enum(TRANSACTION_TYPES),
   reason: z.string().min(1, { message: 'La raison est requise' }),
-  status: z.enum(['completed', 'failed', 'pending', 'awaiting_payment']),
+  status: z.enum(TRANSACTION_STATUSES),
 })
 
 const Transactions = () => {

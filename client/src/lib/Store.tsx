@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import React, { useCallback, useEffect } from 'react'
-import { Infos, Origines, Register, User } from '@/types/User'
-import { Account } from '@/types/Account'
+import { Infos, Origines, Register, User, Account } from '@/types'
 
 type AppState = {
   userInfo?: User
@@ -74,7 +73,7 @@ function userInfoReducer(state: User, action: Action) {
 function rootReducer(state: AppState, action: Action) {
   return {
     userInfo: userInfoReducer(state.userInfo!, action),
-    accountInfoReducer: accountInfoReducer(state.accountInfo!, action),
+    accountInfo: accountInfoReducer(state.accountInfo!, action),
   }
 }
 

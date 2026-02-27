@@ -110,9 +110,15 @@ export const functionTranslate = (str: string) => {
   if (str === 'solde') {
     return 'Solde'
   }
+  if (str === 'rpn_balance') {
+    return 'Solde Rpn'
+  }
 
   if (str === 'paymentMethod') {
     return 'Mode de paiement'
+  }
+  if (str === 'isAwaitingFirstPayment') {
+    return 'En attente paiement'
   }
 
   if (str === 'deathDate') {
@@ -144,6 +150,8 @@ export const functionTranslate = (str: string) => {
   if (str === 'birthDate') {
     return 'Date de Naissance'
   }
+
+  return str
 }
 
 export const formatCreditCardNumber = (value: string): string => {

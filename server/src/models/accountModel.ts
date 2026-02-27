@@ -42,6 +42,12 @@ export class Account {
   @prop({ required: true })
   public solde!: number
 
+  @prop({ required: true, default: 0 })
+  public membership_balance!: number
+
+  @prop({ required: true, default: 0 })
+  public rpn_balance!: number
+
   @prop({ required: true })
   public paymentMethod!: string
 

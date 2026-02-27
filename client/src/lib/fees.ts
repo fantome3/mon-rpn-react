@@ -45,3 +45,37 @@ export const calculateTotal = (
     'quantity' | 'type' | 'isMembershipActive' | 'isAdhesionActive' | 'isRpnActive'
   >[],
 ): number => rows.reduce((sum, r) => sum + calculateSubtotal(r), 0)
+
+export const calculateMembershipTotal = (
+  rows: Pick<
+    FeeDetail,
+    'quantity' | 'type' | 'isMembershipActive' | 'isAdhesionActive'
+  >[],
+): number =>
+  rows.reduce(
+    (sum, row) =>
+      sum +
+      row.quantity *
+        ((row.isMembershipActive ? MEMBERSHIP_FEES[row.type] : 0) +
+          (row.isAdhesionActive ? ADHESION_FEES[row.type] : 0)),
+    0
+  )
+
+export const calculateMembershipOnlyTotal = (
+  rows: Pick<FeeDetail, 'quantity' | 'type' | 'isMembershipActive'>[],
+): number =>
+  rows.reduce(
+    (sum, row) =>
+      sum +
+      row.quantity * (row.isMembershipActive ? MEMBERSHIP_FEES[row.type] : 0),
+    0,
+  )
+
+export const calculateRpnTotal = (
+  rows: Pick<FeeDetail, 'quantity' | 'type' | 'isRpnActive'>[],
+): number =>
+  rows.reduce(
+    (sum, row) =>
+      sum + row.quantity * (row.isRpnActive ? RPN_FEES[row.type] : 0),
+    0
+  )

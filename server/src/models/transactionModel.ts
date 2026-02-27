@@ -1,5 +1,3 @@
-//Modèle pour la gestion des transactions
-
 import { prop, getModelForClass, modelOptions, Ref } from '@typegoose/typegoose'
 import { User } from './userModel'
 
@@ -17,6 +15,15 @@ export class Transaction {
 
   @prop({ required: true })
   public type!: 'debit' | 'credit'
+
+  @prop({ enum: ['membership', 'rpn', 'both'] })
+  public fundType?: 'membership' | 'rpn' | 'both'
+
+  @prop()
+  public membershipAmount?: number
+
+  @prop()
+  public rpnAmount?: number
 
   @prop({ required: true })
   public reason!: string //e.g "Prélèvement décès"

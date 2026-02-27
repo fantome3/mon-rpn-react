@@ -24,6 +24,8 @@ const FirmNotice = () => (
 
 const PaymentMethod = () => {
   const [totalPayment, setTotalPayment] = useState(0)
+  const [membershipAmount, setMembershipAmount] = useState(0)
+  const [rpnAmount, setRpnAmount] = useState(0)
   const { state } = useContext(Store)
   const { userInfo } = state
   const navigate = useNavigate()
@@ -56,14 +58,31 @@ const PaymentMethod = () => {
         <div className="flex md:flex-row flex-col gap-10 text-center">
           <CreditCardPayment />
           {account?.isAwaitingFirstPayment ? (
-             <UpdateInteracPayment minAmount={totalPayment} onSuccess={handleSuccess} />
+             <UpdateInteracPayment
+               minAmount={totalPayment}
+               membershipAmount={membershipAmount}
+               rpnAmount={rpnAmount}
+               topUpTarget='both'
+               onSuccess={handleSuccess}
+             />
           ) : (
-             <InteracPayment key={totalPayment} total={totalPayment} />
+             <InteracPayment
+               key={totalPayment}
+               total={totalPayment}
+               membershipAmount={membershipAmount}
+               rpnAmount={rpnAmount}
+             />
           )}
         </div>
       </div>
 
-      <SelectFees updateTotal={setTotalPayment} />
+      <SelectFees
+        updateAmounts={({ total, membershipAmount, rpnAmount }) => {
+          setTotalPayment(total)
+          setMembershipAmount(membershipAmount)
+          setRpnAmount(rpnAmount)
+        }}
+      />
     </>
   )
 }

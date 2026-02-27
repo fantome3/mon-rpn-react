@@ -1,3 +1,5 @@
+import type { PaymentMethod } from './Status'
+
 export type CardType = {
   network: string
   cvv: string
@@ -18,7 +20,9 @@ export type Account = {
   userTel: string
   userResidenceCountry: string
   solde: number
-  paymentMethod: 'credit_card' | 'interac' | string
+  membership_balance: number
+  rpn_balance: number
+  paymentMethod: PaymentMethod | string
   card?: CardType[]
   interac?: Interac[]
   userId: string | any

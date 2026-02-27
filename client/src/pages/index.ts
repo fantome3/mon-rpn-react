@@ -14,6 +14,7 @@ import Sponsorship from './profil/Sponsorship'
 import Page404 from './page404/Page404'
 import PaymentMethod from './account/PaymentMethod'
 import Accounts from './admin/accounts/Accounts'
+import AccountProfile from './admin/accounts/AccountProfile'
 import Announcements from './admin/announcements/Announcements'
 import UpdateMethod from './account/UpdateMethod'
 import Conditions from './conditions/Conditions'
@@ -24,6 +25,7 @@ import AccountDeactivated from './account-deactivated/AccountDeactivated'
 import BalNoelLanding from './evenements/feteNoel'
 import AdminBookingList from './evenements/pageAdministrateur'
 import WeddingMenu from './evenements/WeddingMenu'
+import Billing from './billing/Billing'
 
 export {
   Login,
@@ -42,6 +44,7 @@ export {
   Page404,
   PaymentMethod,
   Accounts,
+  AccountProfile,
   Announcements,
   UpdateMethod,
   Conditions,
@@ -52,4 +55,5 @@ export {
   BalNoelLanding,
   AdminBookingList,
   WeddingMenu,
+  Billing,
 }

@@ -33,13 +33,14 @@ import {
   functionReverse,
   toastAxiosError,
 } from '@/lib/utils'
-import { Account } from '@/types/Account'
-import { User } from '@/types/User'
+import { Account } from '@/types'
+import { User } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ColumnDef } from '@tanstack/react-table'
 import { ArrowUpDown, Pencil } from 'lucide-react'
 import { useContext, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { Link } from 'react-router-dom'
 import { z } from 'zod'
 
 const formSchema = z.object({
@@ -48,6 +49,8 @@ const formSchema = z.object({
   userTel: z.string(),
   userResidenceCountry: z.string(),
   solde: z.number(),
+  membership_balance: z.number(),
+  rpn_balance: z.number(),
   paymentMethod: z.string(),
   userId: z.string().optional(),
   isAwaitingFirstPayment: z.boolean().optional(),
@@ -73,6 +76,8 @@ const Accounts = () => {
         ? editingAccount.userResidenceCountry
         : '',
       solde: editingAccount ? editingAccount.solde : 0,
+      membership_balance: editingAccount ? editingAccount.membership_balance : 0,
+      rpn_balance: editingAccount ? editingAccount.rpn_balance : 0,
       paymentMethod: editingAccount ? editingAccount.paymentMethod : '',
       userId: editingAccount?.userId || '',
       isAwaitingFirstPayment: editingAccount
@@ -89,6 +94,8 @@ const Accounts = () => {
         userTel: editingAccount.userTel || '',
         userResidenceCountry: editingAccount.userResidenceCountry || '',
         solde: editingAccount.solde || 0,
+        membership_balance: editingAccount.membership_balance || 0,
+        rpn_balance: editingAccount.rpn_balance || 0,
         paymentMethod: editingAccount.paymentMethod || '',
         userId: editingAccount.userId,
         isAwaitingFirstPayment: editingAccount.isAwaitingFirstPayment || false,
@@ -127,9 +134,15 @@ const Accounts = () => {
       accessorFn: (row) => `${row.firstName} ${row.lastName}`, // Génère dynamiquement le champ
       cell: ({ row }) => {
         const status = row.original.userId.subscription.status
+        const userId = row.original.userId?._id ?? row.original.userId
         return (
           <div className={status === 'inactive' ? 'text-gray-400' : ''}>
-            {row.original.firstName} {row.original.lastName}
+            <Link
+              to={`/admin/accounts/${userId}/profile`}
+              className='underline-offset-2 underline hover:text-primary transition-colors'
+            >
+              {row.original.firstName} {row.original.lastName}
+            </Link>
           </div>
         )
       },
@@ -188,15 +201,15 @@ const Accounts = () => {
       },
     },
     {
-      accessorKey: 'solde',
-      header: 'Solde',
+      accessorKey: 'rpn_balance',
+      header: 'Solde Rpn',
       cell: ({ row }) => {
-        const solde: number = row.getValue('solde')
+        const rpnBalance: number = row.getValue('rpn_balance')
         const status = row.original.userId.subscription.status
         return (
           <div className={status === 'inactive' ? 'text-gray-400' : ''}>
             {' '}
-            {ToLocaleStringFunc(solde)}{' '}
+            {ToLocaleStringFunc(rpnBalance)}{' '}
           </div>
         )
       },
@@ -348,7 +361,15 @@ const Accounts = () => {
       ) : (
         <>
           <div className='container'>
-            <DataTable columns={columns} data={accounts} />
+            <DataTable
+              columns={columns}
+              data={accounts}
+              initialColumnVisibility={{
+                userResidenceCountry: false,
+                isAwaitingFirstPayment: false,
+                paymentMethod: false,
+              }}
+            />
           </div>
         </>
       )}

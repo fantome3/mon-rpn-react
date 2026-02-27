@@ -25,7 +25,7 @@ import {
   useUpdateAnnouncementMutation,
 } from '@/hooks/deathAnnouncementHook'
 import { cn, functionReverse, toastAxiosError } from '@/lib/utils'
-import { DeathAnnouncement } from '@/types/DeathAnnouncement'
+import { DeathAnnouncement } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ColumnDef } from '@tanstack/react-table'
 import clsx from 'clsx'

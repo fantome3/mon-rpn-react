@@ -43,11 +43,11 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { checkPostalCode, checkTel } from '@/lib/utils'
 import { SearchEngineOptimization } from '@/components/SearchEngine/SearchEngineOptimization'
+import { RESIDENCE_COUNTRY_STATUSES } from '@/types'
 
 const formSchema = z.object({
   residenceCountry: z.string().min(4, { message: 'Champ Obligatoire' }),
-  residenceCountryStatus: z.enum(
-    ['student', 'worker', 'canadian_citizen', 'permanent_resident', 'visitor'],
+  residenceCountryStatus: z.enum(RESIDENCE_COUNTRY_STATUSES,
     {
       required_error: 'Sélectionnez un status',
     }
@@ -71,7 +71,7 @@ const Infos = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       residenceCountry: infos ? infos.residenceCountry : 'Canada',
-      residenceCountryStatus: infos ? infos.residenceCountryStatus : 'worker',
+      residenceCountryStatus: infos ? infos.residenceCountryStatus : 'permanent_resident',
       postalCode: infos ? infos.postalCode : '',
       address: infos ? infos.address : '',
       tel: infos ? infos.tel : '',

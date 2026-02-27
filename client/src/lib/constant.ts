@@ -2,6 +2,11 @@ import banner1 from '../assets/banner_1.png'
 import banner2 from '../assets/banner_2.png'
 import banner3 from '../assets/banner_3.png'
 import { Info } from 'lucide-react'
+import type {
+  ResidenceCountryStatus,
+  TransactionStatus,
+  TransactionType,
+} from '@/types'
 
 export const carousel_images = [banner1, banner2, banner3]
 export const age_maximal_personne = 95
@@ -292,6 +297,7 @@ export const menuItemsDisconnected = [
 export const menuItemsConnected = [
   { name: 'Accueil', link: '/' },
   { name: 'Sommaire', link: '/summary' },
+  { name: 'Facturation', link: '/billing' },
   { name: 'Profile', link: '/profil' },
   { name: 'À Propos', link: '/about' },
   // { name: 'Nous contacter', link: '/contact-us' },
@@ -310,7 +316,10 @@ export const relations = [
   { name: 'Mère' },
 ]
 
-export const canadianResidenceStatus = [
+export const canadianResidenceStatus: Array<{
+  value: ResidenceCountryStatus
+  label: string
+}> = [
   { value: 'visitor', label: 'Visiteur' },
   { value: 'student', label: 'Étudiant' },
   { value: 'worker', label: 'Travailleur' },
@@ -345,7 +354,10 @@ export const postalCodeRegex = /^\S{3}\s?\S{3}$/
 
 export const expiryDateRegex = /^(0[1-9]|1[0-2])[0-9]{2}$/
 
-export const transactionType = [
+export const transactionType: Array<{
+  type: TransactionType
+  value: string
+}> = [
   {
     type: 'debit',
     value: 'Débité',
@@ -356,7 +368,10 @@ export const transactionType = [
   },
 ]
 
-export const transactionStatus = [
+export const transactionStatus: Array<{
+  status: TransactionStatus
+  value: string
+}> = [
   {
     status: 'completed',
     value: 'Réussie',

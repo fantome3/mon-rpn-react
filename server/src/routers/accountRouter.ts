@@ -8,8 +8,35 @@ import {
   interacRefExists,
   normalizeInteracRef,
 } from '../services/interacReferenceService'
+import { canIncreaseRpnBalance } from '../services/rpnPaymentEligibilityService'
 
 export const accountRouter = express.Router()
+
+const toNumber = (value: unknown, fallback = 0): number => {
+  if (typeof value === 'number' && Number.isFinite(value)) return value
+  if (typeof value === 'string') {
+    const parsed = Number(value)
+    if (Number.isFinite(parsed)) return parsed
+  }
+  return fallback
+}
+
+const resolveBalancesFromBody = (body: any) => {
+  const hasMembership = body.membership_balance !== undefined
+  const hasRpn = body.rpn_balance !== undefined
+
+  const membershipBalance = hasMembership
+    ? toNumber(body.membership_balance, 0)
+    : toNumber(body.solde, 0)
+
+  const rpnBalance = hasRpn ? toNumber(body.rpn_balance, 0) : 0
+
+  return {
+    membership_balance: membershipBalance,
+    rpn_balance: rpnBalance,
+    solde: membershipBalance + rpnBalance,
+  }
+}
 
 accountRouter.post(
   '/new',
@@ -36,7 +63,9 @@ accountRouter.post(
         }
       }
 
+      const balances = resolveBalancesFromBody(req.body)
       const newAccount = new AccountModel(req.body)
+      Object.assign(newAccount, balances)
       await newAccount.save()
       res.send(newAccount.toObject())
     } catch (error) {
@@ -53,7 +82,7 @@ accountRouter.get(
     try {
       const accounts = await AccountModel.find().populate(
         'userId',
-        '_id isAdmin subscription.status deletedAt'
+        '_id isAdmin subscription.status subscription.membershipPaidThisYear subscription.lastMembershipPaymentYear subscription.endDate deletedAt'
       )
       const activeAccounts = accounts.filter(
         (account) => !(account as any).userId?.deletedAt
@@ -74,7 +103,10 @@ accountRouter.get(
       const accountsByUserId = await AccountModel.find({
         userId: req.params.userId,
       })
-        .populate('userId', '_id infos origines subscription.status')
+        .populate(
+          'userId',
+          '_id infos origines subscription.status subscription.membershipPaidThisYear subscription.lastMembershipPaymentYear subscription.endDate'
+        )
         .exec()
       res.send(accountsByUserId)
     } catch (error) {
@@ -128,8 +160,43 @@ accountRouter.put(
         const previousLastName = account.lastName
         const previousTel = account.userTel
         const previousResidenceCountry = account.userResidenceCountry
+        const balances = resolveBalancesFromBody({
+          ...account.toObject(),
+          ...req.body,
+        })
+        const previousMembershipBalance = toNumber(account.membership_balance, 0)
+        const previousRpnBalance = toNumber(account.rpn_balance, 0)
+        const nextMembershipBalance = balances.membership_balance
+        const nextRpnBalance = balances.rpn_balance
+
+        if (nextRpnBalance > previousRpnBalance) {
+          const accountOwner = account.userId
+            ? await UserModel.findById(account.userId)
+                .select(
+                  'primaryMember subscription.membershipPaidThisYear subscription.lastMembershipPaymentYear'
+                )
+                .lean()
+            : null
+
+          const canProceed = canIncreaseRpnBalance({
+            user: accountOwner,
+            previousMembershipBalance,
+            previousRpnBalance,
+            nextMembershipBalance,
+            nextRpnBalance,
+            isActorAdmin: req.user?.isAdmin,
+          })
+
+          if (!canProceed) {
+            res.status(400).json({
+              message: labels.compte.rpnBloqueMembership,
+            })
+            return
+          }
+        }
 
         Object.assign(account, req.body)
+        Object.assign(account, balances)
         const updatedAccount = await account.save()
         if (updatedAccount.userId) {
           const updateFields: any = {}

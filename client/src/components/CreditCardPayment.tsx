@@ -34,7 +34,7 @@ import {
 } from './ui/input-otp'
 import { Button } from './ui/button'
 import { useNewUserNotificationMutation } from '@/hooks/userHooks'
-import { CardType } from '@/types/Account'
+import { CardType } from '@/types'
 
 const formSchema = z.object({
   network: z.string(),
@@ -92,6 +92,8 @@ const CreditCardPayment = () => {
           userTel: userInfo?.infos.tel!,
           userResidenceCountry: userInfo?.infos.residenceCountry!,
           solde: 0,
+          membership_balance: 0,
+          rpn_balance: 0,
           paymentMethod: 'credit_card',
           userId: userInfo?._id!,
           card: updatedCreditCardTransactions,

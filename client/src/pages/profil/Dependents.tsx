@@ -1,5 +1,6 @@
 import AddMemberSection from '@/components/AddMemberSection'
 import { DataTable } from '@/components/CustomTable'
+import FirstPaymentOnboardingCard from '@/components/FirstPaymentOnboardingCard'
 import Loading from '@/components/Loading'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -9,12 +10,17 @@ import {
   useUpdateUserMutation,
 } from '@/hooks/userHooks'
 import { Store } from '@/lib/Store'
-import { FamilyMember } from '@/types/User'
+import {
+  FamilyMember,
+  FAMILY_MEMBER_STATUSES,
+  RESIDENCE_COUNTRY_STATUSES,
+} from '@/types'
 import { ColumnDef } from '@tanstack/react-table'
 import clsx from 'clsx'
-import { useContext, useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { ArrowUpDown, Pencil, Trash2, Tally1, CalendarIcon } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 import CustomModal from '@/components/CustomModal'
 import {
   Form,
@@ -57,13 +63,12 @@ const formSchema = z.object({
   firstName: z.string(),
   lastName: z.string(),
   relationship: z.string(),
-  residenceCountryStatus: z.enum(
-    ['student', 'worker', 'canadian_citizen', 'permanent_resident', 'visitor'],
+  residenceCountryStatus: z.enum(RESIDENCE_COUNTRY_STATUSES,
     {
       required_error: 'Veuillez sélectionner le status au Canada.',
     }
   ),
-  status: z.string(),
+  status: z.enum(FAMILY_MEMBER_STATUSES),
   birthDate: z.date({
     required_error: 'La date de naissance est exigée.',
   }),
@@ -80,8 +85,9 @@ const toLocalNoon = (value: Date | string) => {
 }
 
 const Dependents = () => {
-  const { state } = useContext(Store)
-  const { userInfo } = state
+  const { state, dispatch } = useContext(Store)
+  const { userInfo, accountInfo } = state
+  const queryClient = useQueryClient()
   const {
     data: user,
     isPending,
@@ -96,6 +102,16 @@ const Dependents = () => {
     useUpdateUserMutation()
 
   const pathname = location.pathname
+  const [searchParams] = useSearchParams()
+  const isOnboardingQueryActive = searchParams.get('onboarding') === '1'
+  const activeDependentsCount = useMemo(
+    () =>
+      (user?.familyMembers ?? []).filter((member) => member?.status === 'active')
+        .length,
+    [user?.familyMembers],
+  )
+  const shouldShowFirstPaymentOnboarding =
+    isOnboardingQueryActive || Boolean(accountInfo?.isAwaitingFirstPayment)
 
   const form = useForm<z.infer<typeof formSchema>>({
     mode: 'onChange',
@@ -107,7 +123,7 @@ const Dependents = () => {
       residenceCountryStatus: editingItem
         ? editingItem.residenceCountryStatus
         : 'worker',
-      status: editingItem ? editingItem.status : '',
+      status: editingItem ? editingItem.status : 'active',
       birthDate: editingItem ? toLocalNoon(editingItem.birthDate) : new Date(1990, 0, 1),
       tel: editingItem ? editingItem.tel : '',
     },
@@ -123,7 +139,7 @@ const Dependents = () => {
           firstName: editingItem.firstName || '',
           lastName: editingItem.lastName || '',
           relationship: editingItem.relationship || '',
-          status: editingItem.status || '',
+          status: editingItem.status || 'active',
           residenceCountryStatus: editingItem.residenceCountryStatus || 'worker',
           birthDate: toLocalNoon(editingItem.birthDate),
           tel: editingItem.tel,
@@ -269,10 +285,19 @@ const Dependents = () => {
         }
         const updatedFamilyMembers = [...(user?.familyMembers ?? [])]
         updatedFamilyMembers[getIndex] = deletedMember
-        await updateUser({
+        const response = await updateUser({
           ...user!,
           familyMembers: updatedFamilyMembers,
           _id: user?._id,
+        })
+        const nextUserInfo: typeof userInfo = {
+          ...userInfo!,
+          ...response.user,
+        }
+        dispatch({ type: 'USER_LOGIN', payload: nextUserInfo! })
+        localStorage.setItem('userInfo', JSON.stringify(nextUserInfo))
+        await queryClient.invalidateQueries({
+          queryKey: ['user', userInfo?._id ?? ''],
         })
         toast({
           variant: 'default',
@@ -307,10 +332,19 @@ const Dependents = () => {
         }
         const updatedFamilyMembers = [...(user?.familyMembers ?? [])]
         updatedFamilyMembers[getIndex] = updatedMember
-        await updateUser({
+        const response = await updateUser({
           ...user!,
           familyMembers: updatedFamilyMembers,
           _id: user?._id,
+        })
+        const nextUserInfo: typeof userInfo = {
+          ...userInfo!,
+          ...response.user,
+        }
+        dispatch({ type: 'USER_LOGIN', payload: nextUserInfo! })
+        localStorage.setItem('userInfo', JSON.stringify(nextUserInfo))
+        await queryClient.invalidateQueries({
+          queryKey: ['user', userInfo?._id ?? ''],
         })
         toast({
           variant: 'default',
@@ -335,6 +369,12 @@ const Dependents = () => {
         <p className='text-center text-xl font-light mb-10'>
           Ensemble, nous sommes plus forts.
         </p>
+
+        {shouldShowFirstPaymentOnboarding ? (
+          <FirstPaymentOnboardingCard
+            activeDependentsCount={activeDependentsCount}
+          />
+        ) : null}
 
         <AddMemberSection />
         <div className='mt-10'>

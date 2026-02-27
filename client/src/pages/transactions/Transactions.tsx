@@ -9,7 +9,7 @@ import {
   functionReverse,
   toastAxiosError,
 } from '@/lib/utils'
-import { Transaction } from '@/types/Transaction'
+import { Transaction } from '@/types'
 import { ColumnDef } from '@tanstack/react-table'
 import { ArrowUpDown } from 'lucide-react'
 import { useContext } from 'react'
