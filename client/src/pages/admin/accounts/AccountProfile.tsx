@@ -1,7 +1,12 @@
+import { useEffect, useMemo, useState } from 'react'
 import Loading from '@/components/Loading'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { toast } from '@/components/ui/use-toast'
 import {
   Table,
   TableBody,
@@ -13,18 +18,37 @@ import {
 import {
   useGetAccountsByUserIdQuery,
   useGetAccountsQuery,
+  useUpdateAccountMutation,
 } from '@/hooks/accountHooks'
-import { useGetTransactionsByUserIdQuery } from '@/hooks/transactionHooks'
+import {
+  useGetTransactionsByUserIdQuery,
+  useNewTransactionMutation,
+} from '@/hooks/transactionHooks'
 import { useGetUserDetailsQuery } from '@/hooks/userHooks'
+import { createInteracFormSchema } from '@/lib/createInteracFormSchema'
+import { buildTopUpReason, computeTopUpAllocation } from '@/lib/billing'
 import { canadianResidenceStatus } from '@/lib/constant'
 import {
-  ToLocaleStringFunc,
+  computeFamilyFeesSummary,
+} from '@/lib/familyFees'
+import {
+  TOP_UP_TARGET_OPTIONS,
+  TARGET_DESCRIPTIONS,
+  TARGET_LABELS,
+  computeMinimumPaymentByTarget,
+  computeOutstandingTopUpAmounts,
+  computeRecommendedTopUpAmounts,
+  computeSuggestedPaymentAmount,
+  type TargetAmountMap,
+} from '@/lib/paymentPlan'
+import {
   formatCanadianPhone,
   formatCurrency,
   functionReverse,
   toastAxiosError,
 } from '@/lib/utils'
-import { Account } from '@/types'
+import { Account, type TopUpTargetWithBoth } from '@/types'
+import { useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, ArrowRight, UserRound, Wallet } from 'lucide-react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
@@ -38,6 +62,12 @@ const toDisplayDate = (value?: string | Date) => {
   if (!value) return '-'
   const dateStr = value.toString().substring(0, 10)
   return functionReverse(dateStr) || '-'
+}
+
+type FormErrors = {
+  amountInterac?: string
+  refInterac?: string
+  target?: string
 }
 
 const AccountProfile = () => {
@@ -60,6 +90,82 @@ const AccountProfile = () => {
 
   const currentAccount =
     userAccountsList.length > 0 ? userAccountsList[userAccountsList.length - 1] : undefined
+  const queryClient = useQueryClient()
+  const { mutateAsync: updateAccount, isPending: isUpdatingAccount } =
+    useUpdateAccountMutation()
+  const { mutateAsync: newTransaction, isPending: isCreatingTransaction } =
+    useNewTransactionMutation()
+
+  const familyFeesSummary = useMemo(() => computeFamilyFeesSummary(user), [user])
+  const recommendedTopUp = useMemo(
+    () =>
+      computeRecommendedTopUpAmounts({
+        subscriptionStatus: user?.subscription?.status,
+        membershipDueAmount: familyFeesSummary.membershipAmount,
+        rpnDueAmount: familyFeesSummary.rpnAmount,
+      }),
+    [
+      familyFeesSummary.membershipAmount,
+      familyFeesSummary.rpnAmount,
+      user?.subscription?.status,
+    ]
+  )
+
+  const currentMembershipBalance =
+    currentAccount?.membership_balance ?? currentAccount?.solde ?? 0
+  const currentRpnBalance = currentAccount?.rpn_balance ?? 0
+
+  const outstandingTopUp = useMemo(
+    () =>
+      computeOutstandingTopUpAmounts({
+        recommendedMembershipAmount: recommendedTopUp.membershipAmount,
+        recommendedRpnAmount: recommendedTopUp.rpnAmount,
+        currentMembershipBalance,
+        currentRpnBalance,
+      }),
+    [
+      recommendedTopUp.membershipAmount,
+      recommendedTopUp.rpnAmount,
+      currentMembershipBalance,
+      currentRpnBalance,
+    ]
+  )
+
+  const minimumByTarget = useMemo(
+    () => computeMinimumPaymentByTarget(outstandingTopUp.targetAmounts),
+    [outstandingTopUp.targetAmounts]
+  )
+  const suggestedByTarget = useMemo<TargetAmountMap>(
+    () => ({
+      membership: computeSuggestedPaymentAmount({
+        target: 'membership',
+        outstandingByTarget: outstandingTopUp.targetAmounts,
+        recommendedByTarget: recommendedTopUp.targetAmounts,
+      }),
+      rpn: computeSuggestedPaymentAmount({
+        target: 'rpn',
+        outstandingByTarget: outstandingTopUp.targetAmounts,
+        recommendedByTarget: recommendedTopUp.targetAmounts,
+      }),
+      both: computeSuggestedPaymentAmount({
+        target: 'both',
+        outstandingByTarget: outstandingTopUp.targetAmounts,
+        recommendedByTarget: recommendedTopUp.targetAmounts,
+      }),
+    }),
+    [outstandingTopUp.targetAmounts, recommendedTopUp.targetAmounts]
+  )
+
+  const initialTarget: TopUpTargetWithBoth =
+    outstandingTopUp.targetAmounts.both > 0 ? 'both' : 'membership'
+  const [selectedTarget, setSelectedTarget] =
+    useState<TopUpTargetWithBoth>(initialTarget)
+  const [amountInterac, setAmountInterac] = useState<number>(
+    suggestedByTarget[initialTarget]
+  )
+  const [refInterac, setRefInterac] = useState('')
+  const [errors, setErrors] = useState<FormErrors>({})
+  const isSavingPayment = isUpdatingAccount || isCreatingTransaction
 
   const currentIndex = accountsList.findIndex(
     (account: Account) => getUserIdFromAccount(account) === userId
@@ -77,6 +183,88 @@ const AccountProfile = () => {
         new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
     )
     .slice(0, 4)
+
+  useEffect(() => {
+    setAmountInterac(suggestedByTarget[selectedTarget])
+  }, [selectedTarget, suggestedByTarget])
+
+  const onSubmitPayment = async () => {
+    if (!currentAccount?._id) {
+      setErrors({ target: 'Aucun compte de paiement associé à ce profil.' })
+      return
+    }
+
+    const schema = createInteracFormSchema(minimumByTarget[selectedTarget])
+    const validation = schema.safeParse({ amountInterac, refInterac })
+
+    if (!validation.success) {
+      const nextErrors: FormErrors = {}
+      for (const issue of validation.error.issues) {
+        if (issue.path[0] === 'amountInterac') {
+          nextErrors.amountInterac = issue.message
+        }
+        if (issue.path[0] === 'refInterac') {
+          nextErrors.refInterac = issue.message
+        }
+      }
+      setErrors(nextErrors)
+      return
+    }
+
+    try {
+      setErrors({})
+      const allocation = computeTopUpAllocation({
+        target: selectedTarget,
+        amountInterac,
+        membershipDueAmount: outstandingTopUp.membershipAmount,
+        rpnDueAmount: outstandingTopUp.rpnAmount,
+      })
+
+      const nextMembership =
+        currentMembershipBalance + allocation.membershipAmount
+      const nextRpn = currentRpnBalance + allocation.rpnAmount
+      const nextSolde = nextMembership + nextRpn
+
+      const existingInteracTransactions = currentAccount.interac ?? []
+
+      await updateAccount({
+        ...currentAccount,
+        paymentMethod: 'interac',
+        membership_balance: nextMembership,
+        rpn_balance: nextRpn,
+        solde: nextSolde,
+        interac: [...existingInteracTransactions, { amountInterac, refInterac }],
+      })
+
+      await newTransaction({
+        userId,
+        amount: amountInterac,
+        type: 'credit',
+        fundType: selectedTarget,
+        membershipAmount: allocation.membershipAmount,
+        rpnAmount: allocation.rpnAmount,
+        reason: buildTopUpReason(selectedTarget),
+        refInterac,
+        status: 'pending',
+      })
+
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['accountsByUserId', userId] }),
+        queryClient.invalidateQueries({ queryKey: ['accounts'] }),
+        queryClient.invalidateQueries({ queryKey: ['transactions', userId] }),
+      ])
+
+      setRefInterac('')
+      toast({
+        variant: 'success',
+        title: 'Paiement enregistré',
+        description:
+          "Le paiement a été ajouté. Il apparaîtra dans l'historique après vérification.",
+      })
+    } catch (error) {
+      toastAxiosError(error)
+    }
+  }
 
   if (
     isPendingAccounts ||
@@ -144,19 +332,35 @@ const AccountProfile = () => {
       </div>
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-4 mt-5'>
-        <Card className='lg:col-span-1'>
+        <Card className="lg:col-span-1">
           <CardHeader>
-            <CardTitle className='flex items-center gap-2'>
-              <Wallet className='h-4 w-4' /> Solde RPN
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className='text-3xl font-semibold'>
-              {ToLocaleStringFunc(currentAccount?.rpn_balance ?? 0)}
+            <CardTitle>Soldes</CardTitle>
+            <p className="text-xs text-muted-foreground mt-2">
+              Montants courants des comptes
             </p>
-            <p className='text-xs text-muted-foreground mt-2'>Montant courant du compte</p>
+          </CardHeader>
+
+          <CardContent className="space-y-4">
+            <div>
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Wallet className="h-4 w-4" /> Solde RPN
+              </div>
+              <p className="text-3xl font-semibold">
+                {formatCurrency(currentRpnBalance)}
+              </p>
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Wallet className="h-4 w-4" /> Solde Membership
+              </div>
+              <p className="text-3xl font-semibold">
+                {formatCurrency(currentMembershipBalance)}
+              </p>
+            </div>
           </CardContent>
         </Card>
+
 
         <Card className='lg:col-span-2'>
           <CardHeader>
@@ -178,8 +382,8 @@ const AccountProfile = () => {
               <p className='font-medium'>{toDisplayDate(user.origines?.birthDate)}</p>
             </div>
             <div>
-              <p className='text-muted-foreground'>Pays d'origine</p>
-              <p className='font-medium'>{user.origines?.nativeCountry || '-'}</p>
+              <p className='text-muted-foreground'>Occupation</p>
+              <p className='font-medium'>{user.register?.occupation}</p>
             </div>
             <div>
               <p className='text-muted-foreground'>Téléphone</p>
@@ -199,13 +403,131 @@ const AccountProfile = () => {
                 {getResidenceStatusLabel(user.infos?.residenceCountryStatus)}
               </Badge>
             </div>
-            <div className='sm:col-span-2'>
+            <div>
               <p className='text-muted-foreground'>Adresse</p>
               <p className='font-medium'>{user.infos?.address || '-'}</p>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      <Card className='mt-4 border-primary/20'>
+        <CardHeader className='space-y-2'>
+          <CardTitle>Assistant de paiement pour utilisateur novice</CardTitle>
+          <p className='text-sm text-muted-foreground'>
+            Choisissez le type, vérifiez le montant dû selon la famille, puis enregistrez le paiement Interac.
+          </p>
+        </CardHeader>
+        <CardContent className='space-y-5'>
+          <div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-4'>
+            <div className='rounded-lg border p-3'>
+              <p className='text-xs text-muted-foreground'>Membership à payer par le membre</p>
+              <p className='mt-1 text-lg font-semibold'>
+                {formatCurrency(recommendedTopUp.membershipAmount)}
+              </p>
+            </div>
+            <div className='rounded-lg border p-3'>
+              <p className='text-xs text-muted-foreground'>montant minimal RPN à payer</p>
+              <p className='mt-1 text-lg font-semibold'>
+                {formatCurrency(recommendedTopUp.rpnAmount)}
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <p className='mb-2 text-sm font-medium'>Type de paiement à enregistrer</p>
+            <RadioGroup
+              value={selectedTarget}
+              onValueChange={(value) => {
+                const nextTarget = value as TopUpTargetWithBoth
+                if (!TOP_UP_TARGET_OPTIONS.includes(nextTarget)) return
+                setSelectedTarget(nextTarget)
+                setErrors((prev) => ({ ...prev, target: undefined }))
+              }}
+              className='grid gap-3 sm:grid-cols-3'
+            >
+              {TOP_UP_TARGET_OPTIONS.map((target) => {
+                const isSelected = selectedTarget === target
+                return (
+                  <Label
+                    key={target}
+                    htmlFor={`admin-${target}`}
+                    className={`cursor-pointer rounded-lg border p-3 transition-colors ${isSelected ? 'border-primary bg-primary/5' : ''
+                      }`}
+                  >
+                    <div className='flex items-start justify-between gap-2'>
+                      <div className='flex items-start gap-3'>
+                        <RadioGroupItem value={target} id={`admin-${target}`} className='mt-1' />
+                        <div>
+                          <p className='text-sm font-semibold'>{TARGET_LABELS[target]}</p>
+                          <p className='text-xs text-muted-foreground'>
+                            {TARGET_DESCRIPTIONS[target]}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </Label>
+                )
+              })}
+            </RadioGroup>
+            {errors.target ? (
+              <p className='mt-1 text-sm text-destructive'>{errors.target}</p>
+            ) : null}
+          </div>
+
+          <div className='grid gap-4 sm:grid-cols-2'>
+            <div>
+              <div className='flex items-center justify-between gap-2'>
+                <Label htmlFor='amountInterac'>Montant reçu</Label>
+              </div>
+              <Input
+                id='amountInterac'
+                type='number'
+                min={0}
+                value={amountInterac}
+                onChange={(event) =>
+                  setAmountInterac(Number(event.target.value || 0))
+                }
+              />
+              <p className='mt-1 text-xs text-muted-foreground'>
+                Minimum requis: {formatCurrency(minimumByTarget[selectedTarget])}
+                {selectedTarget === 'both'
+                  ? ' (si dépassement, le surplus est ajouté au fonds RPN).'
+                  : '.'}
+              </p>
+              {errors.amountInterac ? (
+                <p className='mt-1 text-sm text-destructive'>{errors.amountInterac}</p>
+              ) : null}
+            </div>
+
+            <div>
+              <Label htmlFor='refInterac'>
+                Code Interac communiqué par sa banque
+              </Label>
+              <Input
+                id='refInterac'
+                value={refInterac}
+                onChange={(event) => setRefInterac(event.target.value)}
+                placeholder='CA1we0Tq90'
+              />
+              {errors.refInterac ? (
+                <p className='mt-1 text-sm text-destructive'>{errors.refInterac}</p>
+              ) : null}
+            </div>
+          </div>
+
+          <div className='sticky bottom-0 z-10 -mx-2 border-t bg-background/95 px-2 py-3 backdrop-blur sm:static sm:m-0 sm:border-none sm:bg-transparent sm:p-0'>
+            <Button
+              type='button'
+              onClick={onSubmitPayment}
+              disabled={isSavingPayment}
+              className='w-full sm:w-auto'
+            >
+              {isSavingPayment ? 'Enregistrement...' : 'Enregistrer le paiement'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className='grid grid-cols-1 xl:grid-cols-2 gap-4 mt-4'>
         <Card>
@@ -278,19 +600,19 @@ const AccountProfile = () => {
                             tx.status === 'completed'
                               ? 'bg-green-600'
                               : tx.status === 'pending'
-                              ? 'bg-yellow-500'
-                              : tx.status === 'awaiting_payment'
-                              ? 'bg-blue-500'
-                              : 'bg-red-600'
+                                ? 'bg-yellow-500'
+                                : tx.status === 'awaiting_payment'
+                                  ? 'bg-blue-500'
+                                  : 'bg-red-600'
                           }
                         >
                           {tx.status === 'completed'
                             ? 'Réussie'
                             : tx.status === 'pending'
-                            ? 'En approbation'
-                            : tx.status === 'awaiting_payment'
-                            ? 'En attente paiement'
-                            : 'Échouée'}
+                              ? 'En approbation'
+                              : tx.status === 'awaiting_payment'
+                                ? 'En attente paiement'
+                                : 'Échouée'}
                         </Badge>
                       </TableCell>
                     </TableRow>

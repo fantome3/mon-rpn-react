@@ -35,8 +35,15 @@ import {
 import {
   computeFamilyFeesBreakdown,
   computeFamilyFeesSummary,
-  type FamilyFeeBreakdownItem,
 } from '@/lib/familyFees'
+import {
+  TOP_UP_TARGET_OPTIONS,
+  TARGET_DESCRIPTIONS,
+  TARGET_LABELS,
+  computeRecommendedTopUpAmounts,
+  getBreakdownRowsForTarget,
+  getRowAmountByTarget,
+} from '@/lib/paymentPlan'
 import { formatCurrency, functionReverse, toastAxiosError } from '@/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
 import type { Transaction } from '@/types'
@@ -46,38 +53,6 @@ type FormErrors = {
   refInterac?: string
   target?: string
 }
-
-const TOP_UP_TARGET_OPTIONS: TopUpTargetWithBoth[] = [
-  'both',
-  'membership',
-  'rpn',
-]
-
-const TARGET_LABELS: Record<TopUpTargetWithBoth, string> = {
-  membership: 'Membership',
-  rpn: 'Fonds RPN',
-  both: 'Membership + Fonds RPN',
-}
-
-const TARGET_DESCRIPTIONS: Record<TopUpTargetWithBoth, string> = {
-  membership: 'Vous reglez uniquement la cotisation membership.',
-  rpn: 'Vous alimentez uniquement le fonds RPN.',
-  both: 'Vous reglez membership et RPN en une seule transaction.',
-}
-
-const getRowAmountByTarget = (
-  item: FamilyFeeBreakdownItem,
-  target: TopUpTargetWithBoth,
-) => {
-  if (target === 'membership') return item.membershipAmount
-  if (target === 'rpn') return item.rpnAmount
-  return item.totalAmount
-}
-
-const getBreakdownRowsForTarget = (
-  rows: FamilyFeeBreakdownItem[],
-  target: TopUpTargetWithBoth,
-) => rows.filter((row) => getRowAmountByTarget(row, target) > 0)
 
 const Billing = () => {
   const { state, dispatch } = useContext(Store)
@@ -104,28 +79,23 @@ const Billing = () => {
     [userInfo],
   )
 
-  const membershipMinAmount = useMemo(() => {
-    if (userInfo?.subscription?.status === 'active') return 25
-    return 50
-  }, [userInfo?.subscription?.status])
+  const recommendedTopUp = useMemo(
+    () =>
+      computeRecommendedTopUpAmounts({
+        subscriptionStatus: userInfo?.subscription?.status,
+        membershipDueAmount: familyFeesSummary.membershipAmount,
+        rpnDueAmount: familyFeesSummary.rpnAmount,
+      }),
+    [
+      familyFeesSummary.membershipAmount,
+      familyFeesSummary.rpnAmount,
+      userInfo?.subscription?.status,
+    ],
+  )
 
-  const defaultMembershipAmount = useMemo(
-    () => Math.max(membershipMinAmount, familyFeesSummary.membershipAmount),
-    [familyFeesSummary.membershipAmount, membershipMinAmount],
-  )
-  const defaultRpnAmount = useMemo(
-    () => Math.max(20, familyFeesSummary.rpnAmount),
-    [familyFeesSummary.rpnAmount],
-  )
-
-  const defaultAmounts = useMemo(
-    () => ({
-      membership: defaultMembershipAmount,
-      rpn: defaultRpnAmount,
-      both: defaultMembershipAmount + defaultRpnAmount,
-    }),
-    [defaultMembershipAmount, defaultRpnAmount],
-  )
+  const defaultMembershipAmount = recommendedTopUp.membershipAmount
+  const defaultRpnAmount = recommendedTopUp.rpnAmount
+  const defaultAmounts = recommendedTopUp.targetAmounts
 
   const initialTarget = useMemo(
     () => getTargetFromQuery(searchParams.get('target')),
@@ -313,13 +283,12 @@ const Billing = () => {
                     <Label
                       key={target}
                       htmlFor={target}
-                      className={`flex items-start justify-between gap-3 rounded-lg border p-3 transition-colors ${
-                        isDisabled
+                      className={`flex items-start justify-between gap-3 rounded-lg border p-3 transition-colors ${isDisabled
                           ? 'cursor-not-allowed opacity-60'
                           : 'cursor-pointer'
-                      } ${
-                        isSelected ? 'border-primary bg-primary/5' : 'border-border'
-                      }`}
+                        } ${
+                          isSelected ? 'border-primary bg-primary/5' : 'border-border'
+                        }`}
                     >
                       <span className='flex items-start gap-3'>
                         <RadioGroupItem
@@ -382,14 +351,14 @@ const Billing = () => {
                 ) : null}
               </div>
               <div>
-                <Label htmlFor='refInterac'>
-                  Code interact fourni par la banque (regarde dans tes courriels)
+                <Label htmlFor="refInterac" className="text-xs">
+                  Code interact fourni par la banque après le virement (regarde dans tes courriels)
                 </Label>
                 <Input
                   id='refInterac'
                   value={refInterac}
                   onChange={(event) => setRefInterac(event.target.value)}
-                  placeholder='CA1234567890'
+                  placeholder='C2Km0'
                 />
                 {errors.refInterac ? (
                   <p className='mt-1 text-sm text-destructive'>
