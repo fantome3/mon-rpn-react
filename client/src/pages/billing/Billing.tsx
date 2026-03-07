@@ -2,17 +2,13 @@ import { useContext, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Store } from '@/lib/Store'
 import { SearchEngineOptimization } from '@/components/SearchEngine/SearchEngineOptimization'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { toast } from '@/components/ui/use-toast'
-import {
-  useGetAccountsByUserIdQuery,
-  useUpdateAccountMutation,
-} from '@/hooks/accountHooks'
 import {
   useGetTransactionsByUserIdQuery,
   useNewTransactionMutation,
@@ -32,6 +28,7 @@ import {
   type FundAmountContext,
   type TopUpTargetWithBoth,
 } from '@/lib/billing'
+import { getTransactionStatusBadgeClass } from '@/lib/transactionStatus'
 import {
   computeFamilyFeesBreakdown,
   computeFamilyFeesSummary,
@@ -55,21 +52,16 @@ type FormErrors = {
 }
 
 const Billing = () => {
-  const { state, dispatch } = useContext(Store)
+  const { state } = useContext(Store)
   const { userInfo } = state
   const userId = userInfo?._id ?? ''
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const queryClient = useQueryClient()
 
-  const { data: accounts } = useGetAccountsByUserIdQuery(userId)
   const { data: transactions = [] } = useGetTransactionsByUserIdQuery(userId)
-  const { mutateAsync: updateAccount, isPending: isUpdatingAccount } =
-    useUpdateAccountMutation()
   const { mutateAsync: newTransaction, isPending: isCreatingTransaction } =
     useNewTransactionMutation()
-
-  const account = accounts?.[0]
   const familyFeesSummary = useMemo(
     () => computeFamilyFeesSummary(userInfo),
     [userInfo],
@@ -150,7 +142,7 @@ const Billing = () => {
     paymentBlock?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }, [section])
 
-  const isSubmitting = isUpdatingAccount || isCreatingTransaction
+  const isSubmitting = isCreatingTransaction
 
   const onSubmit = async () => {
     if (!selectedTarget) {
@@ -165,11 +157,6 @@ const Billing = () => {
         title: 'Paiement RPN bloque',
         description: RPN_PAYMENT_BLOCK_MESSAGE,
       })
-      return
-    }
-
-    if (!account) {
-      setErrors({ target: 'Aucun compte de paiement associe a ce profil.' })
       return
     }
 
@@ -192,26 +179,11 @@ const Billing = () => {
 
     try {
       setErrors({})
-      const currentMembership = account.membership_balance ?? account.solde ?? 0
-      const currentRpn = account.rpn_balance ?? 0
-      const existingInteracTransactions = account.interac ?? []
       const allocation = computeTopUpAllocation({
         target: selectedTarget,
         amountInterac,
         membershipDueAmount: defaultMembershipAmount,
         rpnDueAmount: defaultRpnAmount,
-      })
-
-      const nextMembership = currentMembership + allocation.membershipAmount
-      const nextRpn = currentRpn + allocation.rpnAmount
-      const nextSolde = nextMembership + nextRpn
-
-      const response = await updateAccount({
-        ...account,
-        membership_balance: nextMembership,
-        rpn_balance: nextRpn,
-        solde: nextSolde,
-        interac: [...existingInteracTransactions, { amountInterac, refInterac }],
       })
 
       await newTransaction({
@@ -226,8 +198,6 @@ const Billing = () => {
         status: 'pending',
       })
 
-      dispatch({ type: 'ACCOUNT_INFOS', payload: response.account })
-      localStorage.setItem('accountInfo', JSON.stringify(response.account))
       await queryClient.invalidateQueries({ queryKey: ['accountsByUserId', userId] })
       await queryClient.invalidateQueries({ queryKey: ['transactions', userId] })
 
@@ -256,6 +226,7 @@ const Billing = () => {
         <Card className='mt-8' id='billing-payment-section'>
           <CardHeader>
             <CardTitle>Paiement</CardTitle>
+            <CardDescription>Faire le virement Interac a l'adresse courriel suivante <strong>acq.quebec@gmail.com</strong> et utiliser le mot de passe <strong>monrpn</strong></CardDescription>
           </CardHeader>
           <CardContent className='space-y-5'>
             <div>
@@ -506,13 +477,7 @@ const BillingTable = ({
                 : '-'}
             </p>
             <Badge
-              className={
-                transaction.status === 'completed'
-                  ? 'bg-green-600'
-                  : transaction.status === 'failed'
-                    ? 'bg-red-600'
-                    : 'bg-orange-500'
-              }
+              className={getTransactionStatusBadgeClass(transaction.status)}
             >
               {getTransactionStatusLabel(transaction.status)}
             </Badge>

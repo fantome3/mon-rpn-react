@@ -169,7 +169,7 @@ const UserAccountInfo = () => {
                 if (!canPayRpn) {
                   toast({
                     variant: 'destructive',
-                    title: 'Paiement RPN bloque',
+                    title: 'Paiement RPN bloqué',
                     description: RPN_PAYMENT_BLOCK_MESSAGE,
                   })
                   return

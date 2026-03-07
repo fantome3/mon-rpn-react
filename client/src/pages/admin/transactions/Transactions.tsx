@@ -1,59 +1,47 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState } from 'react'
 import CustomModal from '@/components/CustomModal'
 import { DataTable } from '@/components/CustomTable'
 import Loading from '@/components/Loading'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { toast } from '@/components/ui/use-toast'
 import {
+  useConfirmTransactionMutation,
   useDeleteTransactionMutation,
   useGetAllTransactionsQuery,
+  useRefundTransactionMutation,
+  useRejectTransactionMutation,
   useUpdateTransactionMutation,
 } from '@/hooks/transactionHooks'
-import { transactionStatus, transactionType } from '@/lib/constant'
+import { functionReverse, toastAxiosError } from '@/lib/utils'
 import {
-  functionReverse,
-  ToLocaleStringFunc,
-  toastAxiosError,
-} from '@/lib/utils'
+  getTransactionStatusBadgeClass,
+  getTransactionStatusLabel,
+  normalizeTransactionStatus,
+} from '@/lib/transactionStatus'
 import { Transaction } from '@/types'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { ColumnDef } from '@tanstack/react-table'
-import { ArrowUpDown, Pencil, Trash2 } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
+import { ArrowUpDown, Check, Pencil, RotateCcw, Trash2, X } from 'lucide-react'
 import BilanTransactions from './BilanTransactions'
 import TransactionsSetttings from './TransactionsSetttings'
 import TransactionPageSubmenu from './TransactionPageSubmenu'
 import ManualUserPaymentButton from '@/components/ManualUserPaymentButton'
 import ManualBalanceReminderButton from '@/components/ManualBalanceReminderButton'
 import IconButtonWithTooltip from '@/components/IconButtonWithTooltip'
-import { TRANSACTION_STATUSES, TRANSACTION_TYPES } from '@/types'
 
-const formSchema = z.object({
-  userId: z.union([z.string(), z.any()]),
-  amount: z.number().min(0, { message: 'Le montant doit être positif' }),
-  type: z.enum(TRANSACTION_TYPES),
-  reason: z.string().min(1, { message: 'La raison est requise' }),
-  status: z.enum(TRANSACTION_STATUSES),
-})
+const isRefundable = (tx: Transaction) => {
+  const normalizedStatus = normalizeTransactionStatus(tx.status)
+  const fundType = tx.fundType
+  return (
+    normalizedStatus === 'completed' &&
+    (fundType === 'rpn' || fundType === 'both')
+  )
+}
+
+const isTransactionPending = (tx: Transaction) =>
+  normalizeTransactionStatus(tx.status) === 'pending'
 
 const Transactions = () => {
   const {
@@ -67,44 +55,44 @@ const Transactions = () => {
     useDeleteTransactionMutation()
   const { mutateAsync: updateTransaction, isPending: loadingUpdate } =
     useUpdateTransactionMutation()
-  const [modalVisibility, setModalVisibility] = useState(false)
+  const { mutateAsync: confirmTransaction, isPending: loadingConfirm } =
+    useConfirmTransactionMutation()
+  const { mutateAsync: rejectTransaction, isPending: loadingReject } =
+    useRejectTransactionMutation()
+  const { mutateAsync: refundTransaction, isPending: loadingRefund } =
+    useRefundTransactionMutation()
+
+  const [deleteModal, setDeleteModal] = useState(false)
+  const [editModalVisibility, setEditModalVisibility] = useState(false)
+  const [refundModalVisibility, setRefundModalVisibility] = useState(false)
   const [bilanModalVisibility, setBilanModalVisibility] = useState(false)
   const [settingModalVisibility, setSettingModalVisibility] = useState(false)
-  const [editingTransaction, setEditingTransaction] = useState<any>(null)
-  const [deleteModal, setDeleteModal] = useState(false)
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    mode: 'onChange',
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      userId: editingTransaction ? editingTransaction.userId : '',
-      amount: editingTransaction ? editingTransaction.amount : 0,
-      type: editingTransaction ? editingTransaction.type : 'debit',
-      reason: editingTransaction ? editingTransaction.reason : '',
-      status: editingTransaction ? editingTransaction.status : 'completed',
-    },
-  })
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
+  const [editReason, setEditReason] = useState('')
+  const [editRefInterac, setEditRefInterac] = useState('')
+  const [refundAmount, setRefundAmount] = useState<number | ''>('')
 
-  const transactionResetSignatureRef = useRef('')
+  if (error) {
+    toastAxiosError(error)
+    return null
+  }
 
-  useEffect(() => {
-    if (editingTransaction) {
-      const nextSignature = JSON.stringify(editingTransaction)
-      if (transactionResetSignatureRef.current !== nextSignature) {
-        form.reset({
-          userId: editingTransaction.userId || '',
-          amount: editingTransaction.amount || 0,
-          type: editingTransaction.type || 'debit',
-          reason: editingTransaction.reason || '',
-          status: editingTransaction.status || 'completed',
-        })
-        transactionResetSignatureRef.current = nextSignature
-      }
-    }
-  }, [editingTransaction, form])
+  const openEditModal = (tx: Transaction) => {
+    setEditingTransaction(tx)
+    setEditReason(tx.reason || '')
+    setEditRefInterac(tx.refInterac || '')
+    setEditModalVisibility(true)
+  }
+
+  const openRefundModal = (tx: Transaction) => {
+    setEditingTransaction(tx)
+    setRefundAmount('')
+    setRefundModalVisibility(true)
+  }
 
   const transactionData = Array.isArray(transactions)
-    ? transactions?.map((tx) => ({
+    ? transactions.map((tx) => ({
         ...tx,
         fullName: `${tx.userId?.origines?.lastName ?? ''} ${
           tx.userId?.origines?.firstName ?? ''
@@ -112,18 +100,13 @@ const Transactions = () => {
       }))
     : []
 
-  if (error) {
-    toastAxiosError(error)
-    return null
-  }
-
   const columns: ColumnDef<Transaction>[] = [
     {
       accessorKey: 'createdAt',
       header: 'Date',
       cell: ({ row }) => {
         const created: string = row.getValue('createdAt')
-        return <div> {functionReverse(created.substring(0, 10))} </div>
+        return <div>{functionReverse(created.substring(0, 10))}</div>
       },
     },
     {
@@ -133,157 +116,202 @@ const Transactions = () => {
     },
     {
       accessorKey: 'status',
-      header: ({ column }) => {
-        return (
-          <Button
-            variant='ghost'
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            Statut
-            <ArrowUpDown className='ml-2 h-4 w-4' />
-          </Button>
-        )
-      },
+      header: ({ column }) => (
+        <Button
+          variant='ghost'
+          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        >
+          Statut
+          <ArrowUpDown className='ml-2 h-4 w-4' />
+        </Button>
+      ),
       cell: ({ row }) => {
-        const status: string = row.getValue('status')
-        if (status === 'completed') {
-          return (
-            <Badge className='bg-green-500 text-white text-xs'>Réussie</Badge>
-          )
-        }
-        if (status === 'failed') {
-          return (
-            <Badge className='bg-red-500 text-white text-xs'>Echouée</Badge>
-          )
-        }
-        if (status === 'pending') {
-          return (
-            <Badge className='bg-yellow-500 text-white text-xs'>
-              En approbation
-            </Badge>
-          )
-        }
-        if (status === 'awaiting_payment') {
-          return (
-            <Badge className='bg-blue-500 text-white text-xs'>
-              En attente paiement
-            </Badge>
-          )
-        }
+        const status = row.getValue('status') as string
+        return (
+          <Badge className={getTransactionStatusBadgeClass(status)}>
+            {getTransactionStatusLabel(status)}
+          </Badge>
+        )
       },
     },
     {
       accessorKey: 'reason',
       header: 'Raison',
-      cell: ({ row }) => {
-        const reason: string = row.getValue('reason')
-        return <div> {reason} </div>
-      },
+      cell: ({ row }) => <div>{row.getValue('reason')}</div>,
     },
     {
       accessorKey: 'refInterac',
-      header: 'RefInterac',
+      header: 'Ref Interac',
       cell: ({ row }) => {
         const ref: string | undefined = row.getValue('refInterac')
-        return <div> {ref ?? '-'} </div>
+        return <div>{ref ?? '-'}</div>
       },
     },
     {
       accessorKey: 'amount',
       header: 'Montant',
-      cell: ({ row }) => {
-        const amount: number = row.getValue('amount')
-        return <div> {amount} </div>
-      },
+      cell: ({ row }) => <div>{row.getValue('amount')}</div>,
     },
-
     {
       accessorKey: 'action',
       header: 'Action',
       enableHiding: false,
-      cell: ({ row }) => (
-        <div className='flex '>
-          <IconButtonWithTooltip
-            icon={<Pencil size={20} className='text-green-800' />}
-            tooltip='Modifier'
-            onClick={() => {
-              setEditingTransaction(row.original)
-              setModalVisibility(true)
-            }}
-          />
-          <div className='font-semibold text-[#b9bdbc] mx-2'>|</div>
-          <IconButtonWithTooltip
-            icon={<Trash2 size={20} className='text-red-600' />}
-            tooltip='Supprimer'
-            onClick={() => {
-              setEditingTransaction(row.original)
-              setDeleteModal(true)
-            }}
-          />
-          <div className='font-semibold text-[#b9bdbc] mx-2'>|</div>
-          <ManualUserPaymentButton userId={row.original.userId?._id} />
-          <div className='font-semibold text-[#b9bdbc] mx-2'>|</div>
-          <ManualBalanceReminderButton userId={row.original.userId?._id} />
-        </div>
-      ),
+      cell: ({ row }) => {
+        const tx = row.original
+
+        return (
+          <div className='flex'>
+            <IconButtonWithTooltip
+              icon={<Pencil size={20} className='text-green-800' />}
+              tooltip='Modifier motif'
+              onClick={() => openEditModal(tx)}
+            />
+
+            {isTransactionPending(tx) ? (
+              <>
+                <div className='font-semibold text-[#b9bdbc] mx-2'>|</div>
+                <IconButtonWithTooltip
+                  icon={<Check size={20} className='text-green-700' />}
+                  tooltip='Confirmer'
+                  onClick={async () => {
+                    try {
+                      await confirmTransaction(String(tx._id))
+                      toast({
+                        variant: 'success',
+                        title: 'Transaction confirmee',
+                      })
+                      refetch()
+                    } catch (error) {
+                      toastAxiosError(error)
+                    }
+                  }}
+                />
+                <div className='font-semibold text-[#b9bdbc] mx-2'>|</div>
+                <IconButtonWithTooltip
+                  icon={<X size={20} className='text-red-700' />}
+                  tooltip='Rejeter'
+                  onClick={async () => {
+                    try {
+                      await rejectTransaction(String(tx._id))
+                      toast({
+                        variant: 'default',
+                        title: 'Transaction rejetee',
+                      })
+                      refetch()
+                    } catch (error) {
+                      toastAxiosError(error)
+                    }
+                  }}
+                />
+              </>
+            ) : null}
+
+            {isRefundable(tx) ? (
+              <>
+                <div className='font-semibold text-[#b9bdbc] mx-2'>|</div>
+                <IconButtonWithTooltip
+                  icon={<RotateCcw size={20} className='text-slate-700' />}
+                  tooltip='Rembourser'
+                  onClick={() => openRefundModal(tx)}
+                />
+              </>
+            ) : null}
+
+            <div className='font-semibold text-[#b9bdbc] mx-2'>|</div>
+            <IconButtonWithTooltip
+              icon={<Trash2 size={20} className='text-red-600' />}
+              tooltip='Supprimer'
+              onClick={() => {
+                setEditingTransaction(tx)
+                setDeleteModal(true)
+              }}
+            />
+
+            <div className='font-semibold text-[#b9bdbc] mx-2'>|</div>
+            <ManualUserPaymentButton userId={tx.userId?._id} />
+            <div className='font-semibold text-[#b9bdbc] mx-2'>|</div>
+            <ManualBalanceReminderButton userId={tx.userId?._id} />
+          </div>
+        )
+      },
     },
   ]
 
   const deleteHandler = async () => {
-    if (editingTransaction) {
-      try {
-        await deleteTransaction(editingTransaction?._id)
-        toast({
-          variant: 'default',
+    if (!editingTransaction?._id) return
+
+    try {
+      await deleteTransaction(String(editingTransaction._id))
+      toast({
+        variant: 'default',
           title: 'Suppression Réussie',
           description: 'Vous avez supprimé la transaction avec succès.',
-        })
-        refetch()
-        setEditingTransaction(null)
-        setDeleteModal(false)
-      } catch (error) {
-        toast({
-          variant: 'destructive',
-          title: 'Oops!',
-          description: 'Il semble que quelque chose cloche.',
-        })
-      }
+      })
+      refetch()
+      setEditingTransaction(null)
+      setDeleteModal(false)
+    } catch (error) {
+      toastAxiosError(error)
     }
   }
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const saveEditHandler = async () => {
+    if (!editingTransaction?._id) return
+
     try {
       await updateTransaction({
-        ...values,
-        userId: editingTransaction?.userId,
-        _id: editingTransaction?._id,
+        ...editingTransaction,
+        reason: editReason,
+        refInterac: editRefInterac,
       })
       toast({
         variant: 'default',
-        title: 'Modification Transaction',
-        description: 'La transaction a été modifié avec succès.',
+        title: 'Transaction mise à jour',
       })
+      setEditModalVisibility(false)
       setEditingTransaction(null)
-      setModalVisibility(false)
       refetch()
     } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Oops!',
-        description: 'Il semble que quelque chose cloche.',
-      })
+      toastAxiosError(error)
     }
   }
+
+  const confirmRefundHandler = async () => {
+    if (!editingTransaction?._id) return
+
+    try {
+      await refundTransaction({
+        transactionId: String(editingTransaction._id),
+        amount:
+          refundAmount === '' || Number.isNaN(refundAmount)
+            ? undefined
+            : Number(refundAmount),
+      })
+      toast({
+        variant: 'default',
+        title: 'Remboursement effectue',
+      })
+      setRefundModalVisibility(false)
+      setEditingTransaction(null)
+      refetch()
+    } catch (error) {
+      toastAxiosError(error)
+    }
+  }
+
+  const anyActionLoading =
+    loadingConfirm || loadingReject || loadingRefund || loadingDelete || loadingUpdate
 
   return (
     <>
       <div className='container mt-16 flex items-center justify-between'>
-        <h1 className='text-2xl font-semibold'>Les Transactions</h1>
+        <h1 className='text-2xl font-semibold'>Les transactions</h1>
         <TransactionPageSubmenu
           setBilanModalVisibility={setBilanModalVisibility}
           setSettingModalVisibility={setSettingModalVisibility}
         />
       </div>
+
       {isPending ? (
         <Loading />
       ) : (
@@ -291,11 +319,12 @@ const Transactions = () => {
           <DataTable data={transactionData ?? []} columns={columns} />
         </div>
       )}
+
       {deleteModal ? (
         <CustomModal
           setOpen={() => setDeleteModal(false)}
           open={deleteModal}
-          title='Supprimer Transaction'
+          title='Supprimer transaction'
           description='Voulez-vous vraiment supprimer cette transaction?'
         >
           <div>
@@ -308,129 +337,77 @@ const Transactions = () => {
 
             <Button
               disabled={loadingDelete}
-              onClick={() => deleteHandler()}
+              onClick={deleteHandler}
               className='mx-12'
             >
               {loadingDelete ? <Loading /> : 'OK'}
             </Button>
           </div>
         </CustomModal>
-      ) : (
-        ''
-      )}
-      {modalVisibility ? (
+      ) : null}
+
+      {editModalVisibility ? (
         <CustomModal
-          setOpen={() => setModalVisibility(false)}
-          open={modalVisibility}
+          setOpen={() => setEditModalVisibility(false)}
+          open={editModalVisibility}
           title='Modifier transaction'
-          description='Modifier les informations de la transaction'
+          description='Modifier le motif et la référence Interac.'
         >
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
-              <FormField
-                control={form.control}
-                name='type'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Type</FormLabel>
-                    <Select
-                      value={field.value ?? ''}
-                      onValueChange={field.onChange}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {transactionType?.map((type) => (
-                          <SelectItem key={type.type} value={type.type}>
-                            {type.value}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
+          <div className='space-y-4'>
+            <div>
+              <label className='text-sm font-medium'>Motif</label>
+              <Input
+                value={editReason}
+                onChange={(event) => setEditReason(event.target.value)}
+                placeholder='Motif transaction'
               />
-
-              <FormField
-                control={form.control}
-                name='amount'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Montant</FormLabel>
-                    <FormControl>
-                      <Input
-                        type='text'
-                        placeholder='Montant'
-                        value={ToLocaleStringFunc(field.value)}
-                        onChange={(event) => {
-                          const rawValue = event.target.value.replace(/\s/g, '')
-                          if (/^\d*$/.test(rawValue)) {
-                            field.onChange(Number(rawValue))
-                          }
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+            </div>
+            <div>
+              <label className='text-sm font-medium'>Numéro réference Interac: </label>
+              <Input
+                value={editRefInterac}
+                onChange={(event) => setEditRefInterac(event.target.value)}
+                placeholder='C2KM0'
               />
-
-              <FormField
-                control={form.control}
-                name='reason'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Raison</FormLabel>
-                    <FormControl>
-                      <Input placeholder='Raison' {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name='status'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Statut</FormLabel>
-                    <Select
-                      value={field.value ?? ''}
-                      onValueChange={field.onChange}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {transactionStatus?.map((status) => (
-                          <SelectItem key={status.status} value={status.status}>
-                            {status.value}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              {loadingUpdate ? (
-                <Loading />
-              ) : (
-                <Button type='submit'>Valider</Button>
-              )}
-            </form>
-          </Form>
+            </div>
+            <Button disabled={loadingUpdate} onClick={saveEditHandler}>
+              {loadingUpdate ? <Loading /> : 'Enregistrer'}
+            </Button>
+          </div>
         </CustomModal>
-      ) : (
-        ''
-      )}
+      ) : null}
+
+      {refundModalVisibility ? (
+        <CustomModal
+          setOpen={() => setRefundModalVisibility(false)}
+          open={refundModalVisibility}
+          title='Rembourser transaction'
+          description='Montant optionnel. Laisser vide pour remboursement total de la partie RPN.'
+        >
+          <div className='space-y-4'>
+            <div>
+              <label className='text-sm font-medium'>Montant à rembourser</label>
+              <Input
+                type='number'
+                min={0}
+                value={refundAmount}
+                onChange={(event) => {
+                  const nextValue = event.target.value
+                  if (nextValue === '') {
+                    setRefundAmount('')
+                    return
+                  }
+                  setRefundAmount(Number(nextValue))
+                }}
+                placeholder='Ex: 25'
+              />
+            </div>
+            <Button disabled={loadingRefund} onClick={confirmRefundHandler}>
+              {loadingRefund ? <Loading /> : 'Confirmer remboursement'}
+            </Button>
+          </div>
+        </CustomModal>
+      ) : null}
 
       {bilanModalVisibility && (
         <CustomModal
@@ -446,6 +423,7 @@ const Transactions = () => {
           <BilanTransactions />
         </CustomModal>
       )}
+
       {settingModalVisibility && (
         <CustomModal
           setOpen={() => {
@@ -464,6 +442,8 @@ const Transactions = () => {
           />
         </CustomModal>
       )}
+
+      {anyActionLoading ? <div className='sr-only'>chargement</div> : null}
     </>
   )
 }

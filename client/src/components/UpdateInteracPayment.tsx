@@ -4,10 +4,6 @@ import Loading from './Loading'
 import { ArrowRightLeft } from 'lucide-react'
 import { useContext, useMemo, useState } from 'react'
 import { Store } from '@/lib/Store'
-import {
-  useGetAccountsByUserIdQuery,
-  useUpdateAccountMutation,
-} from '@/hooks/accountHooks'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -36,6 +32,7 @@ import {
 } from '@/lib/billing'
 import { useGetTransactionsByUserIdQuery } from '@/hooks/transactionHooks'
 import { toast } from './ui/use-toast'
+import { useQueryClient } from '@tanstack/react-query'
 
 type UpdateInteracPaymentProps = {
   onSuccess: (amount: number) => void
@@ -53,15 +50,15 @@ const UpdateInteracPayment = ({
   rpnAmount = 0,
 }: UpdateInteracPaymentProps) => {
   const [modalVisibility, setModalVisibility] = useState(false)
-  const { state, dispatch: ctxDispatch } = useContext(Store)
+  const { state } = useContext(Store)
 
   const { userInfo } = state
-  const { data: accountByUserId } = useGetAccountsByUserIdQuery(userInfo?._id ?? '')
   const { data: transactions = [] } = useGetTransactionsByUserIdQuery(
     userInfo?._id ?? ''
   )
-  const { mutateAsync: updateAccount, isPending } = useUpdateAccountMutation()
-  const { mutateAsync: newTransaction } = useNewTransactionMutation()
+  const { mutateAsync: newTransaction, isPending } = useNewTransactionMutation()
+  const queryClient = useQueryClient()
+
   const canPayRpn = useMemo(
     () =>
       canPrimaryMemberTopUpRpn({
@@ -93,31 +90,12 @@ const UpdateInteracPayment = ({
     }
 
     try {
-      const currentMembership = accountByUserId?.[0]?.membership_balance ?? 0
-      const currentRpn = accountByUserId?.[0]?.rpn_balance ?? 0
-      const existingInteracTransactions = accountByUserId?.[0]?.interac ?? []
-      const updatedInteracTransactions = [...existingInteracTransactions, { ...values }]
       const amountToAdd = values.amountInterac
-
       const allocation = computeTopUpAllocation({
         target: topUpTarget,
         amountInterac: amountToAdd,
         membershipDueAmount: membershipAmount,
         rpnDueAmount: rpnAmount,
-      })
-
-      const nextMembershipBalance = currentMembership + allocation.membershipAmount
-      const nextRpnBalance = currentRpn + allocation.rpnAmount
-
-      const newSolde = nextMembershipBalance + nextRpnBalance
-
-      const data = await updateAccount({
-        ...accountByUserId?.[0],
-        solde: newSolde,
-        membership_balance: nextMembershipBalance,
-        rpn_balance: nextRpnBalance,
-        interac: updatedInteracTransactions,
-        isAwaitingFirstPayment: false,
       })
 
       await newTransaction({
@@ -132,8 +110,12 @@ const UpdateInteracPayment = ({
         status: 'pending',
       })
 
-      ctxDispatch({ type: 'ACCOUNT_INFOS', payload: data.account })
-      localStorage.setItem('accountInfo', JSON.stringify(data.account))
+      await queryClient.invalidateQueries({
+        queryKey: ['accountsByUserId', userInfo?._id],
+      })
+      await queryClient.invalidateQueries({
+        queryKey: ['transactions', userInfo?._id],
+      })
 
       onSuccess(values.amountInterac)
       setModalVisibility(false)
@@ -177,8 +159,8 @@ const UpdateInteracPayment = ({
             <span className='block text-justify'>
               Faire le virement Interac a l'adresse courriel suivante{' '}
               <strong>acq.quebec@gmail.com</strong> et utiliser le mot de
-              passe <strong>monrpn</strong> si demande. Ensuite, entrez ici les
-              informations du virement effectue pour{' '}
+              passe <strong>monrpn</strong> si demandé. Ensuite, entrez ici les
+              infos du virement effectué pour{' '}
               {topUpTarget === 'membership'
                 ? 'renouveller votre membership.'
                 : topUpTarget === 'rpn'
@@ -194,8 +176,8 @@ const UpdateInteracPayment = ({
                 control={form.control}
                 name='amountInterac'
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Montant envoye</FormLabel>
+                    <FormItem>
+                    <FormLabel>Montant envoyé</FormLabel>
                     <FormControl>
                       <Input
                         type='text'
@@ -220,16 +202,15 @@ const UpdateInteracPayment = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className='text-sm'>
-                      Numero de reference du transfert Interac
+                      Numéro de référence du transfert Interac
                       <HoverCard>
                         <HoverCardTrigger className='cursor-pointer italic text-xs hover:underline ml-1 animate-pulse'>
-                          (ou le trouver)
+                          (où le trouver)
                         </HoverCardTrigger>
                         <HoverCardContent className='font-light text-justify'>
-                          Interac vous envoie un courriel de confirmation pour chaque virement.
-                          Ce courriel contient votre <span className='text-destructive'>numero de reference Interac</span>,
-                          qui commence generalement par CA ou C. Vous pouvez aussi le retrouver sur la confirmation de virement
-                          ou dans la description de la transaction selon votre institution financiere.
+                          Interac envoie un courriel de confirmation pour chaque
+                          virement. Ce courriel contient le numéro de référence
+                          Interac, souvent CA ou C.
                         </HoverCardContent>
                       </HoverCard>
                     </FormLabel>
@@ -251,3 +232,4 @@ const UpdateInteracPayment = ({
 }
 
 export default UpdateInteracPayment
+

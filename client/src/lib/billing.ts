@@ -8,6 +8,10 @@ import {
   type TopUpTargetWithBoth,
   type TransactionFundType,
 } from '@/types'
+import {
+  getTransactionStatusLabel as getTransactionStatusLabelFromState,
+  normalizeTransactionStatus,
+} from './transactionStatus'
 
 export type {
   TopUpTarget,
@@ -57,7 +61,7 @@ const BOTH_HISTORY_REASON_PATTERNS = [
 ]
 
 export const RPN_PAYMENT_BLOCK_MESSAGE =
-  'Le paiement du fonds RPN est disponible uniquement quand la cotisation membership du membre principal et des personnes a charge est a jour.'
+  'Le paiement du fonds RPN est disponible uniquement quand la cotisation membership du membre principal et des personnes à charge est à jour.'
 
 const stripDiacritics = (value: string) =>
   value.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -196,10 +200,7 @@ export const getLastRpnTopUpTransactions = (
     .slice(0, limit)
 
 export const getTransactionStatusLabel = (status: Transaction['status']) => {
-  if (status === 'completed') return 'Reussie'
-  if (status === 'failed') return 'Echouee'
-  if (status === 'awaiting_payment') return 'En attente paiement'
-  return 'En approbation'
+  return getTransactionStatusLabelFromState(status)
 }
 
 export const buildTopUpReason = (target: TopUpTargetWithBoth) => {
@@ -296,17 +297,17 @@ export const getMembershipPaymentUiState = (
   subscription?: MembershipSubscriptionSnapshot
 ): MembershipPaymentUiState => {
   const latestRequest = getLatestMembershipTopUpTransaction(transactions, year)
+  const latestStatus = normalizeTransactionStatus(latestRequest?.status)
 
-  if (
-    latestRequest?.status === 'pending' ||
-    latestRequest?.status === 'awaiting_payment'
-  ) {
+  if (latestStatus === 'pending' || latestStatus === 'awaiting_payment') {
     return 'pending'
   }
-  if (latestRequest?.status === 'failed') return 'rejected'
+  if (latestStatus === 'failed' || latestStatus === 'rejected') {
+    return 'rejected'
+  }
 
   if (isMembershipPaidForCurrentYear(subscription, year)) return 'success'
-  if (latestRequest?.status === 'completed') return 'success'
+  if (latestStatus === 'completed') return 'success'
 
   return 'initial'
 }
@@ -315,9 +316,9 @@ export const getMembershipPaymentBadgeLabel = (
   state: MembershipPaymentUiState
 ) => {
   if (state === 'success') return 'Vous êtes à jour'
-  if (state === 'pending') return 'En verification'
+  if (state === 'pending') return 'En vérification'
   if (state === 'rejected') return 'Rejeter'
-  return 'Initial'
+  return 'Auncun dépôt effectuer'
 }
 
 export const getMembershipPaymentBadgeClass = (

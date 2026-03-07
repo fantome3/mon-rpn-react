@@ -9,35 +9,32 @@ import {
 import { sendBalanceReminderIfNeeded } from '../services/checkMinimumBalanceAndSendReminder'
 import labels from '../common/libelles.json'
 import {
-  interacRefExists,
-  normalizeInteracRef,
-} from '../services/interacReferenceService'
+  transactionDomainService,
+  TransactionDomainError,
+} from '../services/transactionService'
 
 export const transactionRouter = express.Router()
+
+const sendTransactionDomainError = (res: Response, error: unknown) => {
+  if (error instanceof TransactionDomainError) {
+    res.status(error.statusCode).json({ message: error.message })
+    return
+  }
+
+  res.status(500).json({ message: labels.general.erreurInattendueMin })
+}
 
 transactionRouter.post(
   '/new',
   expressAsyncHandler(async (req: Request, res: Response) => {
     try {
-      if (req.body?.refInterac) {
-        req.body.refInterac = normalizeInteracRef(req.body.refInterac)
-        if (
-          await interacRefExists([req.body.refInterac], {
-            checkAccounts: false,
-            checkTransactions: true,
-          })
-        ) {
-          res.status(400).json({ message: labels.general.codeInvalide })
-          return
-        }
-      }
+      const transaction = await transactionDomainService.initiateDeposit({
+        ...req.body,
+      })
 
-      const transaction = new TransactionModel(req.body)
-      await transaction.save()
       res.send(transaction)
     } catch (error) {
-      res.status(400).json(error)
-      return
+      sendTransactionDomainError(res, error)
     }
   })
 )
@@ -177,8 +174,23 @@ transactionRouter.put(
       const id = req.params.id
       const transaction = await TransactionModel.findById(id)
       if (transaction) {
-        Object.assign(transaction, req.body)
-        const transactionUpdated = transaction.save()
+        if (req.body?.status && req.body.status !== transaction.status) {
+          res.status(409).json({
+            message:
+              "Utilisez les actions metier (confirm/reject/fail/refund/process) pour changer le statut.",
+          })
+          return
+        }
+
+        if (typeof req.body?.reason === 'string') {
+          transaction.reason = req.body.reason.trim()
+        }
+
+        if (typeof req.body?.refInterac === 'string') {
+          transaction.refInterac = req.body.refInterac.trim().toUpperCase()
+        }
+
+        const transactionUpdated = await transaction.save()
 
         res.send({
           message: labels.transaction.misAJour,
@@ -191,6 +203,138 @@ transactionRouter.put(
       }
     } catch (error) {
       res.status(400).json(error)
+    }
+  })
+)
+
+transactionRouter.post(
+  '/:id/confirm',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req: Request, res: Response) => {
+    try {
+      const transaction = await transactionDomainService.confirm(
+        req.params.id,
+        req.user?._id
+      )
+
+      res.send({
+        message: 'Transaction confirmee.',
+        transaction,
+      })
+    } catch (error) {
+      sendTransactionDomainError(res, error)
+    }
+  })
+)
+
+transactionRouter.post(
+  '/:id/reject',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req: Request, res: Response) => {
+    try {
+      const transaction = await transactionDomainService.reject(
+        req.params.id,
+        req.user?._id
+      )
+
+      res.send({
+        message: 'Transaction rejetee.',
+        transaction,
+      })
+    } catch (error) {
+      sendTransactionDomainError(res, error)
+    }
+  })
+)
+
+transactionRouter.post(
+  '/:id/fail',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req: Request, res: Response) => {
+    try {
+      const transaction = await transactionDomainService.fail(
+        req.params.id,
+        req.user?._id
+      )
+
+      res.send({
+        message: 'Transaction en echec.',
+        transaction,
+      })
+    } catch (error) {
+      sendTransactionDomainError(res, error)
+    }
+  })
+)
+
+transactionRouter.post(
+  '/:id/process',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req: Request, res: Response) => {
+    try {
+      const outcome = req.body?.outcome
+      if (outcome !== 'completed' && outcome !== 'failed') {
+        res.status(400).json({
+          message: "Le champ 'outcome' doit etre 'completed' ou 'failed'.",
+        })
+        return
+      }
+
+      const transaction = await transactionDomainService.process(
+        req.params.id,
+        outcome,
+        req.user?._id
+      )
+
+      res.send({
+        message: `Transaction traitee en ${outcome}.`,
+        transaction,
+      })
+    } catch (error) {
+      sendTransactionDomainError(res, error)
+    }
+  })
+)
+
+transactionRouter.post(
+  '/:id/refund',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req: Request, res: Response) => {
+    try {
+      const amountRaw = req.body?.amount
+      const amount =
+        amountRaw === undefined || amountRaw === null
+          ? undefined
+          : Number(amountRaw)
+
+      if (
+        amountRaw !== undefined &&
+        amountRaw !== null &&
+        !Number.isFinite(amount)
+      ) {
+        res.status(400).json({
+          message: 'Le montant de remboursement est invalide.',
+        })
+        return
+      }
+
+      const transaction = await transactionDomainService.refund(
+        req.params.id,
+        amount,
+        req.user?._id
+      )
+
+      res.send({
+        message: 'Remboursement effectue.',
+        transaction,
+      })
+    } catch (error) {
+      sendTransactionDomainError(res, error)
     }
   })
 )

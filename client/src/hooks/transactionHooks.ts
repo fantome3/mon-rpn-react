@@ -2,6 +2,11 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import apiClient from '@/apiClient'
 import { Transaction } from '@/types'
 
+type TransactionMutationResponse = {
+  transaction: Transaction
+  message: string
+}
+
 export const useNewTransactionMutation = () =>
   useMutation({
     mutationFn: async (transaction: Transaction) =>
@@ -33,14 +38,14 @@ export const useSendManualRemindersMutation = () =>
 
 export const useGetAllTransactionsQuery = () =>
   useQuery({
-    queryKey: ['transactions'],
+    queryKey: ['transactions', 'all'],
     queryFn: async () =>
       (await apiClient.get<Transaction[]>(`api/transactions/all`)).data,
   })
 
 export const useGetTransactionSummaryQuery = () =>
   useQuery({
-    queryKey: ['transactions'],
+    queryKey: ['transactions', 'summary'],
     queryFn: async () => (await apiClient.get(`api/transactions/summary`)).data,
   })
 
@@ -70,6 +75,70 @@ export const useUpdateTransactionMutation = () =>
         await apiClient.put<{ transaction: Transaction; message: string }>(
           `api/transactions/${transaction._id}`,
           transaction
+        )
+      ).data,
+  })
+
+export const useConfirmTransactionMutation = () =>
+  useMutation({
+    mutationFn: async (transactionId: string) =>
+      (
+        await apiClient.post<TransactionMutationResponse>(
+          `api/transactions/${transactionId}/confirm`
+        )
+      ).data,
+  })
+
+export const useRejectTransactionMutation = () =>
+  useMutation({
+    mutationFn: async (transactionId: string) =>
+      (
+        await apiClient.post<TransactionMutationResponse>(
+          `api/transactions/${transactionId}/reject`
+        )
+      ).data,
+  })
+
+export const useFailTransactionMutation = () =>
+  useMutation({
+    mutationFn: async (transactionId: string) =>
+      (
+        await apiClient.post<TransactionMutationResponse>(
+          `api/transactions/${transactionId}/fail`
+        )
+      ).data,
+  })
+
+export const useProcessTransactionMutation = () =>
+  useMutation({
+    mutationFn: async ({
+      transactionId,
+      outcome,
+    }: {
+      transactionId: string
+      outcome: 'completed' | 'failed'
+    }) =>
+      (
+        await apiClient.post<TransactionMutationResponse>(
+          `api/transactions/${transactionId}/process`,
+          { outcome }
+        )
+      ).data,
+  })
+
+export const useRefundTransactionMutation = () =>
+  useMutation({
+    mutationFn: async ({
+      transactionId,
+      amount,
+    }: {
+      transactionId: string
+      amount?: number
+    }) =>
+      (
+        await apiClient.post<TransactionMutationResponse>(
+          `api/transactions/${transactionId}/refund`,
+          amount === undefined ? {} : { amount }
         )
       ).data,
   })

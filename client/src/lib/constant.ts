@@ -377,6 +377,10 @@ export const transactionStatus: Array<{
     value: 'Réussie',
   },
   {
+    status: 'success',
+    value: 'Réussie',
+  },
+  {
     status: 'failed',
     value: 'Echouée',
   },
@@ -388,13 +392,26 @@ export const transactionStatus: Array<{
     status: 'awaiting_payment',
     value: 'En attente paiement',
   },
+  {
+    status: 'rejected',
+    value: 'Rejetée',
+  },
+  {
+    status: 'refunded',
+    value: 'Remboursée',
+  },
 ]
 
 // Couleurs pour le graphique de statut
 export const STATUS_COLOR_MAP: Record<string, string> = {
   Complété: '#34d399',
+  Réussie: '#34d399',
   'En approbation': '#3b82f6',
   'En attente paiement': '#f59e0b',
   Échoué: '#f43f5e',
+  Échouée: '#f43f5e',
+  Echouée: '#f43f5e',
+  Rejetée: '#dc2626',
+  Remboursée: '#475569',
 }
 export const COLORS = ['#0088FE', '#00C49F', '#FF8042', '#FFBB28']

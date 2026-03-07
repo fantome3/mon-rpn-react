@@ -22,6 +22,14 @@ const StatusTransactionDetail = ({
   totalAmount: number
   summary: any
 }) => {
+  const statusSummary = Array.isArray(summary?.statusSummary)
+    ? summary.statusSummary
+    : []
+  const safeTotalTransactions = totalTransactions > 0 ? totalTransactions : 1
+  const successCount =
+    (statusSummary.find((s: any) => s._id === 'completed')?.count || 0) +
+    (statusSummary.find((s: any) => s._id === 'success')?.count || 0)
+
   return (
     <>
       {isPending ? (
@@ -30,7 +38,7 @@ const StatusTransactionDetail = ({
         <Card className='col-span-3'>
           <CardHeader>
             <CardTitle>Statut des transactions</CardTitle>
-            <CardDescription>Détails par statut</CardDescription>
+            <CardDescription>Details par statut</CardDescription>
           </CardHeader>
           <CardContent>
             <div className='space-y-4'>
@@ -39,21 +47,20 @@ const StatusTransactionDetail = ({
                   <div
                     className={cn(
                       'mr-2 h-4 w-4 rounded-full',
-                      status.name === 'En attente' && 'bg-blue-500',
+                      status.name === 'En approbation' && 'bg-blue-500',
                       status.name === 'En attente paiement' && 'bg-amber-500',
-                      status.name === 'Complété' && 'bg-emerald-500',
-                      status.name === 'Échoué' && 'bg-rose-500'
+                      status.name === 'Réussie' && 'bg-emerald-500',
+                      status.name === 'Échouée' && 'bg-rose-500',
+                      status.name === 'Rejetée' && 'bg-red-600',
+                      status.name === 'Remboursée' && 'bg-slate-600'
                     )}
                   />
                   <div className='flex-1 flex justify-between items-center'>
                     <div className='font-medium'>{status.name}</div>
                     <div className='flex items-center gap-2'>
-                      <span className='text-muted-foreground'>
-                        {status.value}
-                      </span>
+                      <span className='text-muted-foreground'>{status.value}</span>
                       <span className='text-xs text-muted-foreground'>
-                        ({((status.value / totalTransactions) * 100).toFixed(1)}
-                        %)
+                        ({((status.value / safeTotalTransactions) * 100).toFixed(1)}%)
                       </span>
                     </div>
                   </div>
@@ -62,27 +69,18 @@ const StatusTransactionDetail = ({
             </div>
 
             <div className='mt-6 pt-6 border-t'>
-              <h4 className='font-semibold mb-4'>
-                Informations supplémentaires
-              </h4>
+              <h4 className='font-semibold mb-4'>Informations supplementaires</h4>
               <div className='grid grid-cols-2 gap-4'>
                 <div className='space-y-1'>
                   <p className='text-sm font-medium'>Montant moyen</p>
                   <p className='text-xl font-bold'>
-                    {formatCurrency(totalAmount / totalTransactions)}
+                    {formatCurrency(totalAmount / safeTotalTransactions)}
                   </p>
                 </div>
                 <div className='space-y-1'>
-                  <p className='text-sm font-medium'>Taux de réussite</p>
+                  <p className='text-sm font-medium'>Taux de reussite</p>
                   <p className='text-xl font-bold'>
-                    {(
-                      ((summary.statusSummary.find(
-                        (s: any) => s._id === 'completed'
-                      )?.count || 0) /
-                        totalTransactions) *
-                      100
-                    ).toFixed(1)}
-                    %
+                    {((successCount / safeTotalTransactions) * 100).toFixed(1)}%
                   </p>
                 </div>
               </div>

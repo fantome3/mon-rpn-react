@@ -17,7 +17,12 @@ export const getAccountStatusLabel = (
   account?: Account,
   lastTransactionStatus?: string,
 ): string | null => {
-  if (account?.isAwaitingFirstPayment) return `(${transactionStatus[3].value})`
+  if (account?.isAwaitingFirstPayment) {
+    const awaiting = transactionStatus.find(
+      (status) => status.status === 'awaiting_payment'
+    )
+    return awaiting ? `(${awaiting.value})` : null
+  }
   const status = transactionStatus.find((s) => s.status === lastTransactionStatus)
   if (status) return `(${status.value})`
   return null

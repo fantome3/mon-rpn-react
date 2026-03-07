@@ -18,7 +18,6 @@ import {
 import {
   useGetAccountsByUserIdQuery,
   useGetAccountsQuery,
-  useUpdateAccountMutation,
 } from '@/hooks/accountHooks'
 import {
   useGetTransactionsByUserIdQuery,
@@ -47,6 +46,10 @@ import {
   functionReverse,
   toastAxiosError,
 } from '@/lib/utils'
+import {
+  getTransactionStatusBadgeClass,
+  getTransactionStatusLabel,
+} from '@/lib/transactionStatus'
 import { Account, type TopUpTargetWithBoth } from '@/types'
 import { useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, ArrowRight, UserRound, Wallet } from 'lucide-react'
@@ -91,8 +94,6 @@ const AccountProfile = () => {
   const currentAccount =
     userAccountsList.length > 0 ? userAccountsList[userAccountsList.length - 1] : undefined
   const queryClient = useQueryClient()
-  const { mutateAsync: updateAccount, isPending: isUpdatingAccount } =
-    useUpdateAccountMutation()
   const { mutateAsync: newTransaction, isPending: isCreatingTransaction } =
     useNewTransactionMutation()
 
@@ -165,7 +166,7 @@ const AccountProfile = () => {
   )
   const [refInterac, setRefInterac] = useState('')
   const [errors, setErrors] = useState<FormErrors>({})
-  const isSavingPayment = isUpdatingAccount || isCreatingTransaction
+  const isSavingPayment = isCreatingTransaction
 
   const currentIndex = accountsList.findIndex(
     (account: Account) => getUserIdFromAccount(account) === userId
@@ -189,11 +190,6 @@ const AccountProfile = () => {
   }, [selectedTarget, suggestedByTarget])
 
   const onSubmitPayment = async () => {
-    if (!currentAccount?._id) {
-      setErrors({ target: 'Aucun compte de paiement associé à ce profil.' })
-      return
-    }
-
     const schema = createInteracFormSchema(minimumByTarget[selectedTarget])
     const validation = schema.safeParse({ amountInterac, refInterac })
 
@@ -218,22 +214,6 @@ const AccountProfile = () => {
         amountInterac,
         membershipDueAmount: outstandingTopUp.membershipAmount,
         rpnDueAmount: outstandingTopUp.rpnAmount,
-      })
-
-      const nextMembership =
-        currentMembershipBalance + allocation.membershipAmount
-      const nextRpn = currentRpnBalance + allocation.rpnAmount
-      const nextSolde = nextMembership + nextRpn
-
-      const existingInteracTransactions = currentAccount.interac ?? []
-
-      await updateAccount({
-        ...currentAccount,
-        paymentMethod: 'interac',
-        membership_balance: nextMembership,
-        rpn_balance: nextRpn,
-        solde: nextSolde,
-        interac: [...existingInteracTransactions, { amountInterac, refInterac }],
       })
 
       await newTransaction({
@@ -595,24 +575,8 @@ const AccountProfile = () => {
                         {formatCurrency(tx.amount)}
                       </TableCell>
                       <TableCell>
-                        <Badge
-                          className={
-                            tx.status === 'completed'
-                              ? 'bg-green-600'
-                              : tx.status === 'pending'
-                                ? 'bg-yellow-500'
-                                : tx.status === 'awaiting_payment'
-                                  ? 'bg-blue-500'
-                                  : 'bg-red-600'
-                          }
-                        >
-                          {tx.status === 'completed'
-                            ? 'Réussie'
-                            : tx.status === 'pending'
-                              ? 'En approbation'
-                              : tx.status === 'awaiting_payment'
-                                ? 'En attente paiement'
-                                : 'Échouée'}
+                        <Badge className={getTransactionStatusBadgeClass(tx.status)}>
+                          {getTransactionStatusLabel(tx.status)}
                         </Badge>
                       </TableCell>
                     </TableRow>

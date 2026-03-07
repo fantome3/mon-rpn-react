@@ -9,6 +9,10 @@ import {
   functionReverse,
   toastAxiosError,
 } from '@/lib/utils'
+import {
+  getTransactionStatusBadgeClass,
+  getTransactionStatusLabel,
+} from '@/lib/transactionStatus'
 import { Transaction } from '@/types'
 import { ColumnDef } from '@tanstack/react-table'
 import { ArrowUpDown } from 'lucide-react'
@@ -68,37 +72,31 @@ const TransactionsByUserId = () => {
       cell: ({ row }) => {
         const status: string = row.getValue('status')
         return (
-          <Badge
-            className={`text-xs ${
-              status === 'completed' ? 'bg-green-500' : 'bg-red-500'
-            }`}
-          >
-            {status === 'completed' ? 'Réussie' : 'Échouée'}
+          <Badge className={`text-xs ${getTransactionStatusBadgeClass(status)}`}>
+            {getTransactionStatusLabel(status)}
           </Badge>
         )
       },
     },
   ]
+
   return (
     <>
       <div className='container mt-16'>
-        <h1 className='text-2xl font-semibold'>
-          Historique de mes transactions
-        </h1>
+        <h1 className='text-2xl font-semibold'>Historique de mes transactions</h1>
       </div>
       {isPending ? (
         <Loading />
       ) : error ? (
         toastAxiosError(error)
       ) : (
-        <>
-          <div className='container'>
-            <DataTable columns={columns} data={transactions} />
-          </div>
-        </>
+        <div className='container'>
+          <DataTable columns={columns} data={transactions} />
+        </div>
       )}
     </>
   )
 }
 
 export default TransactionsByUserId
+

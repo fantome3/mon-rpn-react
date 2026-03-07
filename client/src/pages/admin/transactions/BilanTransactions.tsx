@@ -2,6 +2,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { formatMonth } from '@/lib/utils'
 import { useGetTransactionSummaryQuery } from '@/hooks/transactionHooks'
+import { getTransactionStatusLabel } from '@/lib/transactionStatus'
 import TransactionsTotales from './TransactionsTotales'
 import MontantTotal from './MontantTotal'
 import Credit_Transaction from './Credit_Transaction'
@@ -15,7 +16,7 @@ export default function BilanTransactions() {
   const { data: summary, isPending } = useGetTransactionSummaryQuery()
 
   // Préparer les données pour le graphique mensuel
-  const monthlyChartData = summary.monthlySummary
+  const monthlyChartData = summary?.monthlySummary
     ? [...summary.monthlySummary]
         .sort((a, b) => {
           // Trier par date (année puis mois)
@@ -32,16 +33,9 @@ export default function BilanTransactions() {
     : []
 
   // Préparer les données pour le graphique de statut
-  const statusChartData = summary.statusSummary
+  const statusChartData = summary?.statusSummary
     ? summary.statusSummary.map((item: any) => ({
-        name:
-          item._id === 'pending'
-            ? 'En approbation'
-            : item._id === 'completed'
-            ? 'Complété'
-            : item._id === 'awaiting_payment'
-            ? 'En attente paiement'
-            : 'Échoué',
+        name: getTransactionStatusLabel(item._id),
         value: item.count,
       }))
     : []

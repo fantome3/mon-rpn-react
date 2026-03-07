@@ -5,14 +5,9 @@ import Loading from './Loading'
 import { ArrowRightLeft } from 'lucide-react'
 import { useContext, useEffect, useState } from 'react'
 import { Store } from '@/lib/Store'
-import { useNewAccountMutation } from '@/hooks/accountHooks'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from './ui/use-toast'
-import {
-  refresh,
-  ToLocaleStringFunc,
-  toastAxiosError,
-} from '@/lib/utils'
+import { ToLocaleStringFunc, toastAxiosError } from '@/lib/utils'
 import { z } from 'zod'
 import { createInteracFormSchema } from '@/lib/createInteracFormSchema'
 import { useForm } from 'react-hook-form'
@@ -29,12 +24,10 @@ import {
 } from './ui/form'
 import { Input } from './ui/input'
 import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card'
-import { useNewUserNotificationMutation } from '@/hooks/userHooks'
-import { Interac } from '@/types'
 import { useNewTransactionMutation } from '@/hooks/transactionHooks'
+import { useQueryClient } from '@tanstack/react-query'
 
-const createSchema = (minAmount: number) =>
-  createInteracFormSchema(minAmount)
+const createSchema = (minAmount: number) => createInteracFormSchema(minAmount)
 
 type InteracPaymentProps = {
   total: number
@@ -48,12 +41,11 @@ const InteracPayment = ({
   rpnAmount,
 }: InteracPaymentProps) => {
   const [modalVisibility, setModalVisibility] = useState(false)
-  const { state, dispatch: ctxDispatch } = useContext(Store)
+  const { state } = useContext(Store)
   const { userInfo } = state
-  const { mutateAsync: account, isPending } = useNewAccountMutation()
-  const { isPending: notificationPending } = useNewUserNotificationMutation()
-  const { mutateAsync: newTransaction } = useNewTransactionMutation()
+  const { mutateAsync: newTransaction, isPending } = useNewTransactionMutation()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { search } = useLocation()
   const redirectInUrl = new URLSearchParams(search).get('redirect')
   const redirect = redirectInUrl ? redirectInUrl : '/summary'
@@ -70,58 +62,43 @@ const InteracPayment = ({
   })
 
   useEffect(() => {
-    const ac = new AbortController()
-    if (form.formState.isSubmitSuccessful) navigate(redirect)
-    return () => ac.abort()
+    if (form.formState.isSubmitSuccessful) {
+      navigate(redirect)
+    }
   }, [redirect, form.formState.isSubmitSuccessful, navigate])
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       const extra = Math.max(0, values.amountInterac - total)
-      const computedMembershipBalance = membershipAmount
-      const computedRpnBalance = rpnAmount + extra
-
-      const existingInteracTransactions: Interac[] = []
-      const newInteracTransaction = { ...values }
-      const updatedInteracTransactions = [
-        ...existingInteracTransactions,
-        newInteracTransaction,
-      ]
-      const data = await account({
-        firstName: userInfo?.origines.firstName!,
-        lastName: userInfo?.origines.lastName!,
-        userTel: userInfo?.infos.tel!,
-        userResidenceCountry: userInfo?.infos.residenceCountry!,
-        solde: values.amountInterac,
-        membership_balance: computedMembershipBalance,
-        rpn_balance: computedRpnBalance,
-        paymentMethod: 'interac',
-        userId: userInfo?._id!,
-        interac: updatedInteracTransactions,
-      })
+      const computedMembershipAmount = membershipAmount
+      const computedRpnAmount = rpnAmount + extra
 
       await newTransaction({
         userId: userInfo?._id,
         amount: values.amountInterac,
         type: 'credit',
         fundType: 'both',
-        membershipAmount: computedMembershipBalance,
-        rpnAmount: computedRpnBalance,
+        membershipAmount: computedMembershipAmount,
+        rpnAmount: computedRpnAmount,
         reason:
           'Premier paiement via Interac (membership + frais + contribution RPN)',
         refInterac: values.refInterac,
         status: 'pending',
       })
 
-      ctxDispatch({ type: 'ACCOUNT_INFOS', payload: data })
-      localStorage.setItem('accountInfo', JSON.stringify(data))
+      await queryClient.invalidateQueries({
+        queryKey: ['accountsByUserId', userInfo?._id],
+      })
+      await queryClient.invalidateQueries({
+        queryKey: ['transactions', userInfo?._id],
+      })
+
       toast({
         variant: 'default',
         title: 'Moyen de paiement',
-        description: `Félicitations vous avez terminé votre inscription.`,
+        description: 'Paiement enregistre. Validation admin en attente.',
       })
       navigate(redirect)
-      refresh()
     } catch (error) {
       toastAxiosError(error)
     }
@@ -152,11 +129,10 @@ const InteracPayment = ({
           title='Paiement Interac'
           description={
             <span className='block text-justify'>
-              Faire le virement Interac à l'adresse courriel suivante{' '}
-              <strong>acq.quebec@gmail.com</strong> et utiliser le mot de
-              passe suivant <strong>monrpn</strong> si demandé. Par la suite
-              entrez les informations du virement que vous avez effectuer pour
-              renflouer votre compte RPN. Le montant minimal est de {total}$.
+              Faire le virement Interac a l'adresse courriel suivante{' '}
+              <strong>acq.quebec@gmail.com</strong> et utiliser le mot de passe
+              <strong> monrpn</strong> si demandé. Puis entrez ici les infos du
+              virement pour soumettre votre paiement. Montant minimal: {total}$.
             </span>
           }
         >
@@ -166,8 +142,8 @@ const InteracPayment = ({
                 control={form.control}
                 name='amountInterac'
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Montant Envoyé</FormLabel>
+                    <FormItem>
+                    <FormLabel>Montant envoyé</FormLabel>
                     <FormControl>
                       <Input
                         type='text'
@@ -194,24 +170,13 @@ const InteracPayment = ({
                     <FormLabel className='text-sm'>
                       Numéro de référence du transfert Interac
                       <HoverCard>
-                        <HoverCardTrigger className="cursor-pointer italic text-xs hover:underline ml-1 animate-pulse">
+                        <HoverCardTrigger className='cursor-pointer italic text-xs hover:underline ml-1 animate-pulse'>
                           (où le trouver)
                         </HoverCardTrigger>
                         <HoverCardContent className='font-light text-justify'>
-                          Interac vous envoie automatiquement un courriel de
-                          confirmation pour chaque virement réussi. Ce courriel
-                          contient votre &nbsp;
-                          <span className='text-destructive'>
-                            numéro de référence Interac
-                          </span>
-                          , qui commence généralement par CA ou C. <br />
-                          Vous pouvez également trouver votre &nbsp;
-                          <span className='text-destructive'>
-                            numéro de référence Interac
-                          </span>
-                          &nbsp; sur votre confirmation de virement Interac ou
-                          sur la description de la transaction selon votre
-                          institution financière.
+                          Interac envoie un courriel de confirmation pour chaque
+                          virement. Ce courriel contient le numéro de référence
+                          Interac (souvent CA ou C).
                         </HoverCardContent>
                       </HoverCard>
                     </FormLabel>
@@ -224,10 +189,7 @@ const InteracPayment = ({
               />
 
               <div className='flex justify-between'>
-                <Button
-                  disabled={isPending || notificationPending}
-                  type='submit'
-                >
+                <Button disabled={isPending} type='submit'>
                   Confirmer
                 </Button>
 
@@ -235,7 +197,7 @@ const InteracPayment = ({
                   variant='outline'
                   className='text-destructive hover:bg-destructive hover:text-white border-destructive'
                   onClick={() => navigate(redirect)}
-                  disabled={notificationPending}
+                  type='button'
                 >
                   Payer plus tard
                 </Button>
@@ -251,3 +213,4 @@ const InteracPayment = ({
 }
 
 export default InteracPayment
+

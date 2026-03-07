@@ -15,6 +15,10 @@ import {
 } from './ui/table'
 import { formatCurrency, functionReverse } from '@/lib/utils'
 import { Badge } from './ui/badge'
+import {
+  getTransactionStatusBadgeClass,
+  getTransactionStatusLabel,
+} from '@/lib/transactionStatus'
 
 const LastUserTransactions = () => {
   const { state } = useContext(Store)
@@ -28,7 +32,7 @@ const LastUserTransactions = () => {
       <CardHeader className='flex flex-row items-center justify-between'>
         <CardTitle>Mes dernières transactions</CardTitle>
         <Button variant='link' className='text-sm p-0 h-auto' asChild>
-          <a href={`/transactions/${userInfo?._id}/all`}>Voir tout →</a>
+          <a href={`/transactions/${userInfo?._id}/all`}>Voir tout -&gt;</a>
         </Button>
       </CardHeader>
       <CardContent>
@@ -36,9 +40,7 @@ const LastUserTransactions = () => {
           <Loading />
         ) : transactions && transactions.length > 0 ? (
           <Table>
-            <TableCaption>
-              Historique de vos transactions récentes.
-            </TableCaption>
+            <TableCaption>Historique de vos transactions récentes.</TableCaption>
             <TableHeader>
               <TableRow>
                 <TableHead>Date</TableHead>
@@ -52,12 +54,12 @@ const LastUserTransactions = () => {
                 <TableRow key={tx._id}>
                   <TableCell>
                     {tx.createdAt
-                      ? functionReverse(
-                          tx.createdAt.toString().substring(0, 10)
-                        )
+                      ? functionReverse(tx.createdAt.toString().substring(0, 10))
                       : 'Date inconnue'}
                   </TableCell>
-                  <TableCell className='capitalize'>{tx.type === 'credit' ? 'recharge' : 'dépense'}</TableCell>
+                  <TableCell className='capitalize'>
+                    {tx.type === 'credit' ? 'recharge' : 'dépense'}
+                  </TableCell>
                   <TableCell
                     className={
                       tx.type === 'credit' ? 'text-green-600' : 'text-red-600'
@@ -68,23 +70,9 @@ const LastUserTransactions = () => {
                   </TableCell>
                   <TableCell>
                     <Badge
-                      className={`text-xs ${
-                        tx.status === 'completed'
-                          ? 'bg-green-500'
-                          : tx.status === 'pending'
-                          ? 'bg-yellow-500'
-                          : tx.status === 'awaiting_payment'
-                          ? 'bg-blue-500'
-                          : 'bg-red-500'
-                      }`}
+                      className={`text-xs ${getTransactionStatusBadgeClass(tx.status)}`}
                     >
-                      {tx.status === 'completed'
-                        ? 'Réussie'
-                        : tx.status === 'pending'
-                        ? 'En approbation'
-                        : tx.status === 'awaiting_payment'
-                        ? 'En attente paiement'
-                        : 'Échouée'}
+                      {getTransactionStatusLabel(tx.status)}
                     </Badge>
                   </TableCell>
                 </TableRow>
@@ -102,3 +90,4 @@ const LastUserTransactions = () => {
 }
 
 export default LastUserTransactions
+

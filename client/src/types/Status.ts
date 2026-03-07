@@ -58,9 +58,12 @@ export type TransactionFundType = (typeof TRANSACTION_FUND_TYPES)[number]
 
 export const TRANSACTION_STATUSES = [
   'completed',
+  'success',
   'failed',
   'pending',
   'awaiting_payment',
+  'rejected',
+  'refunded',
 ] as const
 export type TransactionStatus = (typeof TRANSACTION_STATUSES)[number]
 
