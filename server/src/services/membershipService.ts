@@ -6,9 +6,7 @@ import { calculateTotalPersons } from '../utils'
 import { DocumentType } from '@typegoose/typegoose'
 import {
   sendAccountDeactivatedEmail,
-  sendDeactivationWarningEmail,
   sendMembershipSuccessEmail,
-  sendPrelevementFailedEmail,
 } from '../mailer'
 import labels from '../common/libelles.json'
 import { handleFailedPrelevement } from './subscriptionService'

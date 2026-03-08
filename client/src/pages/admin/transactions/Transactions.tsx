@@ -1,11 +1,17 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import CustomModal from '@/components/CustomModal'
 import { DataTable } from '@/components/CustomTable'
 import Loading from '@/components/Loading'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { toast } from '@/components/ui/use-toast'
 import {
   useConfirmTransactionMutation,
@@ -43,6 +49,23 @@ const isRefundable = (tx: Transaction) => {
 const isTransactionPending = (tx: Transaction) =>
   normalizeTransactionStatus(tx.status) === 'pending'
 
+type TransactionStatusFilter = ReturnType<typeof normalizeTransactionStatus> | 'all'
+
+const STATUS_FILTER_OPTIONS: TransactionStatusFilter[] = [
+  'all',
+  'pending',
+  'awaiting_payment',
+  'completed',
+  'failed',
+  'rejected',
+  'refunded',
+]
+
+const getStatusFilterLabel = (status: TransactionStatusFilter) => {
+  if (status === 'all') return 'Tous les statuts'
+  return getTransactionStatusLabel(status)
+}
+
 const Transactions = () => {
   const {
     data: transactions,
@@ -72,11 +95,7 @@ const Transactions = () => {
   const [editReason, setEditReason] = useState('')
   const [editRefInterac, setEditRefInterac] = useState('')
   const [refundAmount, setRefundAmount] = useState<number | ''>('')
-
-  if (error) {
-    toastAxiosError(error)
-    return null
-  }
+  const [statusFilter, setStatusFilter] = useState<TransactionStatusFilter>('all')
 
   const openEditModal = (tx: Transaction) => {
     setEditingTransaction(tx)
@@ -91,14 +110,33 @@ const Transactions = () => {
     setRefundModalVisibility(true)
   }
 
-  const transactionData = Array.isArray(transactions)
-    ? transactions.map((tx) => ({
-        ...tx,
-        fullName: `${tx.userId?.origines?.lastName ?? ''} ${
-          tx.userId?.origines?.firstName ?? ''
-        }`,
-      }))
-    : []
+  const transactionData = useMemo(
+    () =>
+      Array.isArray(transactions)
+        ? transactions.map((tx) => ({
+            ...tx,
+            fullName: `${tx.userId?.origines?.lastName ?? ''} ${
+              tx.userId?.origines?.firstName ?? ''
+            }`,
+          }))
+        : [],
+    [transactions]
+  )
+
+  const filteredTransactionData = useMemo(() => {
+    if (statusFilter === 'all') {
+      return transactionData
+    }
+
+    return transactionData.filter(
+      (tx) => normalizeTransactionStatus(tx.status) === statusFilter
+    )
+  }, [statusFilter, transactionData])
+
+  if (error) {
+    toastAxiosError(error)
+    return null
+  }
 
   const columns: ColumnDef<Transaction>[] = [
     {
@@ -315,8 +353,35 @@ const Transactions = () => {
       {isPending ? (
         <Loading />
       ) : (
-        <div className='my-5 container'>
-          <DataTable data={transactionData ?? []} columns={columns} />
+        <div className='my-5 container space-y-4'>
+          <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+            <div className='flex items-center gap-2'>
+              <span className='text-sm font-medium'>Filtrer par statut</span>
+              <Select
+                value={statusFilter}
+                onValueChange={(value) =>
+                  setStatusFilter(value as TransactionStatusFilter)
+                }
+              >
+                <SelectTrigger className='w-[230px]'>
+                  <SelectValue placeholder='Tous les statuts' />
+                </SelectTrigger>
+                <SelectContent>
+                  {STATUS_FILTER_OPTIONS.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {getStatusFilterLabel(status)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <p className='text-sm text-muted-foreground'>
+              {filteredTransactionData.length} / {transactionData.length}{' '}
+              transactions
+            </p>
+          </div>
+
+          <DataTable data={filteredTransactionData} columns={columns} />
         </div>
       )}
 

@@ -13,24 +13,26 @@ export const checkMinimumBalanceAndSendReminder = async () => {
 
   const users = await UserModel.find({ deletedAt: { $exists: false } })
   for (const user of users) {
-    const totalPersons = calculateTotalPersons(user)
 
     const account = await AccountModel.findOne({ userId: user._id })
     if (!account) continue
-
+/*-- courriel rpn
+    const totalPersons = calculateTotalPersons(user)
     const minRequired = totalPersons * MINIMUM_UNIT
     const rpnBalance =
       typeof account.rpn_balance === 'number'
         ? account.rpn_balance
         : account.solde
-
-    if (rpnBalance < minRequired) {
-      await sendLowBalanceNotification(
-        user.register.email,
-        rpnBalance,
-        minRequired
-      )
-    }
+    
+        if (rpnBalance < minRequired) {
+          
+          await sendLowBalanceNotification(
+            user.register.email,
+            rpnBalance,
+            minRequired
+          )
+        }
+     */
   }
 }
 
@@ -60,11 +62,11 @@ export const sendBalanceReminderIfNeeded = async (userId: string) => {
       totalPersons,
     })
 
-    await sendLowBalanceNotification(
+    /*await sendLowBalanceNotification(
       user.register.email,
       rpnBalance,
       minimumRequired
-    )
+    )*/
 
     return {
       status: 'REMINDER_SENT',

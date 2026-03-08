@@ -2,28 +2,46 @@ import { sendEmail } from './core'
 import { emailTemplate } from './templates/emailTemplate'
 import { emailContents } from './templates/LabelsSentEmails'
 
-export const sendPrelevementFailedEmail = async (
+export const sendPrelevementFailedMembershipEmail = async (
   email: string,
-  type: 'membership' | 'balance',
   expectedAmount: number,
   currentBalance: number
 ) => {
-  const subject =
-    type === 'membership'
-      ? emailContents.prelevementEchecCotisation.sujet
-      : emailContents.prelevementEchecDeces.sujet
+  const subject = emailContents.prelevementEchecCotisation.sujet
 
-  const text =
-    type === 'membership'
-      ? emailContents.prelevementEchecCotisation.texte({
-          amount: expectedAmount,
-          current: currentBalance
-        })
-      : emailContents.prelevementEchecDeces.texte({
-          amount: expectedAmount,
-          current: currentBalance
-        })
+  const text = emailContents.prelevementEchecCotisation.texte({
+    amount: expectedAmount,
+    current: currentBalance,
+  })
 
+  return sendPrelevementEmail({ email, subject, text })
+}
+
+export const sendPrelevementFailedDecesEmail = async (
+  email: string,
+  expectedAmount: number,
+  currentBalance: number
+) => {
+  const subject = emailContents.prelevementEchecDeces.sujet
+
+  const text = emailContents.prelevementEchecDeces.texte({
+    amount: expectedAmount,
+    current: currentBalance,
+  })
+
+  return sendPrelevementEmail({ email, subject, text })
+}
+
+// Fonction interne réutilisable
+const sendPrelevementEmail = async ({
+  email,
+  subject,
+  text,
+}: {
+  email: string
+  subject: string
+  text: string
+}) => {
   const html = emailTemplate({ content: text })
 
   try {

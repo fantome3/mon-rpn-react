@@ -1,6 +1,6 @@
 import {
   sendDeactivationWarningEmail,
-  sendPrelevementFailedEmail,
+  sendPrelevementFailedMembershipEmail,
 } from '../mailer'
 import { TransactionModel } from '../models/transactionModel'
 import { User } from '../models/userModel'
@@ -56,18 +56,16 @@ export const handleFailedPrelevement = async ({
 
   //Email spécifique
   if (type === 'membership') {
-    await sendPrelevementFailedEmail(
+    await sendPrelevementFailedMembershipEmail (
       user.register.email,
-      'membership',
       totalToDeduct,
       solde
     )
-  } else {
-    await sendPrelevementFailedEmail(
+  } /*else {-- courriel rpn
+    await sendPrelevementFailedDecesEmail (
       user.register.email,
-      'balance',
       totalToDeduct,
       solde
     )
-  }
+  }*/
 }

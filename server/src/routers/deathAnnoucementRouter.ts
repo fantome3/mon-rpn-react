@@ -53,7 +53,7 @@ deathAnnouncementRouter.post(
           if (!account) {
             errors.push({
               user: user.register.email,
-              error: 'Aucun compte trouve',
+              error: 'Aucun compte trouvé',
             })
             continue
           }
@@ -95,13 +95,13 @@ deathAnnouncementRouter.post(
             amount: totalToDeduct,
             type: 'debit',
             fundType: 'rpn',
-            reason: `Prelevement deces pour ${totalPersons} personnes`,
+            reason: `Prélèvement décès pour ${totalPersons} personnes`,
           })
         } catch (error: any) {
           errors.push({
             userId: user._id,
             email: user.register?.email,
-            reason: 'Erreur systeme',
+            reason: 'Erreur système',
             error: error.message,
           })
         }
