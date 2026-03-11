@@ -15,7 +15,7 @@ import {
   interacRefExists,
   normalizeInteracRef,
 } from './interacReferenceService'
-import { sendMembershipSuccessEmail } from '../mailer'
+import { sendMembershipSuccessEmail, sendPaymentRejectedEmail } from '../mailer'
 
 /**
  * Summary:
@@ -450,7 +450,9 @@ export class TransactionDomainService {
     actorId?: string
   ): Promise<TransactionDocument> {
     const transaction = await this.getTransactionOrThrow(transactionId)
-    return createStateHandler(this, transaction).reject(actorId)
+    const updated = await createStateHandler(this, transaction).reject(actorId)
+    await this.notifyPaymentRejected(updated)
+    return updated
   }
 
   /**
@@ -864,6 +866,39 @@ export class TransactionDomainService {
         'Erreur email de confirmation membership apres confirmation transaction:',
         error
       )
+    }
+  }
+
+  /**
+   * Summary:
+   * Envoie un courriel d'information au membre apres rejet d'un paiement.
+   * Contexte fonctionnel:
+   * Utilise lorsque l'administration rejette une transaction pending.
+   */
+  private async notifyPaymentRejected(transaction: TransactionDocument): Promise<void> {
+    if (transaction.type !== TransactionType.CREDIT) {
+      return
+    }
+
+    const user = await UserModel.findById(transaction.userId)
+    if (!user) {
+      console.error('Utilisateur introuvable pour envoi email paiement rejete.', {
+        transactionId: transaction._id,
+      })
+      return
+    }
+
+    const receivedAmount = toPositiveAmount(transaction.amount)
+    const reference = transaction.refInterac || 'non fourni'
+
+    try {
+      await sendPaymentRejectedEmail({
+        email: user.register.email,
+        receivedAmount,
+        reference,
+      })
+    } catch (error) {
+      console.error('Erreur envoi email paiement rejete:', error)
     }
   }
 

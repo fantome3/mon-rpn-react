@@ -29,3 +29,23 @@ export const sendMembershipSuccessEmail = async (
   const html = emailTemplate({ content: text })
   await sendEmail({ to: email, subject, text, html })
 }
+
+export const sendPaymentRejectedEmail = async ({
+  email,
+  receivedAmount,
+  reference,
+}: {
+  email: string
+  receivedAmount: number
+  reference?: string
+}) => {
+  const subject = emailContents.paiementRejete.sujet
+  const text = emailContents.paiementRejete.texte({
+    expectedAmount: receivedAmount,
+    receivedAmount,
+    reference,
+  })
+  const html = emailTemplate({ content: text })
+
+  await sendEmail({ to: email, subject, text, html })
+}
