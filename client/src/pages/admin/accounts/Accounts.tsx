@@ -29,10 +29,10 @@ import {
 import { Store } from '@/lib/Store'
 import {
   ToLocaleStringFunc,
-  formatCanadianPhone,
   functionReverse,
   toastAxiosError,
 } from '@/lib/utils'
+import { formatCanadianPhone } from '@/lib/phone.validation'
 import { Account } from '@/types'
 import { User } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'

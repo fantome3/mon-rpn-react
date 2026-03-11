@@ -8,10 +8,10 @@ import type {
 
 const TOAST_LIMIT = 1
 const TOAST_REMOVE_DELAY = 1000000
-const MIN_TOAST_DURATION = 6000
-const MAX_TOAST_DURATION = 20000
-const WORDS_PER_MINUTE = 190
-const READING_BUFFER_MS = 2500
+const MIN_TOAST_DURATION = 3000
+const MAX_TOAST_DURATION = 10000
+const WORDS_PER_MINUTE = 90
+const READING_BUFFER_MS = 1500
 
 type ToasterToast = ToastProps & {
   id: string

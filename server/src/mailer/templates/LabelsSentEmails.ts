@@ -1,13 +1,14 @@
-import { ResetPwdParams, 
-         NewUserParams, 
-         PassTempParams, 
-         AlerteParams, 
-         AccountStatusParams, 
-         FailMemberRegistrationParams, 
-         DeceasedParams, 
-         PaymentFailedParams, 
-         FuneralCostParams, 
-         ContributionConfirmationParams 
+import {
+  ResetPwdParams,
+  NewUserParams,
+  PassTempParams,
+  AlerteParams,
+  AccountStatusParams,
+  FailMemberRegistrationParams,
+  DeceasedParams,
+  PaymentFailedParams,
+  FuneralCostParams,
+  ContributionConfirmationParams
 } from "./emailModel";
 
 export const emailContents = {
@@ -94,7 +95,7 @@ export const emailContents = {
   },
 
   notificationDeces: {
-    sujet: ({ name }: Pick<DeceasedParams,'name'>) => `🕊 Avis de décès – ${name}`,
+    sujet: ({ name }: Pick<DeceasedParams, 'name'>) => `🕊 Avis de décès – ${name}`,
     texte: ({ name, place, date }: DeceasedParams) => `
       <h2>Avis de décès</h2>
       <p>Bonjour,</p>
@@ -124,18 +125,68 @@ export const emailContents = {
   rappelCotisation: {
     sujet: '⏰ Rappel – cotisation annuelle en attente',
     texte: ({ minimumRequiredBalance: required, current }: AccountStatusParams) => `
-      <p>Bonjour,</p>
-      <p>Votre cotisation annuelle de <strong>${required} $CAD</strong> n’a pas été réglée ; votre solde est actuellement de <strong>${current} $CAD</strong>.</p>
-      <p>Merci de procéder au paiement afin de conserver vos privilèges.</p>
-      <p style="margin-top:20px;">Cordialement,</p>`
+    <p>Bonjour,</p>
+
+    <p>Votre cotisation annuelle de <strong>${required} $CAD</strong> n’a pas encore été réglée. 
+    Votre solde actuel est de <strong>${current} $CAD</strong>.</p>
+
+    <p>Afin de conserver vos privilèges, merci de procéder au paiement en suivant les étapes ci‑dessous :</p>
+
+    <ol>
+      <li><strong>Se connecter</strong> à votre compte <a href="https://www.acq-rpn.org/login" style="color:#1a73e8;">espace acq-rpn</a> et accéder à la section <strong>Facturation</strong>.</li>
+      <li>Choisir l’objet du paiement correspondant à votre situation 
+          (les montants affichés s’adaptent automatiquement à votre profil).</li>
+      <li>Effectuer un <strong>virement Interac</strong> à l’adresse indiquée.</li>
+      <li>Entrer le <strong>montant exact</strong> du virement ainsi que le 
+          <strong>numéro de référence</strong> associé à votre paiement que vous avez <strong>recu par courriel</strong>.</li>
+      <li>Attendre la <strong>confirmation de l’administrateur</strong> après vérification des fonds.</li>
+    </ol>
+
+    <p>Nous vous remercions de votre diligence.</p>
+
+    <p style="margin-top:20px;">Cordialement,</p>`
   },
 
   cotisationReussie: {
-    sujet: ({ year }: Pick<ContributionConfirmationParams,'year'>) => `✅ Cotisation ${year} réglée avec succès`,
+    sujet: ({ year }: Pick<ContributionConfirmationParams, 'year'>) => `✅ Cotisation ${year} réglée avec succès`,
     texte: ({ amount, year }: ContributionConfirmationParams) => `
       <p>Bonjour,</p>
+
       <p>Nous confirmons la réception de votre cotisation annuelle <strong>${year}</strong> d’un montant de <strong>${amount} $CAD</strong>.</p>
+      <p>Vous pouvez le voir dans l'onglet Sommaire, lors de votre connexion dans votre <a href="https://www.acq-rpn.org/login" style="color:#1a73e8;">espace acq-rpn</a>.</p>
+
       <p>Merci pour votre engagement et votre confiance.</p>
+
       <p style="margin-top:20px;">Cordialement,</p>`
+  },
+
+  paiementRejete: {
+    sujet: '⚠️ Paiement rejeté – informations invalides',
+    texte: ({ receivedAmount, reference }: { expectedAmount: number; receivedAmount?: number; reference?: string }) => `
+    <p>Bonjour,</p>
+
+    <p>Nous vous informons que votre tentative de paiement n’a pas pu être validée.</p>
+
+    <p>Après vérification, certaines informations fournies ne correspondent pas aux données requises, soit :</p>
+
+    <ul>
+        <li>Le montant déclaré (<strong>${receivedAmount} $CAD</strong>) ne correspond pas au montant recu</strong>).</li>
+        <li>Le numéro de référence fourni (<strong>${reference}</strong>) ne correspond à aucun paiement enregistré.</li>
+      }
+    </ul>
+
+    <p>Pour compléter correctement votre paiement, veuillez suivre les étapes ci‑dessous :</p>
+
+    <ol>
+      <li>Vous connecter à votre compte <a href="https://www.acq-rpn.org/login" style="color:#1a73e8;">espace acq-rpn</a> et accéder à la section <strong>Facturation</strong>.</li>
+      <li>Choisir l’objet du paiement correspondant à votre profil (les montants affichés sont adaptés automatiquement).</li>
+      <li>Effectuer un <strong>virement Interac</strong> à l’adresse indiquée.</li>
+      <li>Entrer le <strong>montant exact</strong> du paiement ainsi que le <strong>numéro de référence</strong> associé.</li>
+      <li>Attendre la confirmation de l’administrateur après vérification des fonds.</li>
+    </ol>
+
+    <p>Merci de soumettre à nouveau votre paiement en vous assurant que toutes les informations sont exactes.</p>
+
+    <p style="margin-top:20px;">Cordialement,</p>`
   }
 } as const;

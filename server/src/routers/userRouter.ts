@@ -23,6 +23,10 @@ import {
 } from '../services/membershipService'
 import { registerUserOnExternalApp } from '../services/externalRegistrationService'
 import { softDeleteUser } from '../services/userService'
+import {
+  findRegistrationConflict,
+  mapRegistrationPersistenceErrorToConflict,
+} from '../services/registrationConflictService'
 
 export const userRouter = express.Router()
 
@@ -264,11 +268,13 @@ userRouter.post(
       const sanitizedOrigines = trimStringsDeep(origines)
       const sanitizedInfos = trimStringsDeep(infos)
 
-      const existingUser = await UserModel.findOne({
-        'register.email': sanitizedRegister.email,
+      const registrationConflict = await findRegistrationConflict({
+        email: sanitizedRegister.email,
+        lastName: sanitizedOrigines?.lastName,
+        phone: sanitizedInfos?.tel,
       })
-      if (existingUser) {
-        res.status(409).json({ message: labels.general.emailExiste })
+      if (registrationConflict) {
+        res.status(409).json(registrationConflict)
         return
       }
 
@@ -310,8 +316,15 @@ userRouter.post(
         token: generateToken(user),
       })
       return
-    } catch (error: any) {
-      res.status(400).json({ message: 'Bad Request', error: error.message })
+    } catch (error: unknown) {
+      const registrationConflict = mapRegistrationPersistenceErrorToConflict(error)
+      if (registrationConflict) {
+        res.status(409).json(registrationConflict)
+        return
+      }
+
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      res.status(400).json({ message: 'Bad Request', error: errorMessage })
       return
     }
   })

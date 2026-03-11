@@ -5,7 +5,8 @@ import { useForm, type UseFormReturn } from 'react-hook-form'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Store } from '@/lib/Store'
 import { buildBillingPaymentUrl } from '@/lib/billing'
-import { checkPostalCode, checkTel, toastAxiosError } from '@/lib/utils'
+import { resolveRegistrationErrorToast } from '@/lib/registrationErrorToast'
+import { checkPostalCode, toastAxiosError } from '@/lib/utils'
 import { createAwaitingInteracAccount } from '@/lib/interacAccount'
 import { toast } from '@/components/ui/use-toast'
 import { useNewAccountMutation } from '@/hooks/accountHooks'
@@ -17,6 +18,7 @@ import {
   useVerifyTokenMutation,
 } from '@/hooks/userHooks'
 import type { Account, Transaction, User } from '@/types'
+import { formatNumberPhoneWithoutCountryCode } from '@/lib/phone.validation'
 
 type EmergencyContactInput = {
   name?: string
@@ -195,7 +197,7 @@ export const useUrgenceLogic = (): UrgenceLogic => {
         origines: userInfo.origines,
         infos: {
           ...userInfo.infos,
-          tel: checkTel(userInfo.infos.tel ?? ''),
+          tel: formatNumberPhoneWithoutCountryCode(userInfo.infos.tel ?? ''),
           postalCode: checkPostalCode(userInfo.infos.postalCode ?? ''),
           emergencyContacts: cleanedEmergencyContacts,
         },
@@ -244,16 +246,8 @@ export const useUrgenceLogic = (): UrgenceLogic => {
         })
         await notifyNewUser(userInfo.register.email)
       }
-    } catch (error: any) {
-      if (error.response && error.response.status === 409) {
-        toast({
-          variant: 'destructive',
-          title: "Changer l'adresse courriel",
-          description: "L'adresse courriel que vous avez entré existe déjà.",
-        })
-      } else {
-        toastAxiosError(error, 'Ooops!')
-      }
+    } catch (error: unknown) {
+      toastAxiosError(error, 'Ooops!', resolveRegistrationErrorToast)
     }
   }
 

@@ -2,7 +2,8 @@ import { useContext, useEffect, useRef, useState } from 'react'
 import { Button } from './ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from './ui/card'
 import { Store } from '@/lib/Store'
-import { formatCanadianPhone, functionReverse } from '@/lib/utils'
+import { functionReverse } from '@/lib/utils'
+import { formatCanadianPhone } from '@/lib/phone.validation'
 import CustomModal from '@/components/CustomModal'
 import {
   Form,

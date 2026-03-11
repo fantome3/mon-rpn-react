@@ -18,51 +18,6 @@ export const functionReverse = (str: string) => {
   return str.split('-').reverse().join('-')
 }
 
-export const checkTel = (tel: string) => {
-  const telTable = tel.split('')
-  if (telTable.slice(0, 2).join('') === '+1') {
-    return telTable
-      .slice(2)
-      .filter((itm) => itm !== ' ')
-      .join('')
-  }
-  return telTable.join('')
-}
-
-const normalizeCanadianPhoneDigits = (value: string) => {
-  let digits = value.trim().replace(/\D/g, '')
-
-  if (digits.startsWith('00')) {
-    digits = digits.slice(2)
-  }
-
-  if (digits.length === 11 && digits.startsWith('1')) {
-    digits = digits.slice(1)
-  }
-
-  return digits.length === 10 ? digits : null
-}
-
-export const formatCanadianPhone = (value?: string | null) => {
-  if (!value) return ''
-
-  const digits = normalizeCanadianPhoneDigits(value)
-  if (!digits) return value
-
-  const area = digits.slice(0, 3)
-  const prefix = digits.slice(3, 6)
-  const line = digits.slice(6)
-  
-  return `(${area})-${prefix} ${line}`
-}
-
-export const formatCanadianPhoneHref = (value?: string | null) => {
-  if (!value) return ''
-
-  const digits = normalizeCanadianPhoneDigits(value)
-  return digits ? `+1${digits}` : value
-}
-
 export const checkPostalCode = (code: string) => {
   return code
     .split('')
@@ -207,20 +162,68 @@ export const formatMonth = (month: number, year: number) => {
   return date.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })
 }
 
-export function extractAxiosErrorMessage(error: unknown): string {
-  if (axios.isAxiosError(error) && error.response && error.response.data) {
-    const message = (error.response.data as { message?: string }).message
-    if (message && String(message).trim().length > 0) {
-      return String(message)
-    }
-  }
-  return 'Quelque chose ne va pas.'
+type AxiosErrorPayload = {
+  message?: string
+  code?: string
 }
 
-export function toastAxiosError(error: unknown, title = 'Oops!') {
+export type AxiosErrorDetails = {
+  status?: number
+  message: string
+  code?: string
+}
+
+export type AxiosErrorToastOverride = {
+  title: string
+  description?: string
+}
+
+export type AxiosErrorToastOverrideResolver = (
+  details: AxiosErrorDetails
+) => AxiosErrorToastOverride | null
+
+const DEFAULT_AXIOS_ERROR_MESSAGE = 'Quelque chose ne va pas.'
+
+export function extractAxiosErrorDetails(error: unknown): AxiosErrorDetails {
+  if (axios.isAxiosError(error)) {
+    const status = error.response?.status
+    const payload = error.response?.data as AxiosErrorPayload | undefined
+    const message = payload?.message
+    const code = payload?.code
+
+    if (message && String(message).trim().length > 0) {
+      return {
+        status,
+        message: String(message),
+        code: code ? String(code) : undefined,
+      }
+    }
+
+    return {
+      status,
+      message: DEFAULT_AXIOS_ERROR_MESSAGE,
+      code: code ? String(code) : undefined,
+    }
+  }
+
+  return { message: DEFAULT_AXIOS_ERROR_MESSAGE }
+}
+
+export function extractAxiosErrorMessage(error: unknown): string {
+  return extractAxiosErrorDetails(error).message
+}
+
+export function toastAxiosError(
+  error: unknown,
+  title = 'Oops!',
+  resolveOverride?: AxiosErrorToastOverrideResolver
+) {
+  const details = extractAxiosErrorDetails(error)
+  const override = resolveOverride?.(details)
+
   toast({
     variant: 'destructive',
-    title,
-    description: extractAxiosErrorMessage(error),
+    title: override?.title ?? title,
+    description: override?.description ?? details.message,
   })
 }

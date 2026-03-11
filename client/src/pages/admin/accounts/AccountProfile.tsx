@@ -41,11 +41,11 @@ import {
   type TargetAmountMap,
 } from '@/lib/paymentPlan'
 import {
-  formatCanadianPhone,
   formatCurrency,
   functionReverse,
   toastAxiosError,
 } from '@/lib/utils'
+import { formatCanadianPhone } from '@/lib/phone.validation'
 import {
   getTransactionStatusBadgeClass,
   getTransactionStatusLabel,

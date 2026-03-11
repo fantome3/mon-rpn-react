@@ -41,9 +41,10 @@ import { Store } from '@/lib/Store'
 import clsx from 'clsx'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
-import { checkPostalCode, checkTel } from '@/lib/utils'
+import { checkPostalCode } from '@/lib/utils'
 import { SearchEngineOptimization } from '@/components/SearchEngine/SearchEngineOptimization'
 import { RESIDENCE_COUNTRY_STATUSES } from '@/types'
+import { formatNumberPhoneWithoutCountryCode } from '@/lib/phone.validation'
 
 const formSchema = z.object({
   residenceCountry: z.string().min(4, { message: 'Champ Obligatoire' }),
@@ -94,7 +95,7 @@ const Infos = () => {
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     const normalizedInfos = {
       ...values,
-      tel: checkTel(values.tel),
+      tel: formatNumberPhoneWithoutCountryCode(values.tel),
       postalCode: checkPostalCode(values.postalCode),
     }
 
@@ -115,7 +116,7 @@ const Infos = () => {
     const currentValues = form.getValues()
     const normalizedInfos = {
       ...currentValues,
-      tel: checkTel(currentValues.tel),
+      tel: formatNumberPhoneWithoutCountryCode(currentValues.tel),
       postalCode: checkPostalCode(currentValues.postalCode),
     }
     ctxDispatch({ type: 'USER_INFOS', payload: normalizedInfos })

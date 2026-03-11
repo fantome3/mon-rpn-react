@@ -6,7 +6,7 @@ import {
   useUpdateReservationAmountMutation,
   ReservationRecord,
 } from "@/hooks/evenementsAnnuelHook";
-import { formatCanadianPhone, formatCanadianPhoneHref } from "@/lib/utils";
+import { formatCanadianPhone, formatCanadianPhoneHref } from '@/lib/phone.validation';
 import { motion } from "framer-motion";
 
 export default function AdminBookingList() {

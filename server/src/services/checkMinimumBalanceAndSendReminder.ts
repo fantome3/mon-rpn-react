@@ -16,7 +16,7 @@ export const checkMinimumBalanceAndSendReminder = async () => {
 
     const account = await AccountModel.findOne({ userId: user._id })
     if (!account) continue
-/*-- courriel rpn
+
     const totalPersons = calculateTotalPersons(user)
     const minRequired = totalPersons * MINIMUM_UNIT
     const rpnBalance =
@@ -32,7 +32,6 @@ export const checkMinimumBalanceAndSendReminder = async () => {
             minRequired
           )
         }
-     */
   }
 }
 

@@ -30,6 +30,7 @@ deathAnnouncementRouter.post(
         })
         return
       }
+/* déduire montant rpn
       const amountPerPerson = settings.amountPerDependent
       const users = await UserModel.find({
         primaryMember: true,
@@ -106,7 +107,7 @@ deathAnnouncementRouter.post(
           })
         }
       }
-
+*/const errors: any[] = [] // est une copie de celui de la ligne 39
       await notifyAllUsers({
         firstName: newDeathAnnouncement.firstName,
         deathPlace: newDeathAnnouncement.deathPlace,

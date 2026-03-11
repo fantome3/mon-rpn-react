@@ -54,10 +54,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { cn, formatCanadianPhone, toastAxiosError } from '@/lib/utils'
+import { cn, toastAxiosError } from '@/lib/utils'
 import { format } from 'date-fns'
 import { Calendar } from '@/components/CustomCalendar'
 import IconButtonWithTooltip from '@/components/IconButtonWithTooltip'
+import { formatCanadianPhone } from '@/lib/phone.validation'
 
 const formSchema = z.object({
   firstName: z.string(),
