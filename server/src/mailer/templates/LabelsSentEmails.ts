@@ -133,7 +133,7 @@ export const emailContents = {
     <p>Afin de conserver vos privilèges, merci de procéder au paiement en suivant les étapes ci‑dessous :</p>
 
     <ol>
-      <li><strong>Se connecter</strong> à votre compte <a href="https://www.acq-rpn.org/login" style="color:#1a73e8;">espace acq-rpn</a> et accéder à la section <strong>Facturation</strong>.</li>
+      <li><strong>Se connecter</strong> à votre compte <a href="https://www.acq-rpn.org/billing" style="color:#1a73e8;">espace acq-rpn</a> et accéder à la section <strong>Facturation</strong>.</li>
       <li>Choisir l’objet du paiement correspondant à votre situation 
           (les montants affichés s’adaptent automatiquement à votre profil).</li>
       <li>Effectuer un <strong>virement Interac</strong> à l’adresse indiquée.</li>
@@ -177,7 +177,7 @@ export const emailContents = {
     <p>Pour compléter correctement votre paiement, veuillez suivre les étapes ci‑dessous :</p>
 
     <ol>
-      <li>Vous connecter à votre compte <a href="https://www.acq-rpn.org/login" style="color:#1a73e8;">espace acq-rpn</a> et accéder à la section <strong>Facturation</strong>.</li>
+      <li>Vous connecter à votre compte <a href="https://www.acq-rpn.org/billing" style="color:#1a73e8;">espace acq-rpn</a> et accéder à la section <strong>Facturation</strong>.</li>
       <li>Choisir l’objet du paiement correspondant à votre profil (les montants affichés sont adaptés automatiquement).</li>
       <li>Effectuer un <strong>virement Interac</strong> à l’adresse indiquée.</li>
       <li>Entrer le <strong>montant exact</strong> du paiement ainsi que le <strong>numéro de référence</strong> associé.</li>
