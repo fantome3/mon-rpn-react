@@ -187,7 +187,7 @@ transactionRouter.put(
         }
 
         if (typeof req.body?.refInterac === 'string') {
-          transaction.refInterac = req.body.refInterac.trim().toUpperCase()
+          transaction.refInterac = req.body.refInterac.trim()
         }
 
         const transactionUpdated = await transaction.save()

@@ -48,6 +48,7 @@ export const interacRefExists = async (
     const existingAccount = await AccountModel.findOne(accountQuery)
       .select('_id')
       .lean()
+      
     if (existingAccount) {
       return true
     }

@@ -50,7 +50,7 @@ accountRouter.post(
 
         req.body.interac = interacArray.map((item: any) => ({
           ...item,
-          refInterac: normalizeInteracRef(item?.refInterac),
+          refInterac: item?.refInterac.trim() ?? '',
         }))
 
         const refs = req.body.interac
@@ -130,7 +130,7 @@ accountRouter.put(
             : [interacInput]
           const normalizedInterac = interacArray.map((item: any) => ({
             ...item,
-            refInterac: normalizeInteracRef(item?.refInterac),
+            refInterac: item?.refInterac.trim(),
           }))
 
           const existingRefs = (account.interac ?? [])

@@ -172,7 +172,6 @@ export const emailContents = {
     <ul>
         <li>Le montant déclaré (<strong>${receivedAmount} $CAD</strong>) ne correspond pas au montant recu</strong>).</li>
         <li>Le numéro de référence fourni (<strong>${reference}</strong>) ne correspond à aucun paiement enregistré.</li>
-      }
     </ul>
 
     <p>Pour compléter correctement votre paiement, veuillez suivre les étapes ci‑dessous :</p>

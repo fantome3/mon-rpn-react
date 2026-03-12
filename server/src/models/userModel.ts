@@ -72,7 +72,7 @@ class Origines {
 }
 
 class Register {
-  @prop({ required: true, unique: true })
+  @prop({ required: true, unique: true, lowercase: true })
   public email!: string
 
   @prop({ required: true })
