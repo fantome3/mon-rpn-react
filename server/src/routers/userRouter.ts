@@ -222,7 +222,7 @@ userRouter.post(
   expressAsyncHandler(async (req: Request, res: Response) => {
     try {
       const { email, password, rememberMe } = req.body
-      const user = await UserModel.findOne({ 'register.email': email })
+      const user = await UserModel.findOne({ 'register.email': email.toLowerCase() })
       if (user && bcrypt.compareSync(password, user.register.password)) {
         res.send({
           ...user.toObject(),

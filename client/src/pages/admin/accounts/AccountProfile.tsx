@@ -161,8 +161,8 @@ const AccountProfile = () => {
     outstandingTopUp.targetAmounts.both > 0 ? 'both' : 'membership'
   const [selectedTarget, setSelectedTarget] =
     useState<TopUpTargetWithBoth>(initialTarget)
-  const [amountInterac, setAmountInterac] = useState<number>(
-    suggestedByTarget[initialTarget]
+  const [amountInterac, setAmountInterac] = useState<string>(
+    String(suggestedByTarget[initialTarget])
   )
   const [refInterac, setRefInterac] = useState('')
   const [errors, setErrors] = useState<FormErrors>({})
@@ -186,7 +186,7 @@ const AccountProfile = () => {
     .slice(0, 4)
 
   useEffect(() => {
-    setAmountInterac(suggestedByTarget[selectedTarget])
+    setAmountInterac(String(suggestedByTarget[selectedTarget]))
   }, [selectedTarget, suggestedByTarget])
 
   const onSubmitPayment = async () => {
@@ -209,16 +209,17 @@ const AccountProfile = () => {
 
     try {
       setErrors({})
+      const validatedAmount = validation.data.amountInterac
       const allocation = computeTopUpAllocation({
         target: selectedTarget,
-        amountInterac,
+        amountInterac: validatedAmount,
         membershipDueAmount: outstandingTopUp.membershipAmount,
         rpnDueAmount: outstandingTopUp.rpnAmount,
       })
 
       await newTransaction({
         userId,
-        amount: amountInterac,
+        amount: validatedAmount,
         type: 'credit',
         fundType: selectedTarget,
         membershipAmount: allocation.membershipAmount,
@@ -465,9 +466,7 @@ const AccountProfile = () => {
                 type='number'
                 min={0}
                 value={amountInterac}
-                onChange={(event) =>
-                  setAmountInterac(Number(event.target.value || 0))
-                }
+                onChange={(event) => setAmountInterac(event.target.value)}
               />
               <p className='mt-1 text-xs text-muted-foreground'>
                 Minimum requis: {formatCurrency(minimumByTarget[selectedTarget])}

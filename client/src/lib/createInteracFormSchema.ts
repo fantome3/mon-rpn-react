@@ -2,14 +2,25 @@ import { z } from 'zod'
 
 export const createInteracFormSchema = (minAmount: number) =>
   z.object({
-    amountInterac: z
-      .number({
-        required_error: `Le montant ne peut être inférieur à ${minAmount}$`,
-        invalid_type_error: 'Le montant doit être un nombre.',
-      })
-      .gte(minAmount, {
-        message: `Le montant ne peut être inférieur à ${minAmount}$`,
-      }),
+    amountInterac: z.preprocess(
+      (value) => {
+        if (typeof value === 'string') {
+          const trimmed = value.trim()
+          if (!trimmed) return undefined
+          const parsed = Number(trimmed)
+          return Number.isFinite(parsed) ? parsed : value
+        }
+        return value
+      },
+      z
+        .number({
+          required_error: `Le montant ne peut être inférieur à ${minAmount}$`,
+          invalid_type_error: 'Le montant doit être un nombre.',
+        })
+        .gte(minAmount, {
+          message: `Le montant ne peut être inférieur à ${minAmount}$`,
+        })
+    ),
     refInterac: z
       .string()
       .min(6, { message: 'Ce code Interac n\'est pas valide.' })

@@ -97,8 +97,8 @@ const Billing = () => {
 
   const [selectedTarget, setSelectedTarget] =
     useState<TopUpTargetWithBoth | null>(initialTarget)
-  const [amountInterac, setAmountInterac] = useState<number>(
-    initialTarget ? defaultAmounts[initialTarget] : 0,
+  const [amountInterac, setAmountInterac] = useState<string>(
+    initialTarget ? String(defaultAmounts[initialTarget]) : '',
   )
   const [refInterac, setRefInterac] = useState('')
   const [errors, setErrors] = useState<FormErrors>({})
@@ -127,7 +127,7 @@ const Billing = () => {
 
   useEffect(() => {
     if (!selectedTarget) return
-    setAmountInterac(defaultAmounts[selectedTarget])
+    setAmountInterac(String(defaultAmounts[selectedTarget]))
   }, [defaultAmounts, selectedTarget])
 
   useEffect(() => {
@@ -179,16 +179,17 @@ const Billing = () => {
 
     try {
       setErrors({})
+      const validatedAmount = validation.data.amountInterac
       const allocation = computeTopUpAllocation({
         target: selectedTarget,
-        amountInterac,
+        amountInterac: validatedAmount,
         membershipDueAmount: defaultMembershipAmount,
         rpnDueAmount: defaultRpnAmount,
       })
 
       await newTransaction({
         userId,
-        amount: amountInterac,
+        amount: validatedAmount,
         type: 'credit',
         fundType: selectedTarget,
         membershipAmount: allocation.membershipAmount,
@@ -303,9 +304,7 @@ const Billing = () => {
                   type='number'
                   min={0}
                   value={amountInterac}
-                  onChange={(event) =>
-                    setAmountInterac(Number(event.target.value || 0))
-                  }
+                  onChange={(event) => setAmountInterac(event.target.value)}
                 />
                 {selectedTarget ? (
                   <p className='mt-1 text-xs text-muted-foreground'>
