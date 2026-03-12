@@ -1,6 +1,6 @@
 import { Store } from '@/lib/Store'
 import { useContext, useEffect } from 'react'
-import { Navigate, Outlet } from 'react-router-dom'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import Header from './Header'
 import Footer from './Footer'
 import Announcement from './Announcement'
@@ -8,6 +8,7 @@ import { useGetAccountsByUserIdQuery } from '@/hooks/accountHooks'
 import useAwaitingFirstPaymentRedirect from '@/hooks/useAwaitingFirstPaymentRedirect'
 
 const ProtectedRoute = () => {
+  const location = useLocation()
   const {
     state: { userInfo, accountInfo },
     dispatch: ctxDispatch,
@@ -25,7 +26,11 @@ const ProtectedRoute = () => {
     }
   }, [fetchedAccount, ctxDispatch])
 
-  if (!userInfo) return <Navigate to='/login' />
+  if (!userInfo) {
+    const redirect = encodeURIComponent(`${location.pathname}${location.search}`)
+    return <Navigate to={`/login?redirect=${redirect}`} replace />
+  }
+  
   if (userInfo?.subscription?.status === 'inactive') {
     return <Navigate to='/account-deactivated' />
   }
