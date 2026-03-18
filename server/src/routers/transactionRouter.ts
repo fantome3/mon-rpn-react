@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express'
 import expressAsyncHandler from 'express-async-handler'
 import { isAuth, isAdmin } from '../utils'
-import { TransactionModel } from '../models/transactionModel'
+import { TransactionModel, TransactionStatus } from '../models/transactionModel'
 import {
   processAnnualMembershipPayment,
   processMembershipForUser,
@@ -59,10 +59,18 @@ transactionRouter.get(
   isAdmin,
   expressAsyncHandler(async (req: Request, res: Response) => {
     try {
-      const transactions = await TransactionModel.find()
-        .populate('userId', ' origines.firstName origines.lastName')
+      const now = new Date()
+      const startOfYear = new Date(now.getFullYear(), 0, 1)
+      const endOfYear = new Date(now.getFullYear() + 1, 0, 1)
+
+      const transactions = await TransactionModel.find({
+        createdAt: { $gte: startOfYear, $lt: endOfYear },
+        status: { $nin: [TransactionStatus.AWAITING_PAYMENT, TransactionStatus.FAILED] }
+      })
+        .populate('userId', 'origines.firstName origines.lastName')
         .sort({ createdAt: -1 })
         .exec()
+
       res.send(transactions)
     } catch (error) {
       res.status(400).json(error)
