@@ -5,6 +5,7 @@ export const normalizeInteracRef = (value: unknown): string => {
   if (typeof value !== 'string') {
     return ''
   }
+
   return value.trim().toUpperCase()
 }
 
@@ -19,11 +20,11 @@ type InteracRefCheckOptions = {
 }
 
 export const interacRefExists = async (
-  refs: string[],
+  numeroReference: string,
   options: InteracRefCheckOptions = {}
 ): Promise<boolean> => {
-  const normalized = refs.map(normalizeInteracRef).filter((v) => v.length > 0)
-  if (normalized.length === 0) {
+  const normalized = [numeroReference].map(normalizeInteracRef).filter((v) => v.length > 0)
+  if (numeroReference.length === 0) {
     return false
   }
 

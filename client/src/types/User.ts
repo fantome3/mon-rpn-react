@@ -52,6 +52,7 @@ export type Subscription = {
 
 export type User = {
   _id?: string
+  token?: string
   register: Register
   origines: Origines
   infos: Infos

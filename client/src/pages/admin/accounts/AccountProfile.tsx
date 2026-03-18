@@ -101,14 +101,14 @@ const AccountProfile = () => {
   const recommendedTopUp = useMemo(
     () =>
       computeRecommendedTopUpAmounts({
-        subscriptionStatus: user?.subscription?.status,
+        occupation: user?.register?.occupation,
         membershipDueAmount: familyFeesSummary.membershipAmount,
         rpnDueAmount: familyFeesSummary.rpnAmount,
       }),
     [
       familyFeesSummary.membershipAmount,
       familyFeesSummary.rpnAmount,
-      user?.subscription?.status,
+      user?.register?.occupation,
     ]
   )
 

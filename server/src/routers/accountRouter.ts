@@ -44,21 +44,15 @@ accountRouter.post(
     try {
       if (req.body?.interac) {
         const interacInput = req.body.interac
-        const interacArray = Array.isArray(interacInput)
-          ? interacInput
-          : [interacInput]
 
-        req.body.interac = interacArray.map((item: any) => ({
-          ...item,
-          refInterac: item?.refInterac.trim() ?? '',
-        }))
+        req.body.interac = {
+          ...interacInput,
+          refInterac: interacInput?.refInterac.trim() ?? '',
+        }
 
-        const refs = req.body.interac
-          .map((item: any) => item?.refInterac)
-          .filter(Boolean)
-
-        if (await interacRefExists(refs)) {
+        if (await interacRefExists(interacInput.refInterac)) {
           res.status(400).json({ message: labels.general.codeInvalide })
+
           return
         }
       }
@@ -124,32 +118,26 @@ accountRouter.put(
       const account = await AccountModel.findById(req.params.id)
       if (account) {
         if (req.body?.interac) {
-          const interacInput = req.body.interac
-          const interacArray = Array.isArray(interacInput)
-            ? interacInput
-            : [interacInput]
-          const normalizedInterac = interacArray.map((item: any) => ({
-            ...item,
-            refInterac: item?.refInterac.trim(),
-          }))
+          const normalizedInterac = {
+            ...req.body.interac,
+            refInterac: req.body.interac?.refInterac.trim(),
+          }
 
           const existingRefs = (account.interac ?? [])
             .map((item) => normalizeInteracRef(item.refInterac))
             .filter(Boolean)
-          const incomingRefs = normalizedInterac
-            .map((item: any) => item?.refInterac)
-            .filter(Boolean)
-          const newRefs = incomingRefs.filter(
-            (ref: string) => !existingRefs.includes(ref)
-          )
 
-          if (
-            newRefs.length > 0 &&
-            (await interacRefExists(newRefs, {
-              excludeAccountId: account._id?.toString(),
-            }))
+          const incomingRef = normalizeInteracRef(normalizedInterac.refInterac)
+
+          // Vérifier si c’est une nouvelle référence
+          const isNewRef = incomingRef && !existingRefs.includes(incomingRef)
+
+          // Vérifier si elle existe ailleurs
+          if ( isNewRef 
+            && (await interacRefExists(incomingRef, { excludeAccountId: account._id?.toString(), }))
           ) {
             res.status(400).json({ message: labels.general.codeInvalide })
+            
             return
           }
 
@@ -172,10 +160,10 @@ accountRouter.put(
         if (nextRpnBalance > previousRpnBalance) {
           const accountOwner = account.userId
             ? await UserModel.findById(account.userId)
-                .select(
-                  'primaryMember subscription.membershipPaidThisYear subscription.lastMembershipPaymentYear'
-                )
-                .lean()
+              .select(
+                'primaryMember subscription.membershipPaidThisYear subscription.lastMembershipPaymentYear'
+              )
+              .lean()
             : null
 
           const canProceed = canIncreaseRpnBalance({

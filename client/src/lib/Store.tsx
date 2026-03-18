@@ -16,6 +16,22 @@ const initialState: AppState = {
     : null,
 }
 
+const IDLE_TIMEOUT_MS = 30 * 60 * 1000
+const decodeJwtPayload = (token: string): { exp?: number } | null => {
+  try {
+    const payload = token.split('.')[1]
+    if (!payload) return null
+    const normalized = payload.replace(/-/g, '+').replace(/_/g, '/')
+    const padded = normalized.padEnd(
+      normalized.length + ((4 - (normalized.length % 4)) % 4),
+      '='
+    )
+    return JSON.parse(atob(padded))
+  } catch {
+    return null
+  }
+}
+
 type Action =
   | { type: 'USER_LOGIN'; payload: User }
   | { type: 'USER_SIGNUP'; payload: User }
@@ -167,6 +183,63 @@ function useAppState() {
       return cleanup
     }
   }, [state.userInfo, disconnectAfter10Minutes])
+
+  useEffect(() => {
+    const token = state.userInfo?.token
+    if (!token) return
+
+    const payload = decodeJwtPayload(token)
+    if (!payload?.exp) return
+
+    const expiresAt = payload.exp * 1000
+    if (Date.now() >= expiresAt) {
+      logoutHandler()
+      return
+    }
+
+    const timeout = setTimeout(() => {
+      logoutHandler()
+    }, Math.max(0, expiresAt - Date.now()))
+
+    return () => clearTimeout(timeout)
+  }, [state.userInfo?.token, logoutHandler])
+
+  useEffect(() => {
+    if (!state.userInfo) return
+
+    let timeoutId: number | undefined
+
+    const resetTimer = () => {
+      if (timeoutId !== undefined) {
+        window.clearTimeout(timeoutId)
+      }
+      timeoutId = window.setTimeout(() => {
+        logoutHandler()
+      }, IDLE_TIMEOUT_MS)
+    }
+
+    const events: Array<keyof WindowEventMap> = [
+      'mousemove',
+      'mousedown',
+      'keydown',
+      'touchstart',
+      'scroll',
+    ]
+
+    events.forEach((eventName) =>
+      window.addEventListener(eventName, resetTimer, { passive: true })
+    )
+    resetTimer()
+
+    return () => {
+      if (timeoutId !== undefined) {
+        window.clearTimeout(timeoutId)
+      }
+      events.forEach((eventName) =>
+        window.removeEventListener(eventName, resetTimer)
+      )
+    }
+  }, [state.userInfo, logoutHandler])
 
   return { state, dispatch, logoutHandler, disconnectAfter10Minutes }
 }

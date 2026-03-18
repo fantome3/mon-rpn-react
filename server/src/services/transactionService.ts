@@ -339,10 +339,11 @@ export class TransactionDomainService {
   public async create(input: CreateTransactionInput): Promise<TransactionDocument> {
     this.validateCreateInput(input)
 
-    const normalizedRefInterac = normalizeInteracRef(input.refInterac)
+    const normalizedRefInterac = input.refInterac?.trim() ?? ''
 
     if (normalizedRefInterac) {
-      const interacExists = await interacRefExists([normalizedRefInterac])
+      const interacExists = await interacRefExists(normalizedRefInterac)
+
       if (interacExists) {
         throw new TransactionDomainError('Code Interac invalide ou deja utilise.', 400)
       }

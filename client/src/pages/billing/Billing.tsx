@@ -74,14 +74,14 @@ const Billing = () => {
   const recommendedTopUp = useMemo(
     () =>
       computeRecommendedTopUpAmounts({
-        subscriptionStatus: userInfo?.subscription?.status,
+        occupation: userInfo?.register?.occupation,
         membershipDueAmount: familyFeesSummary.membershipAmount,
         rpnDueAmount: familyFeesSummary.rpnAmount,
       }),
     [
       familyFeesSummary.membershipAmount,
       familyFeesSummary.rpnAmount,
-      userInfo?.subscription?.status,
+      userInfo?.register?.occupation,
     ],
   )
 
@@ -290,8 +290,8 @@ const Billing = () => {
               ) : null}
               {!canPayRpn ? (
                 <p className='mt-1 text-xs text-muted-foreground'>
-                  Le mode RPN seul est bloque tant que votre membership annuel
-                  (membre principal + personnes a charge) n&apos;est pas valide.
+                  Le mode RPN seul est bloqué tant que votre membership annuel
+                  (membre principal + personnes à charge) n'est pas valide.
                 </p>
               ) : null}
             </div>
