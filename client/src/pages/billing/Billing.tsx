@@ -227,7 +227,10 @@ const Billing = () => {
         <Card className='mt-8' id='billing-payment-section'>
           <CardHeader>
             <CardTitle>Paiement</CardTitle>
-            <CardDescription>Faire le virement Interac a l'adresse courriel suivante <strong>acq.quebec@gmail.com</strong> et utiliser le mot de passe <strong>monrpn</strong></CardDescription>
+            <CardDescription>
+              Depuis votre compte bancaire, faire le virement Interac à l'adresse courriel suivante <strong>acq.quebec@gmail.com</strong>
+               et utiliser si demandé le mot de passe <strong>monrpn</strong>
+            </CardDescription>
           </CardHeader>
           <CardContent className='space-y-5'>
             <div>
@@ -298,7 +301,7 @@ const Billing = () => {
 
             <div className='grid gap-4 sm:grid-cols-2'>
               <div>
-                <Label htmlFor='amountInterac'>Montant envoyé</Label>
+                <Label htmlFor='amountInterac'>Montant interact envoyé</Label>
                 <Input
                   id='amountInterac'
                   type='number'
@@ -322,7 +325,7 @@ const Billing = () => {
               </div>
               <div>
                 <Label htmlFor="refInterac" className="text-xs">
-                  Code interact fourni par la banque après le virement (regarde dans tes courriels)
+                  Numéro de référence interact fourni par la banque après virement (voir tes courriels)
                 </Label>
                 <Input
                   id='refInterac'
