@@ -47,6 +47,7 @@ import ProtectedRoute from './components/ProtectedRoute.tsx'
 import UserHomPage from './components/UserHomePage.tsx'
 import AdminRoute from './components/AdminRoute.tsx'
 import { HelmetProvider } from 'react-helmet-async'
+import FrequentlyAskedQuestions from './pages/contact/FrequentlyAskedQuestions.tsx'
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -76,6 +77,7 @@ const router = createBrowserRouter(
           <Route path='/sponsorship' element={<Sponsorship />} />
           <Route path='/payment-method' element={<PaymentMethod />} />
           <Route path='/billing' element={<Billing />} />
+          <Route path='/faq' element={<FrequentlyAskedQuestions />} />
           <Route path='/change-method' element={<UpdateMethod />} />
           <Route
             path='/transactions/:id/all'

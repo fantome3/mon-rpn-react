@@ -225,13 +225,18 @@ const Billing = () => {
         <h1 className='text-3xl font-semibold'>Facturation</h1>
 
         <Card className='mt-8' id='billing-payment-section'>
-          <CardHeader>
-            <CardTitle>Paiement</CardTitle>
-            <CardDescription>
-              Depuis votre compte bancaire, faire le virement Interac à l'adresse courriel suivante <strong>acq.quebec@gmail.com</strong>
-               et utiliser si demandé le mot de passe <strong>monrpn</strong>
-            </CardDescription>
-          </CardHeader>
+              <CardHeader>
+                <CardTitle>Paiement</CardTitle>
+                <CardDescription>
+                  Depuis votre compte bancaire, faire le virement Interac à l'adresse courriel suivante <strong>acq.quebec@gmail.com</strong>
+                   et utiliser si demandé le mot de passe <strong>monrpn</strong>
+                  <div className='mt-2'>
+                    <Button asChild variant='link' className='h-auto p-0 text-xs'>
+                      <Link to='/faq#facturation'>En savoir plus sur le paiement</Link>
+                    </Button>
+                  </div>
+                </CardDescription>
+              </CardHeader>
           <CardContent className='space-y-5'>
             <div>
               <p className='mb-2 font-medium'>Type de paiement</p>
@@ -259,10 +264,9 @@ const Billing = () => {
                       key={target}
                       htmlFor={target}
                       className={`flex items-start justify-between gap-3 rounded-lg border p-3 transition-colors ${isDisabled
-                          ? 'cursor-not-allowed opacity-60'
-                          : 'cursor-pointer'
-                        } ${
-                          isSelected ? 'border-primary bg-primary/5' : 'border-border'
+                        ? 'cursor-not-allowed opacity-60'
+                        : 'cursor-pointer'
+                        } ${isSelected ? 'border-primary bg-primary/5' : 'border-border'
                         }`}
                     >
                       <span className='flex items-start gap-3'>
@@ -341,7 +345,11 @@ const Billing = () => {
               </div>
             </div>
 
-            <Button onClick={onSubmit} disabled={isSubmitting} className='w-full sm:w-auto'>
+            <Button
+              onClick={onSubmit}
+              disabled={isSubmitting}
+              className='w-full sm:w-auto'
+            >
               Valider Paiement
             </Button>
 
@@ -361,7 +369,10 @@ const Billing = () => {
               {selectedTarget ? (
                 <div className='mt-3 space-y-2'>
                   {breakdownRows.map((item) => (
-                    <div key={item.id} className='rounded-lg border bg-background p-3'>
+                    <div
+                      key={item.id}
+                      className='rounded-lg border bg-background p-3'
+                    >
                       <div className='flex items-start justify-between gap-3'>
                         <div>
                           <p className='text-sm font-semibold leading-tight'>
@@ -372,12 +383,16 @@ const Billing = () => {
                           </p>
                         </div>
                         <p className='text-sm font-semibold'>
-                          {formatCurrency(getRowAmountByTarget(item, selectedTarget))}
+                          {formatCurrency(
+                            getRowAmountByTarget(item, selectedTarget),
+                          )}
                         </p>
                       </div>
                       {selectedTarget === 'both' ? (
                         <div className='mt-2 grid grid-cols-2 gap-1 text-xs text-muted-foreground'>
-                          <p>Membership: {formatCurrency(item.membershipAmount)}</p>
+                          <p>
+                            Membership: {formatCurrency(item.membershipAmount)}
+                          </p>
                           <p>RPN Minimal: {formatCurrency(item.rpnAmount)}</p>
                         </div>
                       ) : null}
@@ -409,7 +424,6 @@ const Billing = () => {
                 </div>
               </div>
             </div>
-
           </CardContent>
         </Card>
 

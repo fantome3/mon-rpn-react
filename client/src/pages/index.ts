@@ -26,6 +26,7 @@ import BalNoelLanding from './evenements/feteNoel'
 import AdminBookingList from './evenements/pageAdministrateur'
 import WeddingMenu from './evenements/WeddingMenu'
 import Billing from './billing/Billing'
+import FrequentlyAskedQuestions from './contact/FrequentlyAskedQuestions'
 
 export {
   Login,
@@ -56,4 +57,5 @@ export {
   AdminBookingList,
   WeddingMenu,
   Billing,
+  FrequentlyAskedQuestions,
 }

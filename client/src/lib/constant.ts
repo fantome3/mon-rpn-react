@@ -300,6 +300,7 @@ export const menuItemsConnected = [
   { name: 'Facturation', link: '/billing' },
   { name: 'Profile', link: '/profil' },
   { name: 'À Propos', link: '/about' },
+  { name: 'F.A.Q', link: '/faq' },
   // { name: 'Nous contacter', link: '/contact-us' },
 ]
 
