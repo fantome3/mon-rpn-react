@@ -230,11 +230,6 @@ const Billing = () => {
                 <CardDescription>
                   Depuis votre compte bancaire, faire le virement Interac à l'adresse courriel suivante <strong>acq.quebec@gmail.com</strong>
                    et utiliser si demandé le mot de passe <strong>monrpn</strong>
-                  <div className='mt-2'>
-                    <Button asChild variant='link' className='h-auto p-0 text-xs'>
-                      <Link to='/faq#facturation'>En savoir plus sur le paiement</Link>
-                    </Button>
-                  </div>
                 </CardDescription>
               </CardHeader>
           <CardContent className='space-y-5'>
@@ -345,13 +340,16 @@ const Billing = () => {
               </div>
             </div>
 
-            <Button
-              onClick={onSubmit}
-              disabled={isSubmitting}
-              className='w-full sm:w-auto'
-            >
-              Valider Paiement
-            </Button>
+                <Button
+                  onClick={onSubmit}
+                  disabled={isSubmitting}
+                  className='w-full sm:w-auto'
+                >
+                  Valider Paiement
+                </Button>
+                <Button asChild variant='link' className='h-auto p-5 text-xs'>
+                  <Link to='/faq#facturation'>En savoir plus sur le paiement?</Link>
+                </Button>
 
             <div className='rounded-lg border bg-slate-50 p-4'>
               <div className='flex items-start justify-between gap-3'>
