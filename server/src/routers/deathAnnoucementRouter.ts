@@ -1,14 +1,12 @@
-import { Types } from 'mongoose'
-import express, { Request, Response } from 'express'
+﻿import express, { Request, Response } from 'express'
 import expressAsyncHandler from 'express-async-handler'
 import { isAdmin, isAuth } from '../utils'
 import { DeathAnnouncementModel } from '../models/deathAnnouncement'
-import { SettingsModel } from '../models/settingsModel'
-import { UserModel } from '../models/userModel'
-import { AccountModel } from '../models/accountModel'
-import { TransactionModel } from '../models/transactionModel'
-import { notifyAllUsers } from '../mailer'
-import { handleFailedPrelevement } from '../services/subscriptionService'
+import {
+  createDeathAnnouncement,
+  DeathAnnouncementServiceError,
+  queueDeathAnnouncementProcessing,
+} from '../services/deathAnnouncementService'
 import labels from '../common/libelles.json'
 
 export const deathAnnouncementRouter = express.Router()
@@ -19,108 +17,33 @@ deathAnnouncementRouter.post(
   isAdmin,
   expressAsyncHandler(async (req: Request, res: Response) => {
     try {
-      const newDeathAnnouncement = new DeathAnnouncementModel(req.body)
-      await newDeathAnnouncement.save()
+      const { announcement, shouldProcess } = await createDeathAnnouncement(
+        req.body
+      )
 
-      const settings = await SettingsModel.findOne()
-
-      if (!settings || !settings.amountPerDependent) {
-        res.status(400).json({
-          message: labels.prelevement.montantNonDefini,
-        })
-        return
+      if (shouldProcess) {
+        queueDeathAnnouncementProcessing(announcement._id)
       }
-/* déduire montant rpn
-      const amountPerPerson = settings.amountPerDependent
-      const users = await UserModel.find({
-        primaryMember: true,
-        deletedAt: { $exists: false },
-      }).lean()
-      const errors: any[] = []
 
-      for (const user of users) {
-        try {
-          const userId =
-            typeof user._id === 'string'
-              ? new Types.ObjectId(user._id)
-              : user._id
-          const nbActive =
-            user.familyMembers?.filter((member) => member.status === 'active')
-              .length || 0
-          const totalPersons = nbActive + 1
-          const totalToDeduct = totalPersons * amountPerPerson
-
-          const account = await AccountModel.findOne({ userId }).lean()
-          if (!account) {
-            errors.push({
-              user: user.register.email,
-              error: 'Aucun compte trouvé',
-            })
-            continue
-          }
-
-          const currentRpnBalance =
-            typeof account.rpn_balance === 'number'
-              ? account.rpn_balance
-              : account.solde || 0
-
-          if (currentRpnBalance < totalToDeduct) {
-            const userDoc = await UserModel.findById(userId)
-            if (userDoc) {
-              await handleFailedPrelevement({
-                user: userDoc,
-                type: 'balance',
-                totalToDeduct,
-                solde: currentRpnBalance,
-                maxMissed: settings?.maxMissedReminders,
-                totalPersons,
-              })
-            }
-            errors.push({
-              userId,
-              email: user.register.email,
-              reason: 'Solde insuffisant',
-              solde: currentRpnBalance,
-              required: totalToDeduct,
-            })
-            continue
-          }
-
-          await AccountModel.updateOne(
-            { userId },
-            { $inc: { rpn_balance: -totalToDeduct, solde: -totalToDeduct } }
-          )
-
-          await TransactionModel.create({
-            userId,
-            amount: totalToDeduct,
-            type: 'debit',
-            fundType: 'rpn',
-            reason: `Prélèvement décès pour ${totalPersons} personnes`,
-          })
-        } catch (error: any) {
-          errors.push({
-            userId: user._id,
-            email: user.register?.email,
-            reason: 'Erreur système',
-            error: error.message,
-          })
-        }
-      }
-*/const errors: any[] = [] // est une copie de celui de la ligne 39
-      await notifyAllUsers({
-        firstName: newDeathAnnouncement.firstName,
-        deathPlace: newDeathAnnouncement.deathPlace,
-        deathDate: newDeathAnnouncement.deathDate,
-      })
-      res.send({
-        message: labels.annonce.cree,
-        announcement: newDeathAnnouncement.toObject(),
-        errors,
+      res.status(202).send({
+        message: shouldProcess
+          ? labels.annonce.cree
+          : labels.annonce.creeSansPrelevement,
+        announcement: announcement.toObject(),
       })
       return
-    } catch (error) {
-      res.status(400).json(error)
+    } catch (error: any) {
+      if (error instanceof DeathAnnouncementServiceError) {
+        res.status(error.statusCode).json({ message: error.message })
+        return
+      }
+      if (error?.name === 'ValidationError') {
+        res.status(400).json({ message: error.message })
+        return
+      }
+      res.status(500).json({
+        message: labels.general.erreurInattendueMin,
+      })
       return
     }
   })

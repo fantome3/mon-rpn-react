@@ -2,21 +2,29 @@ import { useQuery, useMutation } from '@tanstack/react-query'
 import apiClient from '@/apiClient'
 import { DeathAnnouncement } from '@/types'
 
+export type CreateDeathAnnouncementResponse = {
+  message: string
+  announcement: DeathAnnouncement
+}
+
 export const useNewDeathAnnouncementMutation = () =>
   useMutation({
     mutationFn: async (announcement: DeathAnnouncement) =>
       (
-        await apiClient.post<DeathAnnouncement>(
+        await apiClient.post<CreateDeathAnnouncementResponse>(
           `api/announcements/new`,
           announcement
         )
       ).data,
   })
 
-export const useGetAnnouncementsQuery = () =>
+export const useGetAnnouncementsQuery = (options?: {
+  refetchInterval?: number | false
+}) =>
   useQuery({
     queryKey: ['announcements'],
     queryFn: async () => (await apiClient.get(`api/announcements/all`)).data,
+    refetchInterval: options?.refetchInterval,
   })
 
 export const useUpdateAnnouncementMutation = () =>

@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { Search } from 'lucide-react'
 
 import {
@@ -9,10 +8,8 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { buildBillingSectionUrl } from '@/lib/billing'
 import { BILLING_FAQ_ITEMS, type BillingFaqItem } from '@/lib/billingFaq'
 
 const normalizeText = (value: string) =>
@@ -83,22 +80,6 @@ const BillingFaq = () => {
             {filteredItems.length} réponse{hasSingleResult ? '' : 's'}{' '}
             correspondante{hasSingleResult ? '' : 's'}.
           </p>
-          <div className='rounded-lg border bg-slate-50 p-4 text-sm'>
-            <p className='font-medium'>Rappel important</p>
-            <p className='mt-1 text-muted-foreground'>
-              Le paiement se fait via votre banque, par virement Interac. Vous ne
-              payez pas directement dans l'application.
-            </p>
-            <Button
-              asChild
-              variant='link'
-              className='mt-2 h-auto p-0 text-xs'
-            >
-              <Link to={buildBillingSectionUrl('payment')}>
-                Aller à l'onglet Paiement
-              </Link>
-            </Button>
-          </div>
         </CardContent>
       </Card>
 

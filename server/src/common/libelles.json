@@ -48,8 +48,9 @@
     "erreurSuppression": "Erreur lors de la suppression"
   },
   "annonce": {
-    "cree": "Annonce créée et prélèvements effectués.",
-    "misAJour": "Announcement Updated"
+    "cree": "Annonce créée. Traitement en cours.",
+    "misAJour": "Annonce mise à jour",
+    "creeSansPrelevement": "Annonce créée. Le traitement n'a pas été lancé."
   },
   "rappel": {
     "envoyeSucces": "Rappels envoyés avec succès",

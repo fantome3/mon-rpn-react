@@ -1,5 +1,10 @@
 export type { Account, CardType, Interac } from './Account'
-export type { DeathAnnouncement } from './DeathAnnouncement'
+export type {
+  DeathAnnouncement,
+  DeathAnnouncementProcessingError,
+  DeathAnnouncementProcessingStatus,
+  DeathAnnouncementProcessingSummary,
+} from './DeathAnnouncement'
 export type { FamilyMember } from './FamilyMember'
 export {
   OCCUPATIONS,
