@@ -102,6 +102,7 @@ const AccountProfile = () => {
     () =>
       computeRecommendedTopUpAmounts({
         occupation: user?.register?.occupation,
+        studentStatus: user?.register?.studentStatus,
         membershipDueAmount: familyFeesSummary.membershipAmount,
         rpnDueAmount: familyFeesSummary.rpnAmount,
       }),
@@ -109,6 +110,7 @@ const AccountProfile = () => {
       familyFeesSummary.membershipAmount,
       familyFeesSummary.rpnAmount,
       user?.register?.occupation,
+      user?.register?.studentStatus,
     ]
   )
 
@@ -402,15 +404,21 @@ const AccountProfile = () => {
         <CardContent className='space-y-5'>
           <div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-4'>
             <div className='rounded-lg border p-3'>
-              <p className='text-xs text-muted-foreground'>Membership à payer par le membre</p>
+              <p className='text-xs text-muted-foreground'>Membership restant à collecter</p>
               <p className='mt-1 text-lg font-semibold'>
-                {formatCurrency(recommendedTopUp.membershipAmount)}
+                {formatCurrency(outstandingTopUp.membershipAmount)}
+              </p>
+              <p className='text-xs text-muted-foreground'>
+                Total dû : {formatCurrency(recommendedTopUp.membershipAmount)} — Solde : {formatCurrency(currentMembershipBalance)}
               </p>
             </div>
             <div className='rounded-lg border p-3'>
-              <p className='text-xs text-muted-foreground'>montant minimal RPN à payer</p>
+              <p className='text-xs text-muted-foreground'>RPN restant à collecter</p>
               <p className='mt-1 text-lg font-semibold'>
-                {formatCurrency(recommendedTopUp.rpnAmount)}
+                {formatCurrency(outstandingTopUp.rpnAmount)}
+              </p>
+              <p className='text-xs text-muted-foreground'>
+                Total dû : {formatCurrency(recommendedTopUp.rpnAmount)} — Solde : {formatCurrency(currentRpnBalance)}
               </p>
             </div>
           </div>

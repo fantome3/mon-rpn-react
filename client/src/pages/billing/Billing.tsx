@@ -1,6 +1,5 @@
-import { useContext, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { Store } from '@/lib/Store'
 import { SearchEngineOptimization } from '@/components/SearchEngine/SearchEngineOptimization'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
@@ -44,6 +43,7 @@ import {
 import { formatCurrency, functionReverse, toastAxiosError } from '@/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
 import type { Transaction } from '@/types'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 
 type FormErrors = {
   amountInterac?: string
@@ -52,9 +52,7 @@ type FormErrors = {
 }
 
 const Billing = () => {
-  const { state } = useContext(Store)
-  const { userInfo } = state
-  const userId = userInfo?._id ?? ''
+  const { user: userInfos, userId } = useCurrentUser()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const queryClient = useQueryClient()
@@ -62,26 +60,29 @@ const Billing = () => {
   const { data: transactions = [] } = useGetTransactionsByUserIdQuery(userId)
   const { mutateAsync: newTransaction, isPending: isCreatingTransaction } =
     useNewTransactionMutation()
+
   const familyFeesSummary = useMemo(
-    () => computeFamilyFeesSummary(userInfo),
-    [userInfo],
+    () => computeFamilyFeesSummary(userInfos),
+    [userInfos],
   )
   const familyFeeBreakdown = useMemo(
-    () => computeFamilyFeesBreakdown(userInfo),
-    [userInfo],
+    () => computeFamilyFeesBreakdown(userInfos),
+    [userInfos],
   )
 
   const recommendedTopUp = useMemo(
     () =>
       computeRecommendedTopUpAmounts({
-        occupation: userInfo?.register?.occupation,
+        occupation: userInfos?.register?.occupation,
+        studentStatus: userInfos?.register?.studentStatus,
         membershipDueAmount: familyFeesSummary.membershipAmount,
         rpnDueAmount: familyFeesSummary.rpnAmount,
       }),
     [
       familyFeesSummary.membershipAmount,
       familyFeesSummary.rpnAmount,
-      userInfo?.register?.occupation,
+      userInfos?.register?.occupation,
+      userInfos?.register?.studentStatus,
     ],
   )
 
@@ -96,9 +97,9 @@ const Billing = () => {
   const section = searchParams.get('section')
 
   const [selectedTarget, setSelectedTarget] =
-    useState<TopUpTargetWithBoth | null>(initialTarget)
+    useState<TopUpTargetWithBoth | null>(initialTarget ?? 'both')
   const [amountInterac, setAmountInterac] = useState<string>(
-    initialTarget ? String(defaultAmounts[initialTarget]) : '',
+    String(defaultAmounts[initialTarget ?? 'both']),
   )
   const [refInterac, setRefInterac] = useState('')
   const [errors, setErrors] = useState<FormErrors>({})
@@ -114,11 +115,11 @@ const Billing = () => {
   const canPayRpn = useMemo(
     () =>
       canPrimaryMemberTopUpRpn({
-        isPrimaryMember: userInfo?.primaryMember,
+        isPrimaryMember: userInfos?.primaryMember,
         transactions,
-        subscription: userInfo?.subscription,
+        subscription: userInfos?.subscription,
       }),
-    [transactions, userInfo?.primaryMember, userInfo?.subscription],
+    [transactions, userInfos?.primaryMember, userInfos?.subscription],
   )
   const breakdownRows = useMemo(() => {
     if (!selectedTarget) return []
@@ -228,7 +229,7 @@ const Billing = () => {
               <CardHeader>
                 <CardTitle>Paiement</CardTitle>
                 <CardDescription>
-                  Depuis votre compte bancaire, faire le virement Interac à l'adresse courriel suivante <strong>acq.quebec@gmail.com</strong>
+                  Depuis votre compte bancaire, faire le virement Interac à l'adresse courriel suivante <strong>acq.quebec@gmail.com </strong>
                    et utiliser si demandé le mot de passe <strong>monrpn</strong>
                 </CardDescription>
               </CardHeader>

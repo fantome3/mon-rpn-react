@@ -1,7 +1,7 @@
-import { useContext, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
-import { Store } from '@/lib/Store'
 import { useGetAccountsByUserIdQuery } from '@/hooks/accountHooks'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { ToLocaleStringFunc } from '@/lib/utils'
 import { Button } from './ui/button'
 import { buildPaymentMessage, computeFamilyFeesSummary } from '@/lib/familyFees'
@@ -22,9 +22,7 @@ import { CircleCheckBig } from 'lucide-react'
 import { toast } from './ui/use-toast'
 
 const UserAccountInfo = () => {
-  const { state } = useContext(Store)
-  const { userInfo } = state
-  const userId = userInfo?._id ?? ''
+  const { user: userInfo, userId } = useCurrentUser()
   const { data: account } = useGetAccountsByUserIdQuery(userId)
   const { data: transactions = [] } = useGetTransactionsByUserIdQuery(userId)
   const navigate = useNavigate()

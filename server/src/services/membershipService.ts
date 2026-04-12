@@ -19,6 +19,16 @@ const getMembershipBalance = (account: any): number =>
 const getRpnBalance = (account: any): number =>
   typeof account?.rpn_balance === 'number' ? account.rpn_balance : 0
 
+/**
+ * Détermine si une personne est facturée au tarif étudiant.
+ * Un étudiant à temps partiel est considéré comme travailleur.
+ */
+const isBilledAsStudent = (
+  occupation?: string,
+  studentStatus?: string,
+): boolean =>
+  occupation === 'student' && studentStatus !== 'part-time'
+
 const calculateMembershipAmount = (
   user: DocumentType<User>,
   workerAmount: number,
@@ -27,19 +37,39 @@ const calculateMembershipAmount = (
   const currentYear = new Date().getFullYear()
   let total = 0
 
+  // Membre principal — utilise register.occupation + studentStatus
   const userAge = currentYear - new Date(user.origines.birthDate).getFullYear()
   if (userAge >= 18) {
-    total +=
-      user.register.occupation === 'student' ? studentAmount : workerAmount
+    const primaryIsStudent = isBilledAsStudent(
+      user.register.occupation,
+      user.register.studentStatus,
+    )
+    total += primaryIsStudent ? studentAmount : workerAmount
   }
 
+  // Personnes à charge
   for (const member of user.familyMembers || []) {
     const age = currentYear - new Date(member.birthDate).getFullYear()
-    if (age >= 18 && member.status === 'active') {
-      total +=
-        member.residenceCountryStatus === 'student'
-          ? studentAmount
-          : workerAmount
+    if (age < 18 || member.status !== 'active') continue
+
+    const rel = member.relationship
+
+    if (rel === 'Père' || rel === 'Mère') {
+      // Facturer seulement si résident au Canada
+      // Rétrocompatibilité : si livesInCanada absent, déduire du statut d'immigration
+      const isResident =
+        member.livesInCanada !== undefined
+          ? member.livesInCanada
+          : member.residenceCountryStatus !== 'visitor'
+      if (!isResident) continue
+      total += workerAmount
+    } else {
+      // Conjoint(e) et Enfant adulte
+      const hasOccupationData = member.occupation !== undefined
+      const isStudent = hasOccupationData
+        ? isBilledAsStudent(member.occupation, member.studentStatus)
+        : member.residenceCountryStatus === 'student' // fallback ancienne data
+      total += isStudent ? studentAmount : workerAmount
     }
   }
 

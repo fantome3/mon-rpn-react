@@ -3,6 +3,7 @@ import {
   calculateRpnTotal,
   FeeDetail,
 } from './fees'
+import { calculateAge, getMemberFeeConfig, isBilledAsStudent } from './familyMemberRules'
 import { User } from '@/types'
 
 export type FamilyFeeBreakdownItem = {
@@ -18,23 +19,6 @@ export type FamilyFeesSummary = {
   dependantCount: number
   membershipAmount: number
   rpnAmount: number
-}
-
-const ADULT_AGE = 18
-
-const calculateAge = (birthDate?: Date | string): number => {
-  if (!birthDate) return ADULT_AGE
-  const date = new Date(birthDate)
-  if (Number.isNaN(date.getTime())) return ADULT_AGE
-
-  const now = new Date()
-  let age = now.getFullYear() - date.getFullYear()
-  const monthDiff = now.getMonth() - date.getMonth()
-  const isBirthdayPassed =
-    monthDiff > 0 || (monthDiff === 0 && now.getDate() >= date.getDate())
-
-  if (!isBirthdayPassed) age -= 1
-  return age
 }
 
 type FamilyFeePerson = {
@@ -54,6 +38,11 @@ const formatDisplayName = (firstName?: string, lastName?: string): string => {
 const buildFamilyFeePeople = (user?: User): FamilyFeePerson[] => {
   if (!user?.register) return []
 
+  const primaryIsStudent = isBilledAsStudent(
+    user.register.occupation,
+    user.register.studentStatus,
+  )
+
   const people: FamilyFeePerson[] = [
     {
       id: 'primary-member',
@@ -62,7 +51,7 @@ const buildFamilyFeePeople = (user?: User): FamilyFeePerson[] => {
         user.origines?.lastName,
       ),
       relationshipLabel: 'Membre principal',
-      type: user.register.occupation === 'student' ? 'student' : 'worker',
+      type: primaryIsStudent ? 'student' : 'worker',
       isMembershipActive: true,
       isRpnActive: true,
     },
@@ -73,17 +62,14 @@ const buildFamilyFeePeople = (user?: User): FamilyFeePerson[] => {
   )
 
   activeMembers.forEach((member, index) => {
-    const age = calculateAge(member.birthDate)
-    const isMinor = age < ADULT_AGE
-    const adultType =
-      member.residenceCountryStatus === 'student' ? 'student' : 'worker'
+    const { type, isMembershipActive } = getMemberFeeConfig(member)
 
     people.push({
       id: `dependent-${index}`,
       fullName: formatDisplayName(member.firstName, member.lastName),
       relationshipLabel: member.relationship || 'Personne a charge',
-      type: isMinor ? 'minor' : adultType,
-      isMembershipActive: !isMinor,
+      type,
+      isMembershipActive,
       isRpnActive: true,
     })
   })

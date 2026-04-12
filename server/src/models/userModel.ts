@@ -138,6 +138,21 @@ class FamilyMember {
 
   @prop()
   public tel?: string
+
+  @prop({ enum: ['student', 'worker'] })
+  public occupation?: string
+
+  @prop({ enum: ['full-time', 'part-time'] })
+  public studentStatus?: string
+
+  @prop()
+  public institution?: string
+
+  @prop()
+  public studentNumber?: string
+
+  @prop()
+  public livesInCanada?: boolean
 }
 
 class Subscription {

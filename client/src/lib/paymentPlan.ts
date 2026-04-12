@@ -1,5 +1,6 @@
-import type { Occupation, TopUpTargetWithBoth } from '@/types'
+import type { Occupation, StudentStatus, TopUpTargetWithBoth } from '@/types'
 import type { FamilyFeeBreakdownItem } from './familyFees'
+import { isBilledAsStudent } from './familyMemberRules'
 
 export const TOP_UP_TARGET_OPTIONS: TopUpTargetWithBoth[] = [
   'both',
@@ -22,8 +23,10 @@ export const TARGET_DESCRIPTIONS: Record<TopUpTargetWithBoth, string> = {
 const toPositiveAmount = (value: number) =>
   Number.isFinite(value) ? Math.max(0, value) : 0
 
-const getMembershipMinimumAmount = (occupation?: Occupation) =>
-  occupation === 'student' ? 25 : 50
+const getMembershipMinimumAmount = (
+  occupation?: Occupation,
+  studentStatus?: StudentStatus,
+) => (isBilledAsStudent(occupation, studentStatus) ? 25 : 50)
 
 export type TargetAmountMap = Record<TopUpTargetWithBoth, number>
 
@@ -36,14 +39,16 @@ export type RecommendedTopUpAmounts = {
 
 export const computeRecommendedTopUpAmounts = ({
   occupation,
+  studentStatus,
   membershipDueAmount,
   rpnDueAmount,
 }: {
   occupation?: Occupation
+  studentStatus?: StudentStatus
   membershipDueAmount: number
   rpnDueAmount: number
 }): RecommendedTopUpAmounts => {
-  const membershipMinAmount = getMembershipMinimumAmount(occupation)
+  const membershipMinAmount = getMembershipMinimumAmount(occupation, studentStatus)
   const membershipAmount = Math.max(
     membershipMinAmount,
     toPositiveAmount(membershipDueAmount)
