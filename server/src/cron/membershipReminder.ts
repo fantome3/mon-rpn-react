@@ -11,13 +11,12 @@ cron.schedule('0 10 * 1 0', async () => {
   await processAnnualMembershipPayment()
 })
 
-/*-- courriel rpn
-//Verification des soldes insuffisants tous les dimanches
+/* désaactivé courriel rpn  Chaque dimanche à 9h du matin
+// Vérification des soldes RPN insuffisants tous les dimanches à 9h
 cron.schedule('0 9 * * 0', async () => {
-  console.log('📢 Vérification des soldes insuffisants...')
+  console.log('📢 Vérification des soldes RPN insuffisants...')
   await checkMinimumBalanceAndSendReminder()
-})
-*/
+})*/
 // Tous les jours à 5h du matin
 cron.schedule('0 5 * * *', async () => {
   console.log('🔄 Cron désactivation des comptes inactifs...')

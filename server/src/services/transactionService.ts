@@ -16,6 +16,7 @@ import {
   normalizeInteracRef,
 } from './interacReferenceService'
 import { sendMembershipSuccessEmail, sendPaymentRejectedEmail } from '../mailer'
+import { onRpnPaymentConfirmed } from './rpnLifecycleService'
 
 /**
  * Summary:
@@ -533,6 +534,12 @@ export class TransactionDomainService {
 
     if (allocation.membershipAmount > 0) {
       await this.activateMembership(String(transaction.userId), allocation.membershipAmount)
+    }
+
+    if (allocation.rpnAmount > 0) {
+      onRpnPaymentConfirmed(String(transaction.userId), account.rpn_balance).catch((err) =>
+        console.error('[rpnLifecycle] onRpnPaymentConfirmed:', err)
+      )
     }
 
     transaction.balanceApplied = true

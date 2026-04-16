@@ -8,3 +8,5 @@ export interface FailMemberRegistrationParams { member: string; detail: string }
 export interface PaymentFailedParams  { amount: number; current: number }
 export interface FuneralCostParams    { amount: number; current: number }
 export interface ContributionConfirmationParams   { amount: number; year: string }
+export interface RpnUnsubscriptionParams          { current: number; required: number }
+export interface RpnReactivationParams            { current: number }

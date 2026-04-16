@@ -137,22 +137,10 @@ export const processAnnualMembershipPayment = async () => {
       user.subscription.scheduledDeactivationDate = undefined
       await user.save()
     } else {
-      await TransactionModel.create({
-        userId: user._id,
-        amount: totalToDeduct,
-        fundType: 'membership',
-        reason: 'Cotisation annuelle',
-        type: 'debit',
-        status: 'failed',
-      })
-
       await handleFailedPrelevement({
         user,
-        type: 'membership',
         totalToDeduct,
         solde: membershipBalance,
-        maxMissed,
-        totalPersons,
       })
     }
   }
@@ -163,10 +151,10 @@ export const processMembershipForUser = async (userId: string) => {
   if (!user) {
     return { status: 'NOT_FOUND', message: labels.utilisateur.introuvableFr }
   }
+
   const settings = await SettingsModel.findOne()
   const MEMBERSHIP_WORKER_AMOUNT = settings?.membershipUnitAmount || 50
   const MEMBERSHIP_STUDENT_AMOUNT = 25
-  const maxMissed = settings?.maxMissedReminders || 3
   const currentYear = new Date().getFullYear()
 
   if (
@@ -176,7 +164,6 @@ export const processMembershipForUser = async (userId: string) => {
     return { status: 'ALREADY_PAID' }
   }
 
-  const totalPersons = calculateTotalPersons(user)
   const totalToDeduct = calculateMembershipAmount(
     user,
     MEMBERSHIP_WORKER_AMOUNT,
@@ -217,24 +204,16 @@ export const processMembershipForUser = async (userId: string) => {
     await user.save()
 
     await sendMembershipSuccessEmail(user.register.email, totalToDeduct, currentYear)
-    return { status: 'SUCCESS', amount: totalToDeduct }
-  } else {
-    await TransactionModel.create({
-      userId,
-      amount: totalToDeduct,
-      fundType: 'membership',
-      reason: 'Cotisation annuelle',
-      type: 'debit',
-      status: 'failed',
-    })
 
+    return { 
+      status: 'SUCCESS', 
+      amount: totalToDeduct 
+    }
+  } else {
     await handleFailedPrelevement({
       user,
-      type: 'membership',
       totalToDeduct,
       solde: membershipBalance,
-      maxMissed,
-      totalPersons,
     })
 
     return {

@@ -42,12 +42,17 @@ export type Infos = {
   emergencyContacts?: EmergencyContact[]
 }
 
+export type RpnStatus = 'not_enrolled' | 'pending' | 'enrolled' | 'unsubscribed'
+
 export type Subscription = {
   startDate: Date
   status: SubscriptionStatus
   endDate?: Date
   lastMembershipPaymentYear?: number
   membershipPaidThisYear?: boolean
+  rpnStatus?: RpnStatus
+  rpnEnrollmentDate?: Date
+  missedRpnRemindersCount?: number
 }
 
 export type User = {

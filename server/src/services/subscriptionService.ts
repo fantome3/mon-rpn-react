@@ -8,64 +8,32 @@ import { DocumentType } from '@typegoose/typegoose'
 
 export const handleFailedPrelevement = async ({
   user,
-  type,
   totalToDeduct,
   solde,
-  maxMissed,
-  totalPersons,
 }: {
   user: DocumentType<User>
-  type: 'membership' | 'balance'
   totalToDeduct: number
   solde: number
-  maxMissed: number
-  totalPersons: number
 }) => {
-  // Transaction échouée
-  await TransactionModel.create({
-    userId: user._id,
-    amount: totalToDeduct,
-    fundType: type === 'membership' ? 'membership' : 'rpn',
-    reason:
-      type === 'membership'
-        ? 'Cotisation annuelle'
-        : `Prélèvement décès pour ${totalPersons} personnes`,
-    type: 'debit',
-    status: 'failed',
-  })
-
-  //Compteur de rappels
   user.subscription.missedRemindersCount =
-    (user.subscription.missedRemindersCount || 0) + 1
+    (user.subscription.missedRemindersCount || 0) + 1;
+  
+  if (user.subscription.missedRemindersCount == 1) {
+    await TransactionModel.create({
+      userId: user._id,
+      amount: totalToDeduct,
+      fundType: 'membership',
+      reason: 'Cotisation annuelle',
+      type: 'debit',
+      status: 'failed',
+    })
 
-  //Préavis si max atteint
-  if (
-    user.subscription.missedRemindersCount === maxMissed &&
-    !user.subscription.scheduledDeactivationDate
-  ) {
-    const deactivationDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    const deactivationDate = new Date(Date.now() + 25 * 24 * 60 * 60 * 1000)
     user.subscription.scheduledDeactivationDate = deactivationDate
-    await sendDeactivationWarningEmail(
-      user.register.email,
-      type,
-      deactivationDate
-    )
+    await sendDeactivationWarningEmail(user.register.email, "membership", deactivationDate)
   }
 
   await user.save()
 
-  //Email spécifique
-  if (type === 'membership') {
-    await sendPrelevementFailedMembershipEmail (
-      user.register.email,
-      totalToDeduct,
-      solde
-    )
-  } /*else {-- courriel rpn
-    await sendPrelevementFailedDecesEmail (
-      user.register.email,
-      totalToDeduct,
-      solde
-    )
-  }*/
+  await sendPrelevementFailedMembershipEmail(user.register.email, totalToDeduct, solde)
 }

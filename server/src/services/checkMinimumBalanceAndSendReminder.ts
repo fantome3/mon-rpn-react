@@ -5,7 +5,7 @@ import { AccountModel } from '../models/accountModel'
 import { SettingsModel } from '../models/settingsModel'
 import { UserModel } from '../models/userModel'
 import { calculateTotalPersons } from '../utils'
-import { handleFailedPrelevement } from './subscriptionService'
+import { onRpnBalanceInsufficient } from './rpnLifecycleService'
 
 export const checkMinimumBalanceAndSendReminder = async () => {
   const settings = await SettingsModel.findOne()
@@ -40,7 +40,7 @@ export const sendBalanceReminderIfNeeded = async (userId: string) => {
   if (!user) return { status: 'NOT_FOUND' }
 
   const settings = await SettingsModel.findOne()
-  const MIN_UNIT = settings?.minimumBalanceRPN || 10
+  const MIN_UNIT = settings?.minimumBalanceRPN || 5
   const MAX_MISSED = settings?.maxMissedReminders || 3
 
   const totalPersons = calculateTotalPersons(user)
@@ -52,16 +52,15 @@ export const sendBalanceReminderIfNeeded = async (userId: string) => {
     typeof account.rpn_balance === 'number' ? account.rpn_balance : account.solde
 
   if (rpnBalance < minimumRequired) {
-    await handleFailedPrelevement({
+    await onRpnBalanceInsufficient({
       user,
-      type: 'balance',
-      totalToDeduct: minimumRequired,
       solde: rpnBalance,
+      totalToDeduct: minimumRequired,
       maxMissed: MAX_MISSED,
       totalPersons,
     })
-
-    /*await sendLowBalanceNotification(
+/* désaactivé courriel rpn pour éviter les spams, à réactiver si on veut remettre les rappels
+    await sendLowBalanceNotification(
       user.register.email,
       rpnBalance,
       minimumRequired

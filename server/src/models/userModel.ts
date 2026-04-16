@@ -155,7 +155,7 @@ class FamilyMember {
   public livesInCanada?: boolean
 }
 
-class Subscription {
+export class Subscription {
   @prop({ required: true, default: Date.now })
   public startDate!: Date
 
@@ -180,6 +180,18 @@ class Subscription {
 
   @prop({ default: false })
   public membershipPaidThisYear?: boolean
+
+  @prop({
+    default: 'not_enrolled',
+    enum: ['not_enrolled', 'pending', 'enrolled', 'unsubscribed'],
+  })
+  public rpnStatus?: 'not_enrolled' | 'pending' | 'enrolled' | 'unsubscribed'
+
+  @prop()
+  public rpnEnrollmentDate?: Date // Date de la première confirmation de paiement RPN
+
+  @prop({ default: 0 })
+  public missedRpnRemindersCount?: number // Compteur indépendant des rappels RPN (≠ membership)
 }
 
 @modelOptions({

@@ -8,7 +8,9 @@ import {
   DeceasedParams,
   PaymentFailedParams,
   FuneralCostParams,
-  ContributionConfirmationParams
+  ContributionConfirmationParams,
+  RpnUnsubscriptionParams,
+  RpnReactivationParams,
 } from "./emailModel";
 
 export const emailContents = {
@@ -158,6 +160,30 @@ export const emailContents = {
       <p>Merci pour votre engagement et votre confiance.</p>
 
       <p style="margin-top:20px;">Cordialement,</p>`
+  },
+
+  rpnDesinscription: {
+    sujet: 'Désinscription du fonds RPN – solde insuffisant',
+    texte: ({ current, required }: RpnUnsubscriptionParams) => `
+      <p>Bonjour,</p>
+      <p>Après plusieurs rappels restés sans régularisation, votre solde RPN actuel de <strong>${current} $CAD</strong>
+      est insuffisant par rapport au minimum requis de <strong>${required} $CAD</strong>.</p>
+      <p>Vous avez donc été désinscrit du fonds RPN de l'association et vos contributions ne seront plus comptabilisées
+      lors des prélèvements décès.</p>
+      <p>Pour vous réinscrire, veuillez renflouer votre fonds RPN depuis votre
+      <a href="https://www.acq-rpn.org/billing" style="color:#1a73e8;">espace facturation</a> jusqu'au montant minimum requis.
+      Votre réinscription sera automatiquement rétablie dès que votre paiement aura été validé par un administrateur.</p>
+      <p style="margin-top:20px;">Cordialement,</p>`
+  },
+
+  rpnReactivation: {
+    sujet: 'Réinscription au fonds RPN confirmée',
+    texte: ({ current }: RpnReactivationParams) => `
+      <p>Bonjour,</p>
+      <p>Votre rechargement a bien été validé. Votre solde RPN est maintenant de <strong>${current} $CAD</strong>.</p>
+      <p>Votre réinscription au fonds RPN de l'association est confirmée. Vous participez de nouveau aux
+      prélèvements décès communautaires.</p>
+      <p style="margin-top:20px;">Merci pour votre engagement,</p>`
   },
 
   paiementRejete: {

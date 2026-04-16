@@ -12,8 +12,8 @@ import { UserModel } from '../models/userModel'
 import { AccountModel } from '../models/accountModel'
 import { TransactionModel } from '../models/transactionModel'
 import { notifyUsersForDeathAnnouncement } from '../mailer'
-import { handleFailedPrelevement } from './subscriptionService'
 import labels from '../common/libelles.json'
+import { onRpnBalanceInsufficient } from './rpnLifecycleService'
 
 type CreateDeathAnnouncementInput = {
   firstName: string
@@ -25,6 +25,7 @@ type LeanUser = {
   _id: Types.ObjectId | string
   register?: { email?: string }
   familyMembers?: Array<{ status?: string }>
+  subscription?: { rpnStatus?: string }
 }
 
 type DebitCandidate = {
@@ -105,7 +106,7 @@ const fetchPrimaryMembersForDeathAnnouncement = async (): Promise<LeanUser[]> =>
     primaryMember: true,
     deletedAt: { $exists: false },
   })
-    .select('_id register.email familyMembers.status')
+    .select('_id register.email familyMembers.status subscription.rpnStatus')
     .lean()) as LeanUser[]
 
 const pushErrorSample = (
@@ -208,6 +209,17 @@ const collectProcessingCandidates = ({
     const userId = normalizeObjectId(user._id)
     const userKey = String(userId)
     try {
+      // Exclure les membres non-inscrits, ou désinscrit du fonds RPN.
+      // Les documents legacy sans rpnStatus (undefined) sont inclus : la vérification
+      // du solde plus bas les écartera s'ils n'ont jamais contribué.
+      const rpnStatus = user.subscription?.rpnStatus
+      if (
+        rpnStatus === 'not_enrolled' ||
+        rpnStatus === 'unsubscribed'
+      ) {
+        continue
+      }
+
       const totalPersons = calculateTotalPersons(user)
       const totalToDeduct = totalPersons * amountPerPerson
       const account = accountMap.get(userKey)
@@ -312,11 +324,10 @@ const processInsufficientFundsCandidates = async ({
       }
 
       try {
-        await handleFailedPrelevement({
+        await onRpnBalanceInsufficient({
           user: userDoc,
-          type: 'balance',
-          totalToDeduct: candidate.totalToDeduct,
           solde: candidate.currentRpnBalance,
+          totalToDeduct: candidate.totalToDeduct,
           maxMissed: maxMissedReminders,
           totalPersons: candidate.totalPersons,
         })

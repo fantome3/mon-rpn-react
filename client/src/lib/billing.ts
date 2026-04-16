@@ -3,6 +3,7 @@ import {
   Transaction,
   type BillingSection,
   type MembershipPaymentUiState,
+  type RpnStatus,
   type Subscription,
   type TopUpTarget,
   type TopUpTargetWithBoth,
@@ -367,4 +368,18 @@ export const canPrimaryMemberTopUpRpn = ({
   if (!isPrimaryMember) return true
 
   return getMembershipPaymentUiState(transactions, year, subscription) === 'success'
+}
+
+/**
+ * Dérive le statut RPN effectif d'un membre.
+ * Rétrocompatibilité : pour les documents sans rpnStatus persisté,
+ * un solde positif indique une inscription antérieure.
+ */
+export const resolveEffectiveRpnStatus = (
+  subscription: Pick<Subscription, 'rpnStatus'> | undefined,
+  rpnBalance: number
+): RpnStatus => {
+  if (subscription?.rpnStatus) return subscription.rpnStatus
+  
+  return rpnBalance > 0 ? 'enrolled' : 'not_enrolled'
 }

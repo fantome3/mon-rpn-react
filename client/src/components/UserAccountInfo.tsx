@@ -12,14 +12,23 @@ import {
   getMembershipPaymentBadgeClass,
   getMembershipPaymentBadgeLabel,
   getMembershipPaymentUiState,
+  resolveEffectiveRpnStatus,
   RPN_PAYMENT_BLOCK_MESSAGE,
   shouldResetMembershipDisplayForCurrentYear,
 } from '@/lib/billing'
+import type { RpnStatus } from '@/types'
 import { useNavigate } from 'react-router-dom'
 import { useGetTransactionsByUserIdQuery } from '@/hooks/transactionHooks'
 import { Badge } from './ui/badge'
 import { CircleCheckBig } from 'lucide-react'
 import { toast } from './ui/use-toast'
+
+const RPN_STATUS_CONFIG: Record<RpnStatus, { label: string; className: string }> = {
+  not_enrolled: { label: 'Non inscrit', className: 'bg-gray-100 text-gray-700' },
+  pending:      { label: 'En probation', className: 'bg-yellow-100 text-yellow-800' },
+  enrolled:     { label: 'Inscrit', className: 'bg-green-100 text-green-800' },
+  unsubscribed: { label: 'Desinscrit', className: 'bg-red-100 text-red-800' },
+}
 
 const UserAccountInfo = () => {
   const { user: userInfo, userId } = useCurrentUser()
@@ -62,6 +71,11 @@ const UserAccountInfo = () => {
         subscription: userInfo?.subscription,
       }),
     [transactions, userInfo?.primaryMember, userInfo?.subscription]
+  )
+
+  const rpnStatus = useMemo(
+    () => resolveEffectiveRpnStatus(userInfo?.subscription, rpnBalance),
+    [userInfo?.subscription, rpnBalance]
   )
   const membershipBadgeLabel = useMemo(
     () => getMembershipPaymentBadgeLabel(membershipPaymentState),
@@ -151,11 +165,17 @@ const UserAccountInfo = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Fonds RPN</CardTitle>
+          <div className='flex items-center justify-between'>
+            <CardTitle>Fonds RPN</CardTitle>
+            <Badge className={`${RPN_STATUS_CONFIG[rpnStatus].className} px-2 py-1 text-xs font-semibold`}>
+              {RPN_STATUS_CONFIG[rpnStatus].label}
+            </Badge>
+          </div>
           <CardDescription>
             <p className='inline-block rounded bg-yellow-200 px-2 py-1 font-medium text-yellow-900'>
               {rpnPaymentMessage}
-            </p></CardDescription>
+            </p>
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className='flex items-center justify-between'>
@@ -183,7 +203,13 @@ const UserAccountInfo = () => {
           </div>
           {!canPayRpn ? (
             <p className='mt-3 text-xs text-destructive'>
-              Le fonds RPN est disponible après validation du membership annuel.
+              Le fonds RPN est disponible apres validation du membership annuel.
+            </p>
+          ) : null}
+          {rpnStatus === 'unsubscribed' ? (
+            <p className='mt-3 text-xs text-destructive'>
+              Votre solde était insuffisant après plusieurs rappels. Renflouez votre fonds RPN
+              pour être automatiquement réinscrit.
             </p>
           ) : null}
         </CardContent>
