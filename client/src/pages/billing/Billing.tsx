@@ -44,6 +44,7 @@ import { formatCurrency, functionReverse, toastAxiosError } from '@/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
 import type { Transaction } from '@/types'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useGetSettingsQuery } from '@/hooks/settingHooks'
 
 type FormErrors = {
   amountInterac?: string
@@ -60,14 +61,20 @@ const Billing = () => {
   const { data: transactions = [] } = useGetTransactionsByUserIdQuery(userId)
   const { mutateAsync: newTransaction, isPending: isCreatingTransaction } =
     useNewTransactionMutation()
+  const { data: settings } = useGetSettingsQuery()
+
+  const feeOverrides = {
+    workerAmount: settings?.membershipUnitAmount,
+    studentAmount: settings?.studentMembershipUnitAmount,
+  }
 
   const familyFeesSummary = useMemo(
-    () => computeFamilyFeesSummary(userInfos),
-    [userInfos],
+    () => computeFamilyFeesSummary(userInfos, feeOverrides),
+    [userInfos, settings?.membershipUnitAmount, settings?.studentMembershipUnitAmount],
   )
   const familyFeeBreakdown = useMemo(
-    () => computeFamilyFeesBreakdown(userInfos),
-    [userInfos],
+    () => computeFamilyFeesBreakdown(userInfos, feeOverrides),
+    [userInfos, settings?.membershipUnitAmount, settings?.studentMembershipUnitAmount],
   )
 
   const recommendedTopUp = useMemo(
@@ -77,12 +84,16 @@ const Billing = () => {
         studentStatus: userInfos?.register?.studentStatus,
         membershipDueAmount: familyFeesSummary.membershipAmount,
         rpnDueAmount: familyFeesSummary.rpnAmount,
+        workerAmount: settings?.membershipUnitAmount,
+        studentAmount: settings?.studentMembershipUnitAmount,
       }),
     [
       familyFeesSummary.membershipAmount,
       familyFeesSummary.rpnAmount,
       userInfos?.register?.occupation,
       userInfos?.register?.studentStatus,
+      settings?.membershipUnitAmount,
+      settings?.studentMembershipUnitAmount,
     ],
   )
 

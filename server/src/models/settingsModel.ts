@@ -13,8 +13,12 @@ export class Settings {
   @prop({ required: true, default: 50 })
   public membershipUnitAmount!: number
 
-  // Solde minimum requis pour ne pas recevoir d’alerte (RPN)
-  @prop({ required: true, default: 10 })
+  // Montant annuel pour un etudiant a temps plein
+  @prop({ required: true, default: 25 })
+  public studentMembershipUnitAmount!: number
+
+  // Solde minimum requis par personne pour ne pas recevoir d’alerte (RPN)
+  @prop({ required: true, default: 5 })
   public minimumBalanceRPN!: number
 
   @prop({ required: true, default: 5 })

@@ -1,20 +1,12 @@
 import Loading from '@/components/Loading'
+import { MoneyFormField } from '@/components/MoneyFormField'
 import { Button } from '@/components/ui/button'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
+import { Form } from '@/components/ui/form'
 import { toast } from '@/components/ui/use-toast'
 import {
   useGetSettingsQuery,
   useUpdateSettingMutation,
 } from '@/hooks/settingHooks'
-import { ToLocaleStringFunc } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
@@ -22,6 +14,9 @@ import { z } from 'zod'
 
 const formSchema = z.object({
   membershipUnitAmount: z
+    .number()
+    .min(0, { message: 'Le montant doit être positif' }),
+  studentMembershipUnitAmount: z
     .number()
     .min(0, { message: 'Le montant doit être positif' }),
   amountPerDependent: z
@@ -32,7 +27,8 @@ const formSchema = z.object({
     .min(0, { message: 'Le montant doit être positif' }),
   maxMissedReminders: z
     .number()
-    .min(0, { message: 'Le montant doit être positif' }),
+    .int()
+    .min(0, { message: 'La valeur doit être positive' }),
 })
 
 type TransactionSettingsProps = {
@@ -43,13 +39,13 @@ const TransactionsSetttings = ({ onSuccess }: TransactionSettingsProps) => {
   const { data: settings, isPending } = useGetSettingsQuery()
   const { mutateAsync: updateSettings, isPending: loadingUpdate } =
     useUpdateSettingMutation()
-  console.log(settings)
 
   const form = useForm<z.infer<typeof formSchema>>({
     mode: 'onChange',
     resolver: zodResolver(formSchema),
     defaultValues: {
       membershipUnitAmount: 0,
+      studentMembershipUnitAmount: 0,
       amountPerDependent: 0,
       minimumBalanceRPN: 0,
       maxMissedReminders: 0,
@@ -60,6 +56,7 @@ const TransactionsSetttings = ({ onSuccess }: TransactionSettingsProps) => {
     if (settings) {
       form.reset({
         membershipUnitAmount: settings.membershipUnitAmount || 0,
+        studentMembershipUnitAmount: settings.studentMembershipUnitAmount || 0,
         amountPerDependent: settings.amountPerDependent || 0,
         minimumBalanceRPN: settings.minimumBalanceRPN || 0,
         maxMissedReminders: settings.maxMissedReminders || 0,
@@ -73,7 +70,7 @@ const TransactionsSetttings = ({ onSuccess }: TransactionSettingsProps) => {
         return toast({
           variant: 'destructive',
           title: 'Erreur',
-          description: 'Impossible de trouver l’identifiant du paramètre.',
+          description: "Impossible de trouver l'identifiant du paramètre.",
         })
       await updateSettings({ ...values, _id: settings._id })
       toast({
@@ -94,99 +91,42 @@ const TransactionsSetttings = ({ onSuccess }: TransactionSettingsProps) => {
   if (isPending || !settings) return <Loading />
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
-        <FormField
-          control={form.control}
-          name='membershipUnitAmount'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Cotisation annuelle</FormLabel>
-              <FormControl>
-                <Input
-                  type='text'
-                  placeholder='Cotisation annuelle'
-                  value={ToLocaleStringFunc(field.value)}
-                  onChange={(event) => {
-                    const rawValue = event.target.value.replace(/\s/g, '')
-                    if (/^\d*$/.test(rawValue)) {
-                      field.onChange(Number(rawValue))
-                    }
-                  }}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name='amountPerDependent'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Prélèvement décès</FormLabel>
-              <FormControl>
-                <Input
-                  type='text'
-                  placeholder='Prélèvement décès'
-                  value={ToLocaleStringFunc(field.value)}
-                  onChange={(event) => {
-                    const rawValue = event.target.value.replace(/\s/g, '')
-                    if (/^\d*$/.test(rawValue)) {
-                      field.onChange(Number(rawValue))
-                    }
-                  }}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name='minimumBalanceRPN'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Solde minimum</FormLabel>
-              <FormControl>
-                <Input
-                  type='text'
-                  placeholder='Solde minimum'
-                  value={ToLocaleStringFunc(field.value)}
-                  onChange={(event) => {
-                    const rawValue = event.target.value.replace(/\s/g, '')
-                    if (/^\d*$/.test(rawValue)) {
-                      field.onChange(Number(rawValue))
-                    }
-                  }}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name='maxMissedReminders'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Max de prélèvement manqué</FormLabel>
-              <FormControl>
-                <Input
-                  type='text'
-                  placeholder='Max de prélèvement manqué'
-                  value={ToLocaleStringFunc(field.value)}
-                  onChange={(event) => {
-                    const rawValue = event.target.value.replace(/\s/g, '')
-                    if (/^\d*$/.test(rawValue)) {
-                      field.onChange(Number(rawValue))
-                    }
-                  }}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
+        <div className='grid grid-cols-2 gap-4'>
+          <MoneyFormField
+            control={form.control}
+            name='membershipUnitAmount'
+            label='Montant cotisation annuelle travailleur'
+          />
+          <MoneyFormField
+            control={form.control}
+            name='studentMembershipUnitAmount'
+            label='Montant cotisation annuelle etudiant'
+          />
+        </div>
+
+        <div className='grid grid-cols-2 gap-4'>
+          <MoneyFormField
+            control={form.control}
+            name='amountPerDependent'
+            label='Montant Prélèvement par décès'
+          />
+          <MoneyFormField
+            control={form.control}
+            name='minimumBalanceRPN'
+            label='Solde minimum par personne au rpn'
+          />
+        </div>
+
+        <div className='w-1/2'>
+          <MoneyFormField
+            control={form.control}
+            name='maxMissedReminders'
+            label='Max de prélèvement manqués avant désactivation'
+            isInteger
+          />
+        </div>
+
         {loadingUpdate ? <Loading /> : <Button type='submit'>Valider</Button>}
       </form>
     </Form>

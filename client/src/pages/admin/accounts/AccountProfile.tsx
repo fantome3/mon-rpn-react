@@ -54,6 +54,7 @@ import { Account, type TopUpTargetWithBoth } from '@/types'
 import { useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, ArrowRight, UserRound, Wallet } from 'lucide-react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useGetSettingsQuery } from '@/hooks/settingHooks'
 
 const getUserIdFromAccount = (account?: Account) =>
   String(account?.userId?._id ?? account?.userId ?? '')
@@ -97,7 +98,17 @@ const AccountProfile = () => {
   const { mutateAsync: newTransaction, isPending: isCreatingTransaction } =
     useNewTransactionMutation()
 
-  const familyFeesSummary = useMemo(() => computeFamilyFeesSummary(user), [user])
+  const { data: settings } = useGetSettingsQuery()
+
+  const feeOverrides = {
+    workerAmount: settings?.membershipUnitAmount,
+    studentAmount: settings?.studentMembershipUnitAmount,
+  }
+
+  const familyFeesSummary = useMemo(
+    () => computeFamilyFeesSummary(user, feeOverrides),
+    [user, settings?.membershipUnitAmount, settings?.studentMembershipUnitAmount],
+  )
   const recommendedTopUp = useMemo(
     () =>
       computeRecommendedTopUpAmounts({
@@ -105,13 +116,17 @@ const AccountProfile = () => {
         studentStatus: user?.register?.studentStatus,
         membershipDueAmount: familyFeesSummary.membershipAmount,
         rpnDueAmount: familyFeesSummary.rpnAmount,
+        workerAmount: settings?.membershipUnitAmount,
+        studentAmount: settings?.studentMembershipUnitAmount,
       }),
     [
       familyFeesSummary.membershipAmount,
       familyFeesSummary.rpnAmount,
       user?.register?.occupation,
       user?.register?.studentStatus,
-    ]
+      settings?.membershipUnitAmount,
+      settings?.studentMembershipUnitAmount,
+    ],
   )
 
   const currentMembershipBalance =

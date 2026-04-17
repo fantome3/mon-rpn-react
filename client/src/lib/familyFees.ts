@@ -2,8 +2,9 @@ import {
   calculateMembershipOnlyTotal,
   calculateRpnTotal,
   FeeDetail,
+  MembershipFeeOverrides,
 } from './fees'
-import { calculateAge, getMemberFeeConfig, isBilledAsStudent } from './familyMemberRules'
+import { getMemberFeeConfig, isBilledAsStudent } from './familyMemberRules'
 import { User } from '@/types'
 
 export type FamilyFeeBreakdownItem = {
@@ -77,10 +78,14 @@ const buildFamilyFeePeople = (user?: User): FamilyFeePerson[] => {
   return people
 }
 
-const toMembershipAmount = (row: Pick<FeeDetail, 'type' | 'isMembershipActive'>) =>
-  calculateMembershipOnlyTotal([
-    { quantity: 1, type: row.type, isMembershipActive: row.isMembershipActive },
-  ])
+const toMembershipAmount = (
+  row: Pick<FeeDetail, 'type' | 'isMembershipActive'>,
+  overrides?: MembershipFeeOverrides,
+) =>
+  calculateMembershipOnlyTotal(
+    [{ quantity: 1, type: row.type, isMembershipActive: row.isMembershipActive }],
+    overrides,
+  )
 
 const toRpnAmount = (row: Pick<FeeDetail, 'type' | 'isRpnActive'>) =>
   calculateRpnTotal([
@@ -89,9 +94,10 @@ const toRpnAmount = (row: Pick<FeeDetail, 'type' | 'isRpnActive'>) =>
 
 export const computeFamilyFeesBreakdown = (
   user?: User,
+  feeOverrides?: MembershipFeeOverrides,
 ): FamilyFeeBreakdownItem[] =>
   buildFamilyFeePeople(user).map((person) => {
-    const membershipAmount = toMembershipAmount(person)
+    const membershipAmount = toMembershipAmount(person, feeOverrides)
     const rpnAmount = toRpnAmount(person)
     return {
       id: person.id,
@@ -111,8 +117,11 @@ const countActiveDependants = (user?: User): number => {
   return activeMembers.length
 }
 
-export const computeFamilyFeesSummary = (user?: User): FamilyFeesSummary => {
-  const breakdown = computeFamilyFeesBreakdown(user)
+export const computeFamilyFeesSummary = (
+  user?: User,
+  feeOverrides?: MembershipFeeOverrides,
+): FamilyFeesSummary => {
+  const breakdown = computeFamilyFeesBreakdown(user, feeOverrides)
 
   return {
     dependantCount: countActiveDependants(user),

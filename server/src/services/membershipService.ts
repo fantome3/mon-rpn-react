@@ -79,8 +79,8 @@ const calculateMembershipAmount = (
 export const processAnnualMembershipPayment = async () => {
   const users = await UserModel.find({ deletedAt: { $exists: false } })
   const settings = await SettingsModel.findOne()
-  const MEMBERSHIP_WORKER_AMOUNT = settings?.membershipUnitAmount || 50
-  const MEMBERSHIP_STUDENT_AMOUNT = 25
+  const MEMBERSHIP_WORKER_AMOUNT = settings?.membershipUnitAmount ?? 50
+  const MEMBERSHIP_STUDENT_AMOUNT = settings?.studentMembershipUnitAmount ?? 25
   const maxMissed = settings?.maxMissedReminders || 3
   const currentYear = new Date().getFullYear()
 
@@ -154,7 +154,7 @@ export const processMembershipForUser = async (userId: string) => {
 
   const settings = await SettingsModel.findOne()
   const MEMBERSHIP_WORKER_AMOUNT = settings?.membershipUnitAmount || 50
-  const MEMBERSHIP_STUDENT_AMOUNT = 25
+  const MEMBERSHIP_STUDENT_AMOUNT = settings?.studentMembershipUnitAmount ?? 25
   const currentYear = new Date().getFullYear()
 
   if (

@@ -26,7 +26,9 @@ const toPositiveAmount = (value: number) =>
 const getMembershipMinimumAmount = (
   occupation?: Occupation,
   studentStatus?: StudentStatus,
-) => (isBilledAsStudent(occupation, studentStatus) ? 25 : 50)
+  studentAmount = 25,
+  workerAmount = 50,
+) => (isBilledAsStudent(occupation, studentStatus) ? studentAmount : workerAmount)
 
 export type TargetAmountMap = Record<TopUpTargetWithBoth, number>
 
@@ -42,13 +44,22 @@ export const computeRecommendedTopUpAmounts = ({
   studentStatus,
   membershipDueAmount,
   rpnDueAmount,
+  workerAmount,
+  studentAmount,
 }: {
   occupation?: Occupation
   studentStatus?: StudentStatus
   membershipDueAmount: number
   rpnDueAmount: number
+  workerAmount?: number
+  studentAmount?: number
 }): RecommendedTopUpAmounts => {
-  const membershipMinAmount = getMembershipMinimumAmount(occupation, studentStatus)
+  const membershipMinAmount = getMembershipMinimumAmount(
+    occupation,
+    studentStatus,
+    studentAmount,
+    workerAmount,
+  )
   const membershipAmount = Math.max(
     membershipMinAmount,
     toPositiveAmount(membershipDueAmount)
