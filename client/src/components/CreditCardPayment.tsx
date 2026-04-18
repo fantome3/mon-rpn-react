@@ -91,7 +91,6 @@ const CreditCardPayment = () => {
           lastName: userInfo?.origines.lastName!,
           userTel: userInfo?.infos.tel!,
           userResidenceCountry: userInfo?.infos.residenceCountry!,
-          solde: 0,
           membership_balance: 0,
           rpn_balance: 0,
           paymentMethod: 'credit_card',

@@ -43,3 +43,34 @@ export const sendLowBalanceNotification = async (
     console.error(`❌ Erreur envoi mail de rappel`, error)
   }
 }
+
+export const sendRpnUnsubscriptionEmail = async (
+  email: string,
+  current: number,
+  required: number
+): Promise<void> => {
+  const subject = emailContents.rpnDesinscription.sujet
+  const text = emailContents.rpnDesinscription.texte({ current, required })
+  const html = emailTemplate({ content: text })
+  try {
+    await sendEmail({ to: email, subject, text, html })
+    console.log(`📭 Email de désinscription RPN envoyé à ${email}`)
+  } catch (error) {
+    console.error(`❌ Erreur envoi mail désinscription RPN`, error)
+  }
+}
+
+export const sendRpnReactivationEmail = async (
+  email: string,
+  current: number
+): Promise<void> => {
+  const subject = emailContents.rpnReactivation.sujet
+  const text = emailContents.rpnReactivation.texte({ current })
+  const html = emailTemplate({ content: text })
+  try {
+    await sendEmail({ to: email, subject, text, html })
+    console.log(`✅ Email de réactivation RPN envoyé à ${email}`)
+  } catch (error) {
+    console.error(`❌ Erreur envoi mail réactivation RPN`, error)
+  }
+}

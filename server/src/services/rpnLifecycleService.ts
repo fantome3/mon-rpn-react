@@ -29,7 +29,7 @@ export type RpnStatus = 'not_enrolled' | 'pending' | 'enrolled' | 'unsubscribed'
 
 type RpnBalanceInsufficientInput = {
   user: DocumentType<User>
-  solde: number
+  balance: number
   totalToDeduct: number
   maxMissed: number
   totalPersons: number
@@ -86,24 +86,10 @@ export const onRpnPaymentConfirmed = async (
   if (isFirstEnrollment) {
     user.subscription.rpnEnrollmentDate = new Date()
     await user.save()
-    enrollOnExternalPlatform(user)
-      .then((result) => {
-        if (result) {
-          return UserModel.updateOne(
-            { _id: user._id },
-            {
-              $set: {
-                'subscription.rpnExternalReference': result.reference,
-                'subscription.rpnMatricule':         result.matricule,
-              },
-            }
-          )
-        }
-      })
-      .catch((err) => console.error('[rpnLifecycle] enrollOnExternalPlatform:', err))
+    enrollOnExternalPlatform(user.register.email)
   } else {
     await user.save()
-    reactivateOnExternalPlatform(user.subscription.rpnExternalReference ?? '').catch((err) =>
+    reactivateOnExternalPlatform(user.register.email).catch((err) =>
       console.error('[rpnLifecycle] reactivateOnExternalPlatform:', err)
     )
     await sendRpnReactivationEmail(user.register.email, newRpnBalance)
@@ -118,7 +104,7 @@ export const onRpnPaymentConfirmed = async (
  */
 export const onRpnBalanceInsufficient = async ({
   user,
-  solde,
+  balance,
   totalToDeduct,
   maxMissed,
   totalPersons,
@@ -139,15 +125,15 @@ export const onRpnBalanceInsufficient = async ({
 
       const deactivationDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
       user.subscription.scheduledDeactivationDate = deactivationDate
-      await sendDeactivationWarningEmail(user.register.email, "rpn", deactivationDate)
+      await sendDeactivationWarningEmail(user.register.email, 'balance', deactivationDate)
       
       await user.save()
     }
   
-  await sendPrelevementFailedDecesEmail(user.register.email, totalToDeduct, solde)
+  await sendPrelevementFailedDecesEmail(user.register.email, totalToDeduct, balance)
 
   if (user.subscription.missedRpnRemindersCount >= maxMissed) {
-    await unsubscribeFromRpn(user, solde, totalToDeduct)
+    await unsubscribeFromRpn(user, balance, totalToDeduct)
   }
 }
 
@@ -165,7 +151,7 @@ export const unsubscribeFromRpn = async (
   user.subscription.missedRpnRemindersCount = 0
   await user.save()
 
-  deactivateOnExternalPlatform(user.subscription.rpnExternalReference!).catch((err) =>
+  deactivateOnExternalPlatform(user.register.email).catch((err) =>
     console.error('[rpnLifecycle] deactivateOnExternalPlatform:', err)
   )
 

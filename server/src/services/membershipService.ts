@@ -2,7 +2,7 @@ import { UserModel, User } from '../models/userModel'
 import { TransactionModel } from '../models/transactionModel'
 import { AccountModel } from '../models/accountModel'
 import { SettingsModel } from '../models/settingsModel'
-import { calculateTotalPersons } from '../utils'
+import { toNumber } from '../utils'
 import { DocumentType } from '@typegoose/typegoose'
 import {
   sendAccountDeactivatedEmail,
@@ -11,10 +11,6 @@ import {
 import labels from '../common/libelles.json'
 import { handleFailedPrelevement } from './subscriptionService'
 
-const getMembershipBalance = (account: any): number =>
-  typeof account?.membership_balance === 'number'
-    ? account.membership_balance
-    : account?.solde || 0
 
 const getRpnBalance = (account: any): number =>
   typeof account?.rpn_balance === 'number' ? account.rpn_balance : 0
@@ -81,7 +77,6 @@ export const processAnnualMembershipPayment = async () => {
   const settings = await SettingsModel.findOne()
   const MEMBERSHIP_WORKER_AMOUNT = settings?.membershipUnitAmount ?? 50
   const MEMBERSHIP_STUDENT_AMOUNT = settings?.studentMembershipUnitAmount ?? 25
-  const maxMissed = settings?.maxMissedReminders || 3
   const currentYear = new Date().getFullYear()
 
   for (const user of users) {
@@ -92,7 +87,6 @@ export const processAnnualMembershipPayment = async () => {
       continue
     }
 
-    const totalPersons = calculateTotalPersons(user)
     const totalToDeduct = calculateMembershipAmount(
       user,
       MEMBERSHIP_WORKER_AMOUNT,
@@ -102,13 +96,12 @@ export const processAnnualMembershipPayment = async () => {
     const account = await AccountModel.findOne({ userId: user._id })
     if (!account) continue
 
-    const membershipBalance = getMembershipBalance(account)
-    const rpnBalance = getRpnBalance(account)
+    const membershipBalance = toNumber(account.membership_balance, 0)
+    const rpnBalance = toNumber(account.rpn_balance, 0)
 
     if (membershipBalance >= totalToDeduct) {
       account.membership_balance = membershipBalance - totalToDeduct
       account.rpn_balance = rpnBalance
-      account.solde = account.membership_balance + account.rpn_balance
       await account.save()
 
       await TransactionModel.create({
@@ -140,7 +133,7 @@ export const processAnnualMembershipPayment = async () => {
       await handleFailedPrelevement({
         user,
         totalToDeduct,
-        solde: membershipBalance,
+        balance: membershipBalance,
       })
     }
   }
@@ -174,13 +167,12 @@ export const processMembershipForUser = async (userId: string) => {
 
   if (!account) return { status: 'NO_ACCOUNT' }
 
-  const membershipBalance = getMembershipBalance(account)
-  const rpnBalance = getRpnBalance(account)
+  const membershipBalance = toNumber(account.membership_balance, 0)
+  const rpnBalance = toNumber(account.rpn_balance, 0)
 
   if (membershipBalance >= totalToDeduct) {
     account.membership_balance = membershipBalance - totalToDeduct
     account.rpn_balance = rpnBalance
-    account.solde = account.membership_balance + account.rpn_balance
     await account.save()
 
     await TransactionModel.create({
@@ -213,7 +205,7 @@ export const processMembershipForUser = async (userId: string) => {
     await handleFailedPrelevement({
       user,
       totalToDeduct,
-      solde: membershipBalance,
+      balance: membershipBalance,
     })
 
     return {

@@ -48,7 +48,6 @@ const formSchema = z.object({
   lastName: z.string(),
   userTel: z.string(),
   userResidenceCountry: z.string(),
-  solde: z.number(),
   membership_balance: z.number(),
   rpn_balance: z.number(),
   paymentMethod: z.string(),
@@ -75,7 +74,6 @@ const Accounts = () => {
       userResidenceCountry: editingAccount
         ? editingAccount.userResidenceCountry
         : '',
-      solde: editingAccount ? editingAccount.solde : 0,
       membership_balance: editingAccount ? editingAccount.membership_balance : 0,
       rpn_balance: editingAccount ? editingAccount.rpn_balance : 0,
       paymentMethod: editingAccount ? editingAccount.paymentMethod : '',
@@ -93,7 +91,6 @@ const Accounts = () => {
         lastName: editingAccount.lastName || '',
         userTel: editingAccount.userTel || '',
         userResidenceCountry: editingAccount.userResidenceCountry || '',
-        solde: editingAccount.solde || 0,
         membership_balance: editingAccount.membership_balance || 0,
         rpn_balance: editingAccount.rpn_balance || 0,
         paymentMethod: editingAccount.paymentMethod || '',
@@ -347,8 +344,6 @@ const Accounts = () => {
     }
   }
 
-  const { register } = form
-
   return (
     <>
       <div className='container mt-16'>
@@ -439,24 +434,6 @@ const Accounts = () => {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name='solde'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className='text-sm'>Solde</FormLabel>
-                    <FormControl>
-                      <Input
-                        type='number'
-                        placeholder='Son solde'
-                        {...field}
-                        {...register('solde', { valueAsNumber: true })}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <FormField
                 control={form.control}
                 name='paymentMethod'

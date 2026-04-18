@@ -276,7 +276,6 @@ const applyDebitCandidates = async (candidates: DebitCandidate[]) => {
         update: {
           $inc: {
             rpn_balance: -candidate.totalToDeduct,
-            solde: -candidate.totalToDeduct,
           },
         },
       },
@@ -326,7 +325,7 @@ const processInsufficientFundsCandidates = async ({
       try {
         await onRpnBalanceInsufficient({
           user: userDoc,
-          solde: candidate.currentRpnBalance,
+          balance: candidate.currentRpnBalance,
           totalToDeduct: candidate.totalToDeduct,
           maxMissed: maxMissedReminders,
           totalPersons: candidate.totalPersons,
@@ -433,21 +432,17 @@ export const processDeathAnnouncement = async (announcementId: string) => {
 
   const userIds = users.map((user) => normalizeObjectId(user._id))
   const accounts = await AccountModel.find({ userId: { $in: userIds } })
-    .select('userId rpn_balance solde')
+    .select('userId rpn_balance')
     .lean()
 
-  const accountMap = new Map<string, { rpn_balance: number; solde?: number }>()
+  const accountMap = new Map<string, { rpn_balance: number }>()
   for (const account of accounts as Array<{
     userId?: unknown
     rpn_balance: number
-    solde?: number
   }>) {
     const userKey = resolveAccountUserId(account.userId)
     if (!userKey) continue
-    accountMap.set(userKey, {
-      rpn_balance: account.rpn_balance,
-      solde: account.solde,
-    })
+    accountMap.set(userKey, { rpn_balance: account.rpn_balance })
   }
 
   try {

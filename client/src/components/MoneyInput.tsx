@@ -20,14 +20,16 @@ type MoneyInputProps = {
 
 function MoneyInput({ field, label, placeholder, isInteger }: MoneyInputProps) {
   const [displayValue, setDisplayValue] = useState('')
+  const [isFocused, setIsFocused] = useState(false)
 
   useEffect(() => {
-    if (field.value === 0 || field.value === undefined) {
-      setDisplayValue('')
-    } else {
-      setDisplayValue(formatForDisplay(field.value, isInteger))
-    }
-  }, [])
+    if (isFocused) return
+    setDisplayValue(
+      field.value === 0 || field.value === undefined
+        ? ''
+        : formatForDisplay(field.value, isInteger),
+    )
+  }, [field.value, isFocused])
 
   const formatForDisplay = (value: number, asInteger: boolean): string => {
     if (!Number.isFinite(value) || value === 0) return ''
@@ -57,7 +59,10 @@ function MoneyInput({ field, label, placeholder, isInteger }: MoneyInputProps) {
     }
   }
 
+  const handleFocus = () => setIsFocused(true)
+
   const handleBlur = () => {
+    setIsFocused(false)
     field.onBlur()
     setDisplayValue(formatForDisplay(field.value, isInteger))
   }
@@ -73,6 +78,7 @@ function MoneyInput({ field, label, placeholder, isInteger }: MoneyInputProps) {
             placeholder={placeholder ?? (isInteger ? '0' : '0,00')}
             value={displayValue}
             onChange={handleChange}
+            onFocus={handleFocus}
             onBlur={handleBlur}
             className='pr-6 h-10'
           />

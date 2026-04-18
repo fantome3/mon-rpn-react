@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express'
 import expressAsyncHandler from 'express-async-handler'
 import { AccountModel } from '../models/accountModel'
-import { isAuth } from '../utils'
+import { isAuth, toNumber } from '../utils'
 import { UserModel } from '../models/userModel'
 import labels from '../common/libelles.json'
 import {
@@ -12,29 +12,14 @@ import { canIncreaseRpnBalance } from '../services/rpnPaymentEligibilityService'
 
 export const accountRouter = express.Router()
 
-const toNumber = (value: unknown, fallback = 0): number => {
-  if (typeof value === 'number' && Number.isFinite(value)) return value
-  if (typeof value === 'string') {
-    const parsed = Number(value)
-    if (Number.isFinite(parsed)) return parsed
-  }
-  return fallback
-}
-
 const resolveBalancesFromBody = (body: any) => {
-  const hasMembership = body.membership_balance !== undefined
-  const hasRpn = body.rpn_balance !== undefined
+  const membershipBalance = toNumber(body.membership_balance, 0)
 
-  const membershipBalance = hasMembership
-    ? toNumber(body.membership_balance, 0)
-    : toNumber(body.solde, 0)
-
-  const rpnBalance = hasRpn ? toNumber(body.rpn_balance, 0) : 0
+  const rpnBalance = toNumber(body.rpn_balance, 0);
 
   return {
     membership_balance: membershipBalance,
     rpn_balance: rpnBalance,
-    solde: membershipBalance + rpnBalance,
   }
 }
 

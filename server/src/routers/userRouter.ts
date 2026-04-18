@@ -176,8 +176,7 @@ userRouter.post(
         paymentMethod: accountByUserId?.paymentMethod,
         balanceAmount:
           (accountByUserId?.membership_balance || 0) +
-          (accountByUserId?.rpn_balance || 0) ||
-          accountByUserId?.solde,
+          (accountByUserId?.rpn_balance || 0),
       })
     } catch (error) {
       console.log(error)

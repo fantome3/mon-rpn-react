@@ -153,7 +153,6 @@ test('TransactionDomainService', async (t) => {
     const accountStub = {
       membership_balance: 0,
       rpn_balance: 100,
-      solde: 100,
       paymentMethod: 'interac',
       isAwaitingFirstPayment: true,
       interac: [],
@@ -197,7 +196,6 @@ test('TransactionDomainService', async (t) => {
       assert.equal(result.balanceApplied, true)
       assert.equal(result.processedBy, 'admin-1')
       assert.equal(accountStub.rpn_balance, 150)
-      assert.equal(accountStub.solde, 150)
       assert.equal(accountStub.isAwaitingFirstPayment, false)
     } finally {
       restoreAll(restorers)
@@ -211,7 +209,6 @@ test('TransactionDomainService', async (t) => {
     const accountStub = {
       membership_balance: 20,
       rpn_balance: 80,
-      solde: 100,
       save: async () => accountStub,
     }
 
@@ -250,7 +247,6 @@ test('TransactionDomainService', async (t) => {
       assert.equal(result.status, TransactionStatus.REJECTED)
       assert.equal(result.balanceApplied, false)
       assert.equal(accountStub.rpn_balance, 50)
-      assert.equal(accountStub.solde, 70)
     } finally {
       restoreAll(restorers)
     }
@@ -263,7 +259,6 @@ test('TransactionDomainService', async (t) => {
     const accountStub = {
       membership_balance: 40,
       rpn_balance: 200,
-      solde: 240,
       save: async () => accountStub,
     }
 
@@ -303,7 +298,6 @@ test('TransactionDomainService', async (t) => {
       assert.equal(result.refundedAmount, 50)
       assert.equal(result.processedBy, 'admin-3')
       assert.equal(accountStub.rpn_balance, 160)
-      assert.equal(accountStub.solde, 200)
     } finally {
       restoreAll(restorers)
     }

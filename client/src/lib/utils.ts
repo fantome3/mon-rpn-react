@@ -62,9 +62,6 @@ export const functionTranslate = (str: string) => {
   if (str === 'userNativeCountry') {
     return `Pays d'origine`
   }
-  if (str === 'solde') {
-    return 'Solde'
-  }
   if (str === 'rpn_balance') {
     return 'Solde Rpn'
   }

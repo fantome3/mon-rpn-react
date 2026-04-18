@@ -19,7 +19,6 @@ export type Account = {
   lastName: string
   userTel: string
   userResidenceCountry: string
-  solde: number
   membership_balance: number
   rpn_balance: number
   paymentMethod: PaymentMethod | string

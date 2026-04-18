@@ -39,9 +39,6 @@ class Card {
 export class Account {
   public _id?: string
 
-  @prop({ required: true })
-  public solde!: number
-
   @prop({ required: true, default: 0 })
   public membership_balance!: number
 

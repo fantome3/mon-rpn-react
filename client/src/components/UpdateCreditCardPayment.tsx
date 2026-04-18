@@ -81,7 +81,6 @@ const UpdateCreditCardPayment = () => {
           lastName: accountByUserId[0]?.lastName ?? '',
           userTel: accountByUserId[0]?.userTel ?? '',
           userResidenceCountry: accountByUserId[0]?.userResidenceCountry ?? '',
-          solde: accountByUserId[0]?.solde ?? 0,
           membership_balance: accountByUserId[0]?.membership_balance ?? 0,
           rpn_balance: accountByUserId[0]?.rpn_balance ?? 0,
           paymentMethod: 'credit_card',

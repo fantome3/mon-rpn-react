@@ -9,11 +9,11 @@ import { DocumentType } from '@typegoose/typegoose'
 export const handleFailedPrelevement = async ({
   user,
   totalToDeduct,
-  solde,
+  balance,
 }: {
   user: DocumentType<User>
   totalToDeduct: number
-  solde: number
+  balance: number
 }) => {
   user.subscription.missedRemindersCount =
     (user.subscription.missedRemindersCount || 0) + 1;
@@ -35,5 +35,5 @@ export const handleFailedPrelevement = async ({
 
   await user.save()
 
-  await sendPrelevementFailedMembershipEmail(user.register.email, totalToDeduct, solde)
+  await sendPrelevementFailedMembershipEmail(user.register.email, totalToDeduct, balance)
 }

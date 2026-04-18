@@ -129,8 +129,7 @@ const AccountProfile = () => {
     ],
   )
 
-  const currentMembershipBalance =
-    currentAccount?.membership_balance ?? currentAccount?.solde ?? 0
+  const currentMembershipBalance = currentAccount?.membership_balance ?? 0
   const currentRpnBalance = currentAccount?.rpn_balance ?? 0
 
   const outstandingTopUp = useMemo(

@@ -101,7 +101,7 @@ const UserAccountInfo = () => {
 
   useEffect(() => {
     if (account?.[0]) {
-      const nextMembership = account[0].membership_balance ?? account[0].solde ?? 0
+      const nextMembership = account[0].membership_balance ?? 0
       const nextRpn = account[0].rpn_balance ?? 0
       setMembershipBalance(nextMembership)
       setRpnBalance(nextRpn)

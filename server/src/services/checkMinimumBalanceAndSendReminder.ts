@@ -19,10 +19,7 @@ export const checkMinimumBalanceAndSendReminder = async () => {
 
     const totalPersons = calculateTotalPersons(user)
     const minRequired = totalPersons * MINIMUM_UNIT
-    const rpnBalance =
-      typeof account.rpn_balance === 'number'
-        ? account.rpn_balance
-        : account.solde
+    const rpnBalance = account.rpn_balance ?? 0
     
         if (rpnBalance < minRequired) {
           
@@ -48,13 +45,12 @@ export const sendBalanceReminderIfNeeded = async (userId: string) => {
 
   const account = await AccountModel.findOne({ userId })
   if (!account) return { status: 'NO_ACCOUNT' }
-  const rpnBalance =
-    typeof account.rpn_balance === 'number' ? account.rpn_balance : account.solde
+  const rpnBalance = account.rpn_balance ?? 0
 
   if (rpnBalance < minimumRequired) {
     await onRpnBalanceInsufficient({
       user,
-      solde: rpnBalance,
+      balance: rpnBalance,
       totalToDeduct: minimumRequired,
       maxMissed: MAX_MISSED,
       totalPersons,

@@ -518,7 +518,6 @@ export class TransactionDomainService {
     account.membership_balance =
       toPositiveAmount(account.membership_balance) + allocation.membershipAmount
     account.rpn_balance = toPositiveAmount(account.rpn_balance) + allocation.rpnAmount
-    account.solde = account.membership_balance + account.rpn_balance
     account.paymentMethod = 'interac'
     account.isAwaitingFirstPayment = false
 
@@ -583,7 +582,6 @@ export class TransactionDomainService {
     account.membership_balance =
       toPositiveAmount(account.membership_balance) - allocation.membershipAmount
     account.rpn_balance = toPositiveAmount(account.rpn_balance) - allocation.rpnAmount
-    account.solde = account.membership_balance + account.rpn_balance
 
     await account.save()
 
@@ -651,8 +649,6 @@ export class TransactionDomainService {
     }
 
     account.rpn_balance = toPositiveAmount(account.rpn_balance) - refundAmount
-    account.solde =
-      toPositiveAmount(account.membership_balance) + account.rpn_balance
     await account.save()
 
     transaction.refundedAmount = alreadyRefunded + refundAmount
@@ -816,7 +812,6 @@ export class TransactionDomainService {
     }
 
     const accountToCreate = new AccountModel({
-      solde: 0,
       membership_balance: 0,
       rpn_balance: 0,
       paymentMethod: 'interac',
