@@ -63,5 +63,11 @@
   },
   "parrainage": {
     "echecGenerationCode": "Echec génération code parainage unique après 10 essais."
+  },
+  "migration": {
+    "correctionSucces": "Soldes corrigés avec succès (migration Excel)",
+    "aucunMontant": "Veuillez saisir au moins un montant à corriger.",
+    "montantInvalide": "Le montant doit être un nombre positif.",
+    "reason": "Correction de migration Excel"
   }
 }

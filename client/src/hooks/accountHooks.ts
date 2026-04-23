@@ -39,3 +39,22 @@ export const useGetAccountDetailsQuery = (accountId?: string) =>
     queryFn: async () =>
       (await apiClient.get<Account>(`api/accounts/${accountId}`)).data,
   })
+
+export const useBalanceCorrectionMutation = () =>
+  useMutation({
+    mutationFn: async ({
+      accountId,
+      membershipBalance,
+      rpnBalance,
+    }: {
+      accountId: string
+      membershipBalance?: number
+      rpnBalance?: number
+    }) =>
+      (
+        await apiClient.post<{ message: string; account: Account }>(
+          `api/accounts/${accountId}/balance-correction`,
+          { membershipBalance, rpnBalance }
+        )
+      ).data,
+  })

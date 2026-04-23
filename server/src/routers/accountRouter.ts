@@ -9,6 +9,7 @@ import {
   normalizeInteracRef,
 } from '../services/interacReferenceService'
 import { canIncreaseRpnBalance } from '../services/rpnPaymentEligibilityService'
+import { TransactionModel } from '../models/transactionModel'
 
 export const accountRouter = express.Router()
 
@@ -209,6 +210,72 @@ accountRouter.put(
           message: labels.compte.introuvable,
         })
       }
+    } catch (error) {
+      res.status(400).json(error)
+    }
+  })
+)
+
+accountRouter.post(
+  '/:id/balance-correction',
+  isAuth,
+  expressAsyncHandler(async (req: Request, res: Response) => {
+    try {
+      const { membershipBalance, rpnBalance } = req.body
+
+      const hasMembership = membershipBalance !== undefined && membershipBalance !== null && membershipBalance !== ''
+      const hasRpn = rpnBalance !== undefined && rpnBalance !== null && rpnBalance !== ''
+
+      if (!hasMembership && !hasRpn) {
+        res.status(400).json({ message: labels.migration.aucunMontant })
+        return
+      }
+
+      const nextMembership = hasMembership ? toNumber(membershipBalance, 0) : undefined
+      const nextRpn = hasRpn ? toNumber(rpnBalance, 0) : undefined
+
+      if ((nextMembership !== undefined && nextMembership < 0) || (nextRpn !== undefined && nextRpn < 0)) {
+        res.status(400).json({ message: labels.migration.montantInvalide })
+        return
+      }
+
+      const account = await AccountModel.findById(req.params.id)
+      if (!account) {
+        res.status(404).json({ message: labels.compte.introuvable })
+        return
+      }
+
+      const previousMembership = toNumber(account.membership_balance, 0)
+      const previousRpn = toNumber(account.rpn_balance, 0)
+
+      if (nextMembership !== undefined) account.membership_balance = nextMembership
+      if (nextRpn !== undefined) account.rpn_balance = nextRpn
+      await account.save()
+
+      const membershipDiff = nextMembership !== undefined ? nextMembership - previousMembership : 0
+      const rpnDiff = nextRpn !== undefined ? nextRpn - previousRpn : 0
+
+      if (membershipDiff !== 0 || rpnDiff !== 0) {
+        const fundType =
+          membershipDiff !== 0 && rpnDiff !== 0 ? 'both'
+            : membershipDiff !== 0 ? 'membership'
+              : 'rpn'
+
+        await TransactionModel.create({
+          userId: account.userId,
+          amount: Math.abs(membershipDiff) + Math.abs(rpnDiff),
+          type: 'credit',
+          fundType,
+          membershipAmount: Math.abs(membershipDiff),
+          rpnAmount: Math.abs(rpnDiff),
+          reason: labels.migration.reason,
+          status: 'completed',
+          balanceApplied: true,
+          appliedAt: new Date(),
+        })
+      }
+
+      res.send({ message: labels.migration.correctionSucces, account })
     } catch (error) {
       res.status(400).json(error)
     }
