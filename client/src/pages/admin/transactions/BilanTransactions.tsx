@@ -1,122 +1,149 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { formatMonth } from '@/lib/utils'
-import { useGetTransactionSummaryQuery } from '@/hooks/transactionHooks'
-import { getTransactionStatusLabel } from '@/lib/transactionStatus'
-import TransactionsTotales from './TransactionsTotales'
-import MontantTotal from './MontantTotal'
-import Credit_Transaction from './Credit_Transaction'
-import Debit_Transaction from './Debit_Transaction'
+import { useState } from 'react'
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  DollarSign,
+  Scale,
+} from 'lucide-react'
+import { useGetTransactionSummaryQuery, TransactionPeriod } from '@/hooks/transactionHooks'
+import {
+  buildMonthlyChartData,
+  buildStatusChartData,
+  fillYearlyMonthlyData,
+} from '@/lib/transactionChartData'
+import { formatCurrency } from '@/lib/utils'
+import KpiCard from './KpiCard'
+import MembershipCard from './MembershipCard'
 import MonthlyPreview from './MonthlyPreview'
 import TransactionStatus from './TransactionStatus'
-import MonthlyTransactionNber from './MonthlyTransactionNber'
 import StatusTransactionDetail from './StatusTransactionDetail'
 
+const PERIOD_OPTIONS: { value: TransactionPeriod; label: string }[] = [
+  { value: 'month', label: 'Ce mois' },
+  { value: 'year', label: 'Cette annee' },
+]
+
 export default function BilanTransactions() {
-  const { data: summary, isPending } = useGetTransactionSummaryQuery()
+  const [period, setPeriod] = useState<TransactionPeriod>('year')
+  const { data: summary, isPending } = useGetTransactionSummaryQuery(period)
 
-  // Préparer les données pour le graphique mensuel
-  const monthlyChartData = summary?.monthlySummary
-    ? [...summary.monthlySummary]
-        .sort((a, b) => {
-          // Trier par date (année puis mois)
-          if (a._id.year !== b._id.year) {
-            return a._id.year - b._id.year
-          }
-          return a._id.month - b._id.month
-        })
-        .map((item) => ({
-          name: formatMonth(item._id.month, item._id.year),
-          montant: item.total,
-          transactions: item.count,
-        }))
-    : []
+  const currentYear = new Date().getFullYear()
 
-  // Préparer les données pour le graphique de statut
-  const statusChartData = summary?.statusSummary
-    ? summary.statusSummary.map((item: any) => ({
-        name: getTransactionStatusLabel(item._id),
-        value: item.count,
-      }))
-    : []
+  const rpn = summary?.rpn?.summary ?? {
+    totalTransactions: 0,
+    totalCredit: 0,
+    totalDebit: 0,
+    netBalance: 0,
+  }
 
-  const global = summary?.summary?.[0] ?? null
-  const totalTransactions = summary?.summary?.[0]?.totalTransactions ?? null
-  const totalAmount = summary?.summary?.[0]?.totalAmount ?? null
+  const monthlyChartData = fillYearlyMonthlyData(
+    buildMonthlyChartData(summary?.rpn?.monthlySummary),
+    currentYear
+  )
+  const statusChartData = buildStatusChartData(summary?.rpn?.statusSummary)
+
+  const membershipPeriodLabel =
+    period === 'year' ? `Annee ${currentYear}` : 'Mois en cours'
+
+  const netBalanceClass =
+    rpn.netBalance >= 0 ? 'text-emerald-600' : 'text-rose-600'
 
   return (
-    <div className='flex-1 space-y-4 p-4 md:p-8 pt-6'>
-      <div className='flex items-center justify-between'>
+    <div className='flex-1 space-y-6 p-4 md:p-8 pt-6'>
+      <div className='flex flex-wrap items-center justify-between gap-4'>
         <h2 className='text-3xl font-bold tracking-tight'>
           Tableau de bord financier
         </h2>
+
+        <div className='flex rounded-lg border overflow-hidden'>
+          {PERIOD_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setPeriod(opt.value)}
+              className={`px-4 py-2 text-sm font-medium transition-colors ${
+                period === opt.value
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-background text-muted-foreground hover:bg-muted'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <Tabs defaultValue='overview' className='space-y-4'>
-        <TabsList>
-          <TabsTrigger value='overview'>Vue d'ensemble</TabsTrigger>
-          <TabsTrigger value='analytics'>Analytique</TabsTrigger>
-        </TabsList>
+      <section className='space-y-4'>
+        <h3 className='text-lg font-semibold text-muted-foreground'>RPN</h3>
 
-        <TabsContent value='overview' className='space-y-4'>
-          <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
-            {global ? (
-              <>
-                <TransactionsTotales
-                  totalTransactions={global.totalTransactions}
-                  isPending={isPending}
-                />
+        <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
+          <KpiCard
+            title='Transactions'
+            value={rpn.totalTransactions}
+            subtitle='Nombre total de transactions'
+            icon={DollarSign}
+            isPending={isPending}
+          />
+          <KpiCard
+            title='Credit total'
+            value={formatCurrency(rpn.totalCredit)}
+            subtitle='Entrees de fonds'
+            icon={ArrowUpIcon}
+            isPending={isPending}
+            iconClass='text-emerald-500'
+            valueClass='text-emerald-600'
+          />
+          <KpiCard
+            title='Debit total'
+            value={formatCurrency(rpn.totalDebit)}
+            subtitle='Sorties de fonds'
+            icon={ArrowDownIcon}
+            isPending={isPending}
+            iconClass='text-rose-500'
+            valueClass='text-rose-600'
+          />
+          <KpiCard
+            title='Solde net'
+            value={formatCurrency(rpn.netBalance)}
+            subtitle='Credit - Debit'
+            icon={Scale}
+            isPending={isPending}
+            valueClass={netBalanceClass}
+          />
+        </div>
 
-                <MontantTotal
-                  totalAmount={global.totalAmount}
-                  isPending={isPending}
-                />
+        <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-7'>
+          <MonthlyPreview
+            monthlyChartData={monthlyChartData}
+            isPending={isPending}
+          />
+          <TransactionStatus
+            statusChartData={statusChartData}
+            isPending={isPending}
+          />
+        </div>
 
-                <Credit_Transaction
-                  totalCredit={global.totalCredit}
-                  isPending={isPending}
-                />
+        <StatusTransactionDetail
+          isPending={isPending}
+          totalAmount={rpn.totalCredit}
+          totalTransactions={rpn.totalTransactions}
+          summary={{ statusSummary: summary?.rpn?.statusSummary }}
+          statusChartData={statusChartData}
+        />
+      </section>
 
-                <Debit_Transaction
-                  totalDebit={global.totalDebit}
-                  isPending={isPending}
-                />
-              </>
-            ) : (
-              ''
-            )}
-          </div>
-
-          <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-7'>
-            <MonthlyPreview
-              monthlyChartData={monthlyChartData}
-              isPending={isPending}
-            />
-
-            <TransactionStatus
-              statusChartData={statusChartData}
-              isPending={isPending}
-            />
-          </div>
-        </TabsContent>
-
-        <TabsContent value='analytics' className='space-y-4'>
-          <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-7'>
-            <MonthlyTransactionNber
-              monthlyChartData={monthlyChartData}
-              isPending={isPending}
-            />
-
-            <StatusTransactionDetail
-              isPending={isPending}
-              totalAmount={totalAmount}
-              totalTransactions={totalTransactions}
-              summary={summary}
-              statusChartData={statusChartData}
-            />
-          </div>
-        </TabsContent>
-      </Tabs>
+      <section className='space-y-4'>
+        <h3 className='text-lg font-semibold text-muted-foreground'>
+          Membership
+        </h3>
+        <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
+          <MembershipCard
+            totalCredit={summary?.membership?.totalCredit ?? 0}
+            deltaPercent={summary?.membership?.deltaPercent ?? null}
+            isPending={isPending}
+            periodLabel={membershipPeriodLabel}
+          />
+        </div>
+      </section>
     </div>
   )
 }

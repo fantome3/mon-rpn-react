@@ -74,7 +74,7 @@ export const onRpnPaymentConfirmed = async (
   if (!isFirstEnrollment && !isReactivation) return
 
   const settings = await SettingsModel.findOne()
-  const minUnit = settings?.minimumBalanceRPN || 10
+  const minUnit = settings?.minimumBalanceRPN ?? 5
   const totalPersons = calculateTotalPersons(user)
   const minRequired = totalPersons * minUnit
 

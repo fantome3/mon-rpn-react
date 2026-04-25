@@ -85,7 +85,30 @@ deathAnnouncementRouter.put(
 deathAnnouncementRouter.get(
   '/summary',
   expressAsyncHandler(async (_req: Request, res: Response) => {
+    const now = new Date()
+    const currentYear = now.getFullYear()
+    const currentMonth = now.getMonth()
+
+    const yearFirstDay = new Date(currentYear, 0, 1)
+    const yearLastDay = new Date(currentYear, 12, 0)
+    const monthFirstDay = new Date(currentYear, currentMonth, 1)
+    const monthLastDay = new Date(currentYear, currentMonth + 1, 0)
+
+    const today = new Date()
+    today.setUTCHours(0, 0, 0, 0)
+    const tomorrow = new Date()
+    tomorrow.setUTCHours(0, 0, 0, 0)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    const yesterday = new Date()
+    yesterday.setUTCHours(0, 0, 0, 0)
+    yesterday.setDate(yesterday.getDate() - 1)
+
     const deaths = await DeathAnnouncementModel.aggregate([
+      {
+        $match: {
+          deathDate: { $gte: yearFirstDay, $lt: yearLastDay },
+        },
+      },
       {
         $group: {
           _id: null,
@@ -94,23 +117,6 @@ deathAnnouncementRouter.get(
       },
     ])
 
-    const date = new Date()
-    const y = date.getFullYear()
-    const m = date.getMonth()
-    const firstDay = new Date(y, m, 1)
-    const lastDate = new Date(y, m + 1, 0)
-
-    const today = new Date()
-    today.setUTCHours(0, 0, 0, 0)
-
-    const tomorrow = new Date()
-    tomorrow.setUTCHours(0, 0, 0, 0)
-    tomorrow.setDate(tomorrow.getDate() + 1)
-
-    const yesterday = new Date()
-    yesterday.setUTCHours(0, 0, 0, 0)
-    yesterday.setDate(yesterday.getDate() - 1)
-
     const currentMonthPrevieww = await DeathAnnouncementModel.aggregate([
       {
         $facet: {
@@ -118,8 +124,8 @@ deathAnnouncementRouter.get(
             {
               $match: {
                 deathDate: {
-                  $gte: firstDay,
-                  $lt: lastDate,
+                  $gte: monthFirstDay,
+                  $lt: monthLastDay,
                 },
               },
             },
@@ -172,16 +178,12 @@ deathAnnouncementRouter.get(
       },
     ])
 
-    const year = new Date().getFullYear()
-    const yearfirstDay = new Date(year, 0, 1)
-    const yearlastDay = new Date(year, 12, 0)
-
     const totalMonthly = await DeathAnnouncementModel.aggregate([
       {
         $match: {
           deathDate: {
-            $gte: yearfirstDay,
-            $lt: yearlastDay,
+            $gte: yearFirstDay,
+            $lt: yearLastDay,
           },
         },
       },

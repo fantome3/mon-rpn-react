@@ -84,52 +84,145 @@ transactionRouter.get(
   isAdmin,
   expressAsyncHandler(async (req: Request, res: Response) => {
     try {
-      const summary = await TransactionModel.aggregate([
-        {
-          $group: {
-            _id: null,
-            totalTransactions: { $sum: 1 },
-            totalAmount: { $sum: '$amount' },
-            totalCredit: {
-              $sum: { $cond: [{ $eq: ['$type', 'credit'] }, '$amount', 0] },
-            },
-            totalDebit: {
-              $sum: {
-                $cond: [{ $eq: ['$type', 'debit'] }, '$amount', 0],
+      const period = (req.query.period as string) === 'month' ? 'month' : 'year'
+      const now = new Date()
+      const y = now.getFullYear()
+      const m = now.getMonth()
+
+      const currentStart =
+        period === 'month' ? new Date(y, m, 1) : new Date(y, 0, 1)
+      const currentEnd =
+        period === 'month' ? new Date(y, m + 1, 1) : new Date(y + 1, 0, 1)
+      const previousStart =
+        period === 'month' ? new Date(y, m - 1, 1) : new Date(y - 1, 0, 1)
+      const previousEnd =
+        period === 'month' ? new Date(y, m, 1) : new Date(y, 0, 1)
+
+      const rpnFundTypes = ['rpn', 'both']
+      const membershipFundTypes = ['membership', 'both']
+
+      const rpnAmount = { $ifNull: ['$rpnAmount', '$amount'] }
+      const membershipAmount = { $ifNull: ['$membershipAmount', '$amount'] }
+
+      const [rpnSummary, rpnStatusSummary, rpnMonthlySummary, membershipCurrent, membershipPrevious] =
+        await Promise.all([
+          TransactionModel.aggregate([
+            {
+              $match: {
+                fundType: { $in: rpnFundTypes },
+                createdAt: { $gte: currentStart, $lt: currentEnd },
               },
             },
-          },
-        },
-      ])
-
-      const statusSummary = await TransactionModel.aggregate([
-        {
-          $group: {
-            _id: '$status',
-            count: { $sum: 1 },
-          },
-        },
-      ])
-
-      const monthlySummary = await TransactionModel.aggregate([
-        {
-          $group: {
-            _id: {
-              year: { $year: '$createdAt' },
-              month: { $month: '$createdAt' },
+            {
+              $group: {
+                _id: null,
+                totalTransactions: { $sum: 1 },
+                totalCredit: {
+                  $sum: { $cond: [{ $eq: ['$type', 'credit'] }, rpnAmount, 0] },
+                },
+                totalDebit: {
+                  $sum: { $cond: [{ $eq: ['$type', 'debit'] }, rpnAmount, 0] },
+                },
+              },
             },
-            total: { $sum: '$amount' },
-            count: { $sum: 1 },
-          },
-        },
-        { $sort: { '_id.year': -1, '_id.month': -1 } },
-        { $limit: 6 },
-      ])
+          ]),
+
+          TransactionModel.aggregate([
+            {
+              $match: {
+                fundType: { $in: rpnFundTypes },
+                createdAt: { $gte: currentStart, $lt: currentEnd },
+              },
+            },
+            { $group: { _id: '$status', count: { $sum: 1 } } },
+          ]),
+
+          TransactionModel.aggregate([
+            {
+              $match: {
+                fundType: { $in: rpnFundTypes },
+                createdAt: { $gte: new Date(y, 0, 1), $lt: new Date(y + 1, 0, 1) },
+              },
+            },
+            {
+              $group: {
+                _id: {
+                  year: { $year: '$createdAt' },
+                  month: { $month: '$createdAt' },
+                },
+                total: {
+                  $sum: {
+                    $cond: [{ $eq: ['$type', 'credit'] }, rpnAmount, { $multiply: [rpnAmount, -1] }],
+                  },
+                },
+                count: { $sum: 1 },
+              },
+            },
+            { $sort: { '_id.year': 1, '_id.month': 1 } },
+          ]),
+
+          TransactionModel.aggregate([
+            {
+              $match: {
+                fundType: { $in: membershipFundTypes },
+                type: 'credit',
+                createdAt: { $gte: currentStart, $lt: currentEnd },
+              },
+            },
+            {
+              $group: {
+                _id: null,
+                totalCredit: { $sum: membershipAmount },
+              },
+            },
+          ]),
+
+          TransactionModel.aggregate([
+            {
+              $match: {
+                fundType: { $in: membershipFundTypes },
+                type: 'credit',
+                createdAt: { $gte: previousStart, $lt: previousEnd },
+              },
+            },
+            {
+              $group: {
+                _id: null,
+                totalCredit: { $sum: membershipAmount },
+              },
+            },
+          ]),
+        ])
+
+      const rpnData = rpnSummary[0] ?? {
+        totalTransactions: 0,
+        totalCredit: 0,
+        totalDebit: 0,
+      }
+      const currentMembershipCredit = membershipCurrent[0]?.totalCredit ?? 0
+      const previousMembershipCredit = membershipPrevious[0]?.totalCredit ?? 0
+      const deltaPercent =
+        previousMembershipCredit === 0
+          ? null
+          : ((currentMembershipCredit - previousMembershipCredit) /
+              previousMembershipCredit) *
+            100
 
       res.send({
-        summary,
-        statusSummary,
-        monthlySummary,
+        period,
+        rpn: {
+          summary: {
+            ...rpnData,
+            netBalance: rpnData.totalCredit - rpnData.totalDebit,
+          },
+          statusSummary: rpnStatusSummary,
+          monthlySummary: rpnMonthlySummary,
+        },
+        membership: {
+          totalCredit: currentMembershipCredit,
+          previousTotalCredit: previousMembershipCredit,
+          deltaPercent,
+        },
       })
     } catch (error) {
       res.status(400).json(error)

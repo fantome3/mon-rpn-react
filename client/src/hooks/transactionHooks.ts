@@ -43,10 +43,13 @@ export const useGetAllTransactionsQuery = () =>
       (await apiClient.get<Transaction[]>(`api/transactions/all`)).data,
   })
 
-export const useGetTransactionSummaryQuery = () =>
+export type TransactionPeriod = 'year' | 'month'
+
+export const useGetTransactionSummaryQuery = (period: TransactionPeriod = 'year') =>
   useQuery({
-    queryKey: ['transactions', 'summary'],
-    queryFn: async () => (await apiClient.get(`api/transactions/summary`)).data,
+    queryKey: ['transactions', 'summary', period],
+    queryFn: async () =>
+      (await apiClient.get(`api/transactions/summary?period=${period}`)).data,
   })
 
 export const useGetTransactionsByUserIdQuery = (userId?: string) =>

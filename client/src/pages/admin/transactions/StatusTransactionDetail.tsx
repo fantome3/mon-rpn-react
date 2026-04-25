@@ -9,6 +9,15 @@ import {
 } from '@/components/ui/card'
 import { cn, formatCurrency } from '@/lib/utils'
 
+const STATUS_COLOR: Record<string, string> = {
+  'En approbation': 'bg-blue-500',
+  'En attente paiement': 'bg-amber-500',
+  'Réussie': 'bg-emerald-500',
+  'Échouée': 'bg-rose-500',
+  'Rejetée': 'bg-red-600',
+  'Remboursée': 'bg-slate-600',
+}
+
 const StatusTransactionDetail = ({
   isPending,
   statusChartData,
@@ -42,17 +51,12 @@ const StatusTransactionDetail = ({
           </CardHeader>
           <CardContent>
             <div className='space-y-4'>
-              {statusChartData.map((status: any, i: any) => (
+              {statusChartData.map((status: any, i: number) => (
                 <div key={i} className='flex items-center'>
                   <div
                     className={cn(
                       'mr-2 h-4 w-4 rounded-full',
-                      status.name === 'En approbation' && 'bg-blue-500',
-                      status.name === 'En attente paiement' && 'bg-amber-500',
-                      status.name === 'Réussie' && 'bg-emerald-500',
-                      status.name === 'Échouée' && 'bg-rose-500',
-                      status.name === 'Rejetée' && 'bg-red-600',
-                      status.name === 'Remboursée' && 'bg-slate-600'
+                      STATUS_COLOR[status.name] ?? 'bg-slate-400'
                     )}
                   />
                   <div className='flex-1 flex justify-between items-center'>

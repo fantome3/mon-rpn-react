@@ -9,7 +9,7 @@ import { onRpnBalanceInsufficient } from './rpnLifecycleService'
 
 export const checkMinimumBalanceAndSendReminder = async () => {
   const settings = await SettingsModel.findOne()
-  const MINIMUM_UNIT = settings?.minimumBalanceRPN || 50
+  const MINIMUM_UNIT = settings?.minimumBalanceRPN ?? 5
 
   const users = await UserModel.find({ deletedAt: { $exists: false } })
   for (const user of users) {
@@ -20,15 +20,14 @@ export const checkMinimumBalanceAndSendReminder = async () => {
     const totalPersons = calculateTotalPersons(user)
     const minRequired = totalPersons * MINIMUM_UNIT
     const rpnBalance = account.rpn_balance ?? 0
-    
-        if (rpnBalance < minRequired) {
-          
-          await sendLowBalanceNotification(
-            user.register.email,
-            rpnBalance,
-            minRequired
-          )
-        }
+
+    if (rpnBalance <= minRequired) {
+      await sendLowBalanceNotification(
+        user.register.email,
+        rpnBalance,
+        minRequired
+      )
+    }
   }
 }
 
@@ -47,7 +46,7 @@ export const sendBalanceReminderIfNeeded = async (userId: string) => {
   if (!account) return { status: 'NO_ACCOUNT' }
   const rpnBalance = account.rpn_balance ?? 0
 
-  if (rpnBalance < minimumRequired) {
+  if (rpnBalance <= minimumRequired) {
     await onRpnBalanceInsufficient({
       user,
       balance: rpnBalance,
@@ -55,12 +54,12 @@ export const sendBalanceReminderIfNeeded = async (userId: string) => {
       maxMissed: MAX_MISSED,
       totalPersons,
     })
-/* désaactivé courriel rpn pour éviter les spams, à réactiver si on veut remettre les rappels
-    await sendLowBalanceNotification(
-      user.register.email,
-      rpnBalance,
-      minimumRequired
-    )*/
+    /* désaactivé courriel rpn pour éviter les spams, à réactiver si on veut remettre les rappels
+        await sendLowBalanceNotification(
+          user.register.email,
+          rpnBalance,
+          minimumRequired
+        )*/
 
     return {
       status: 'REMINDER_SENT',
