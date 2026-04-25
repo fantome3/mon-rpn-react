@@ -59,6 +59,7 @@ export const resolveEffectiveRpnStatus = (
 /**
  * Appelé par transactionService.apply() après tout crédit RPN.
  * Gère l'enrôlement initial et la réactivation automatique.
+ * Utilise des mises à jour atomiques pour éviter les doublons en cas d'appels concurrents.
  */
 export const onRpnPaymentConfirmed = async (
   userId: string,
@@ -67,33 +68,70 @@ export const onRpnPaymentConfirmed = async (
   const user = await UserModel.findById(userId)
   if (!user) return
 
-  const { rpnStatus } = user.subscription
-  const isFirstEnrollment = !rpnStatus || rpnStatus === 'not_enrolled'
-  const isReactivation = rpnStatus === 'unsubscribed'
-
-  if (!isFirstEnrollment && !isReactivation) return
-
   const settings = await SettingsModel.findOne()
   const minUnit = settings?.minimumBalanceRPN ?? 5
-  const totalPersons = calculateTotalPersons(user)
-  const minRequired = totalPersons * minUnit
+  const minRequired = calculateTotalPersons(user) * minUnit
 
   if (newRpnBalance < minRequired) return
 
-  user.subscription.rpnStatus = 'enrolled'
-  user.subscription.missedRpnRemindersCount = 0
+  const { rpnStatus } = user.subscription
 
-  if (isFirstEnrollment) {
-    user.subscription.rpnEnrollmentDate = new Date()
-    await user.save()
-    enrollOnExternalPlatform(user.register.email)
-  } else {
-    await user.save()
-    reactivateOnExternalPlatform(user.register.email).catch((err) =>
-      console.error('[rpnLifecycle] reactivateOnExternalPlatform:', err)
-    )
-    await sendRpnReactivationEmail(user.register.email, newRpnBalance)
+  if (!rpnStatus || rpnStatus === 'not_enrolled') {
+    await enrollRpnMember(user)
+  } else if (rpnStatus === 'unsubscribed') {
+    await reactivateRpnMember(user, newRpnBalance)
   }
+  // rpnStatus === 'enrolled' ou 'pending' : compte déjà actif, aucune action requise
+}
+
+/**
+ * Premier enrôlement RPN.
+ * La mise à jour atomique garantit qu'un seul appel concurrent aboutit,
+ * évitant toute double inscription sur la plateforme externe.
+ */
+const enrollRpnMember = async (user: DocumentType<User>): Promise<void> => {
+  const result = await UserModel.updateOne(
+    { _id: user._id, 'subscription.rpnStatus': { $in: [null, 'not_enrolled'] } },
+    {
+      $set: {
+        'subscription.rpnStatus': 'enrolled',
+        'subscription.rpnEnrollmentDate': new Date(),
+        'subscription.missedRpnRemindersCount': 0,
+      },
+    }
+  )
+
+  if (result.modifiedCount === 0) return
+
+  enrollOnExternalPlatform(user.register.email).catch((err) =>
+    console.error('[rpnLifecycle] enrollOnExternalPlatform:', err)
+  )
+}
+
+/**
+ * Réactivation d'un membre désabonné du fonds RPN.
+ * La mise à jour atomique garantit qu'un seul appel concurrent aboutit.
+ */
+const reactivateRpnMember = async (
+  user: DocumentType<User>,
+  newRpnBalance: number
+): Promise<void> => {
+  const result = await UserModel.updateOne(
+    { _id: user._id, 'subscription.rpnStatus': 'unsubscribed' },
+    {
+      $set: {
+        'subscription.rpnStatus': 'enrolled',
+        'subscription.missedRpnRemindersCount': 0,
+      },
+    }
+  )
+
+  if (result.modifiedCount === 0) return
+
+  reactivateOnExternalPlatform(user.register.email).catch((err) =>
+    console.error('[rpnLifecycle] reactivateOnExternalPlatform:', err)
+  )
+  await sendRpnReactivationEmail(user.register.email, newRpnBalance)
 }
 
 /**

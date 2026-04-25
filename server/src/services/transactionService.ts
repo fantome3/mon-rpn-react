@@ -536,9 +536,7 @@ export class TransactionDomainService {
     }
 
     if (allocation.rpnAmount > 0) {
-      onRpnPaymentConfirmed(String(transaction.userId), account.rpn_balance).catch((err) =>
-        console.error('[rpnLifecycle] onRpnPaymentConfirmed:', err)
-      )
+      await onRpnPaymentConfirmed(String(transaction.userId), account.rpn_balance)
     }
 
     transaction.balanceApplied = true
