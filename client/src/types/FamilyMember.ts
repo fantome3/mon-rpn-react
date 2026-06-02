@@ -14,4 +14,5 @@ export type FamilyMember = {
   institution?: string             // etablissement scolaire
   studentNumber?: string           // numero etudiant (optionnel)
   livesInCanada?: boolean          // pour Pere / Mere : vit au Canada ?
+  sex?: string                     // 'M' | 'F'
 }

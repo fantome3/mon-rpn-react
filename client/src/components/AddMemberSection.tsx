@@ -75,6 +75,7 @@ const formSchema = z
     institution: z.string().optional(),
     studentNumber: z.string().optional(),
     livesInCanada: z.boolean().optional(),
+    sex: z.string().optional(),
     tel: z
       .string()
       .regex(telRegex, { message: 'Entrer numero correct' })
@@ -127,6 +128,7 @@ const defaultValues: FormValues = {
   institution: undefined,
   studentNumber: undefined,
   livesInCanada: true,
+  sex: '',
 }
 
 const AddMemberSection = () => {
@@ -332,6 +334,34 @@ const AddMemberSection = () => {
                   )}
                 />
               </div>
+
+              {/* ── Sexe ── */}
+              <FormField
+                control={form.control}
+                name='sex'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className='text-sm'>
+                      Sexe{' '}
+                      <span className='text-muted-foreground font-normal'>
+                        (optionnel)
+                      </span>
+                    </FormLabel>
+                    <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger className='w-full'>
+                          <SelectValue placeholder='Selectionner le sexe' />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value='M'>Masculin</SelectItem>
+                        <SelectItem value='F'>Feminin</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               {/* ── Date de naissance ── */}
               <FormField

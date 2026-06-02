@@ -103,7 +103,7 @@ class Register {
   public workField?: string
 }
 
-class FamilyMember {
+export class FamilyMember {
   @prop({ required: true })
   public firstName!: string
 
@@ -114,7 +114,7 @@ class FamilyMember {
   public relationship!: string
 
   @prop({ required: true, default: 'active' })
-  public status!: string //Active, Deleted,
+  public status!: string
 
   @prop({
     required: true,
@@ -137,6 +137,9 @@ class FamilyMember {
   public birthDate!: Date
 
   @prop()
+  public sex?: string // M ou F — utilisé pour le champ gender sur notrerpn.org
+
+  @prop()
   public tel?: string
 
   @prop({ enum: ['student', 'worker'] })
@@ -153,6 +156,12 @@ class FamilyMember {
 
   @prop()
   public livesInCanada?: boolean
+
+  @prop()
+  public rpnExternalReference?: string // Référence sur notrerpn.org
+
+  @prop()
+  public rpnMatricule?: string // Matricule sur notrerpn.org (ex : SALARM51027)
 }
 
 export class Subscription {
@@ -192,6 +201,12 @@ export class Subscription {
 
   @prop({ default: 0 })
   public missedRpnRemindersCount?: number // Compteur indépendant des rappels RPN (≠ membership)
+
+  @prop()
+  public rpnExternalReference?: string // Référence du membre sur notrerpn.org (retournée à l'inscription)
+
+  @prop()
+  public rpnMatricule?: string // Matricule attribué par notrerpn.org (ex: SALARM51027)
 }
 
 @modelOptions({

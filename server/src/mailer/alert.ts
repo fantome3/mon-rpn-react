@@ -4,7 +4,7 @@ import { emailContents } from './templates/LabelsSentEmails'
 
 export const sendDeactivationWarningEmail = async (
   email: string,
-  type: 'membership' | 'balance',
+  type: 'membership' | 'rpn',
   deactivationDate: Date
 ) => {
   const reason =
@@ -13,7 +13,7 @@ export const sendDeactivationWarningEmail = async (
       : 'un solde insuffisant pour participer aux prélèvements décès'
 
   const subject = emailContents.alerteDesactivation.sujet
-  const disactivationReasonText = emailContents.alerteDesactivation.texte({ raison : reason, dateLimite : deactivationDate.toLocaleDateString()})
+  const disactivationReasonText = emailContents.alerteDesactivation.texte({ raison: reason, dateLimite: deactivationDate.toLocaleDateString() })
   const html = emailTemplate({ content: disactivationReasonText })
 
   await sendEmail({ to: email, subject, text: disactivationReasonText, html })
@@ -27,23 +27,6 @@ export const sendAccountDeactivatedEmail = async (email: string) => {
   await sendEmail({ to: email, subject, text: accountDeactivationMessage, html })
 }
 
-export const sendLowBalanceNotification = async (
-  email: string,
-  balance: number,
-  required: number
-) => {
-  const subject = emailContents.soldeInsuffisant.sujet
-  const hmtlBody = emailContents.soldeInsuffisant.texte({ current: balance, minimumRequiredBalance: required})
-  const html = emailTemplate({ content: hmtlBody })
-
-  try {
-    await sendEmail({ to: email, subject, text: hmtlBody, html })
-    console.log(`📨 Email de rappel envoyé à ${email}`)
-  } catch (error) {
-    console.error(`❌ Erreur envoi mail de rappel`, error)
-  }
-}
-
 export const sendRpnUnsubscriptionEmail = async (
   email: string,
   current: number,
@@ -54,9 +37,9 @@ export const sendRpnUnsubscriptionEmail = async (
   const html = emailTemplate({ content: text })
   try {
     await sendEmail({ to: email, subject, text, html })
-    console.log(`📭 Email de désinscription RPN envoyé à ${email}`)
+    console.log(`[mailer] Email de désinscription RPN envoyé à ${email}`)
   } catch (error) {
-    console.error(`❌ Erreur envoi mail désinscription RPN`, error)
+    console.error(`[mailer] Erreur envoi mail désinscription RPN`, error)
   }
 }
 
@@ -69,8 +52,25 @@ export const sendRpnReactivationEmail = async (
   const html = emailTemplate({ content: text })
   try {
     await sendEmail({ to: email, subject, text, html })
-    console.log(`✅ Email de réactivation RPN envoyé à ${email}`)
+    console.log(`[mailer] Email de réactivation RPN envoyé à ${email}`)
   } catch (error) {
-    console.error(`❌ Erreur envoi mail réactivation RPN`, error)
+    console.error(`[mailer] Erreur envoi mail réactivation RPN`, error)
+  }
+}
+
+export const sendLowBalanceNotification = async (
+  email: string,
+  balance: number,
+  required: number
+) => {
+  const subject = emailContents.soldeInsuffisant.sujet
+  const hmtlBody = emailContents.soldeInsuffisant.texte({ current: balance, minimumRequiredBalance: required })
+  const html = emailTemplate({ content: hmtlBody })
+
+  try {
+    await sendEmail({ to: email, subject, text: hmtlBody, html })
+    console.log(`[mailer] Email de rappel envoyé à ${email}`)
+  } catch (error) {
+    console.error(`[mailer] Erreur envoi mail de rappel`, error)
   }
 }

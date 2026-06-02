@@ -86,6 +86,7 @@ const formSchema = z
     institution: z.string().optional(),
     studentNumber: z.string().optional(),
     livesInCanada: z.boolean().optional(),
+    sex: z.string().optional(),
     tel: z
       .string()
       .regex(telRegex, { message: 'Entrer numero correct' })
@@ -176,6 +177,7 @@ const Dependents = () => {
       institution: undefined,
       studentNumber: undefined,
       livesInCanada: undefined,
+      sex: '',
     },
   })
 
@@ -208,6 +210,7 @@ const Dependents = () => {
           institution: editingItem.institution,
           studentNumber: editingItem.studentNumber ?? '',
           livesInCanada: editingItem.livesInCanada,
+          sex: editingItem.sex ?? '',
         })
         editResetSignatureRef.current = nextSignature
       }
@@ -399,6 +402,7 @@ const Dependents = () => {
           institution: values.institution,
           studentNumber: values.studentNumber,
           livesInCanada: values.livesInCanada,
+          sex: values.sex,
         }
         const updatedFamilyMembers = [...(user?.familyMembers ?? [])]
         updatedFamilyMembers[getIndex] = updatedMember
@@ -585,6 +589,34 @@ const Dependents = () => {
                   )}
                 />
               </div>
+
+              {/* ── Sexe ── */}
+              <FormField
+                control={form.control}
+                name='sex'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className='text-sm'>
+                      Sexe{' '}
+                      <span className='text-muted-foreground font-normal'>
+                        (optionnel)
+                      </span>
+                    </FormLabel>
+                    <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger className='w-full'>
+                          <SelectValue placeholder='Selectionner le sexe' />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value='M'>Masculin</SelectItem>
+                        <SelectItem value='F'>Feminin</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               {/* ── Date de naissance ── */}
               <FormField

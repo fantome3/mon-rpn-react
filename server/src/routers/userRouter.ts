@@ -21,8 +21,11 @@ import {
   desactivateUserAccount,
   reactivateUserAccount,
 } from '../services/membershipService'
-import { registerUserOnExternalApp } from '../services/externalRegistrationService'
 import { softDeleteUser } from '../services/userService'
+import {
+  onFamilyMembersUpdated,
+  onFamilyMemberStatusChanged,
+} from '../services/rpnLifecycleService'
 import {
   findRegistrationConflict,
   mapRegistrationPersistenceErrorToConflict,
@@ -358,12 +361,40 @@ userRouter.put(
     try {
       const user = await UserModel.findById(req.params.id)
       if (user) {
+        const previousFamilyMembers = req.body?.familyMembers
+          ? user.familyMembers.map((m) => ({
+              _id: (m as any)._id?.toString() ?? '',
+              status: m.status,
+              rpnExternalReference: m.rpnExternalReference,
+            }))
+          : null
         Object.assign(user, req.body)
         if (req.body?.familyMembers) {
-          user.familyMembers = req.body.familyMembers
+          // Préserver les champs RPN (référence externe, matricule) gérés côté serveur
+          const rpnFieldsById = new Map(
+            user.familyMembers
+              .filter((m) => m.rpnExternalReference)
+              .map((m) => [(m as any)._id?.toString(), {
+                rpnExternalReference: m.rpnExternalReference,
+                rpnMatricule:         m.rpnMatricule,
+              }])
+          )
+          user.familyMembers = req.body.familyMembers.map((incoming: any) => {
+            const rpn = rpnFieldsById.get(incoming._id?.toString())
+            return rpn ? { ...incoming, ...rpn } : incoming
+          })
           user.markModified('familyMembers')
         }
         const updatedUser = await user.save()
+
+        if (previousFamilyMembers) {
+          onFamilyMemberStatusChanged(previousFamilyMembers, updatedUser).catch((err) =>
+            console.error('[userRouter] onFamilyMemberStatusChanged:', err)
+          )
+          onFamilyMembersUpdated(updatedUser).catch((err) =>
+            console.error('[userRouter] onFamilyMembersUpdated:', err)
+          )
+        }
         res.send({
           message: labels.utilisateur.misAJour,
           user: {
