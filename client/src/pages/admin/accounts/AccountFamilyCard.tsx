@@ -27,6 +27,7 @@ const AccountFamilyCard = ({ familyMembers }: Props) => (
               <TableHead>Nom</TableHead>
               <TableHead>Relation</TableHead>
               <TableHead>Statut</TableHead>
+              <TableHead>Matricule RPN</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -41,6 +42,7 @@ const AccountFamilyCard = ({ familyMembers }: Props) => (
                     {member.status || '-'}
                   </Badge>
                 </TableCell>
+                <TableCell>{member.rpnMatricule || '-'}</TableCell>
               </TableRow>
             ))}
           </TableBody>

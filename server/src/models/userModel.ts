@@ -216,6 +216,7 @@ export class Subscription {
     customName: 'users',
   },
 })
+
 export class User {
   public _id?: string
 

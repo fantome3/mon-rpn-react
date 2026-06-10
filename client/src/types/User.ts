@@ -53,6 +53,7 @@ export type Subscription = {
   rpnStatus?: RpnStatus
   rpnEnrollmentDate?: Date
   missedRpnRemindersCount?: number
+  rpnMatricule?: string
 }
 
 export type User = {

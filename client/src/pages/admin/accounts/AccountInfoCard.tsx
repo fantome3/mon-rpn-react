@@ -65,6 +65,10 @@ const AccountInfoCard = ({ user }: Props) => (
         <p className='text-muted-foreground'>Adresse</p>
         <p className='font-medium'>{user.infos?.address || '-'}</p>
       </div>
+      <div>
+        <p className='text-muted-foreground'>Matricule RPN</p>
+        <p className='font-medium'>{user.subscription?.rpnMatricule || '-'}</p>
+      </div>
     </CardContent>
   </Card>
 )
