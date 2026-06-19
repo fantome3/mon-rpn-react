@@ -151,17 +151,7 @@ const Accounts = () => {
     },
     {
       accessorKey: 'userTel',
-      header: ({ column }) => {
-        return (
-          <Button
-            variant='ghost'
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            Téléphone
-            <ArrowUpDown className='ml-2 h-4 w-4' />
-          </Button>
-        )
-      },
+      header: 'Téléphone',
       cell: ({ row }) => {
         const isInactive =
           row.original.userId.subscription.status === 'inactive'
@@ -199,7 +189,17 @@ const Accounts = () => {
     },
     {
       accessorKey: 'rpn_balance',
-      header: 'Solde Rpn',
+      header: ({ column }) => {
+        return (
+          <Button
+            variant='ghost'
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            Solde Rpn
+            <ArrowUpDown className='ml-2 h-4 w-4' />
+          </Button>
+        )
+      },
       cell: ({ row }) => {
         const rpnBalance: number = row.getValue('rpn_balance')
         const status = row.original.userId.subscription.status
@@ -364,6 +364,7 @@ const Accounts = () => {
                 isAwaitingFirstPayment: false,
                 paymentMethod: false,
               }}
+              initialSorting={[{ id: 'createdAt', desc: true }]}
             />
           </div>
         </>

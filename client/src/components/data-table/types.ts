@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { ColumnDef, VisibilityState } from '@tanstack/react-table'
+import type { ColumnDef, SortingState, VisibilityState } from '@tanstack/react-table'
 
 export type DataTableFilterOption = {
   label: string
@@ -22,6 +22,7 @@ export interface DataTableProps<TData, TValue> {
   data: TData[]
   initialPageIndex?: number
   initialColumnVisibility?: VisibilityState
+  initialSorting?: SortingState
   onPaginationChange?: (page: number) => void
   pageName?: string
   filters?: DataTableFilterConfig<TData>[]

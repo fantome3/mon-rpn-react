@@ -35,6 +35,7 @@ export function DataTable<TData, TValue>({
   data,
   initialPageIndex = 0,
   initialColumnVisibility = {},
+  initialSorting = [],
   pageName,
   onPaginationChange,
   filters,
@@ -50,7 +51,7 @@ export function DataTable<TData, TValue>({
   const activeFilters = useMemo(() => filters ?? [], [filters])
   const typedGlobalFilterFn = globalFilterFunction as FilterFn<TData>
 
-  const [sorting, setSorting] = useState<SortingState>([])
+  const [sorting, setSorting] = useState<SortingState>(initialSorting)
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
     initialColumnVisibility
