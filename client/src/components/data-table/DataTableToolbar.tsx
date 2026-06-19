@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import type { Table } from '@tanstack/react-table'
 import { Input } from '@/components/ui/input'
+import { Search, X } from 'lucide-react'
 import { DataTableColumnVisibility } from './DataTableColumnVisibility'
 import { DataTableFilters } from './DataTableFilters'
 import type { DataTableFilterConfig } from './types'
@@ -46,12 +47,24 @@ export const DataTableToolbar = <TData,>({
     <div className='flex flex-col gap-3 py-4 lg:flex-row lg:items-center lg:justify-between'>
       <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap'>
         {showGlobalFilter ? (
-          <Input
-            placeholder={globalFilterPlaceholder}
-            value={globalFilter}
-            onChange={(event) => onGlobalFilterChange(event.target.value)}
-            className='max-w-sm'
-          />
+          <div className='relative max-w-sm w-full'>
+            <Search className='absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none' size={15} />
+            <Input
+              placeholder={globalFilterPlaceholder}
+              value={globalFilter}
+              onChange={(event) => onGlobalFilterChange(event.target.value)}
+              className='pl-9 pr-8'
+            />
+            {globalFilter && (
+              <button
+                onClick={() => onGlobalFilterChange('')}
+                className='absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors'
+                aria-label='Effacer la recherche'
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
         ) : null}
 
         <DataTableFilters

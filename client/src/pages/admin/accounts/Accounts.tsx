@@ -33,11 +33,11 @@ import {
   toastAxiosError,
 } from '@/lib/utils'
 import { formatCanadianPhone } from '@/lib/phone.validation'
-import { Account } from '@/types'
+import { Account, FamilyMember } from '@/types'
 import { User } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ColumnDef } from '@tanstack/react-table'
-import { ArrowUpDown, Pencil } from 'lucide-react'
+import { ArrowUpDown, Pencil, Users } from 'lucide-react'
 import { useContext, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
@@ -129,9 +129,15 @@ const Accounts = () => {
         )
       },
       accessorFn: (row) => `${row.firstName} ${row.lastName}`, // Génère dynamiquement le champ
-      cell: ({ row }) => {
+      cell: ({ row, table }) => {
         const status = row.original.userId.subscription.status
         const userId = row.original.userId?._id ?? row.original.userId
+        const search = String(table.getState().globalFilter ?? '').toLowerCase().trim()
+        const matchingDependents: FamilyMember[] = search
+          ? (row.original.userId?.familyMembers ?? []).filter((m: FamilyMember) =>
+              `${m.firstName} ${m.lastName}`.toLowerCase().includes(search)
+            )
+          : []
         return (
           <div className={status === 'inactive' ? 'text-gray-400' : ''}>
             <Link
@@ -140,6 +146,14 @@ const Accounts = () => {
             >
               {row.original.firstName} {row.original.lastName}
             </Link>
+            {matchingDependents.length > 0 && (
+              <div className='flex items-center gap-1 mt-0.5 text-xs text-muted-foreground'>
+                <Users size={11} />
+                <span>
+                  À charge : {matchingDependents.map((m) => `${m.firstName} ${m.lastName}`).join(', ')}
+                </span>
+              </div>
+            )}
           </div>
         )
       },
@@ -250,6 +264,15 @@ const Accounts = () => {
           )
         }
       },
+    },
+    {
+      id: 'familyMembers',
+      accessorFn: (row) => (row.userId?.familyMembers ?? [])
+        .map((m: { firstName: string; lastName: string }) => `${m.firstName} ${m.lastName}`)
+        .join(' '),
+      enableHiding: false,
+      header: () => null,
+      cell: () => null,
     },
     {
       accessorKey: 'action',
@@ -363,6 +386,7 @@ const Accounts = () => {
                 userResidenceCountry: false,
                 isAwaitingFirstPayment: false,
                 paymentMethod: false,
+                familyMembers: false,
               }}
               initialSorting={[{ id: 'createdAt', desc: true }]}
             />
