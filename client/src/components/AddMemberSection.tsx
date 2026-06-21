@@ -660,10 +660,11 @@ const AddMemberSection = () => {
                   <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
                     <div className='space-y-0.5'>
                       <FormLabel className='text-base'>
-                        Inscrit(e) au RPN
+                        Inclure dans le membership
                       </FormLabel>
                       <FormDescription>
-                        Desinscrit(e) = non inclus dans les cotisations.
+                        Si désactivé, ce membre ne sera pas couvert par votre membership
+                        et ne pourra pas être inclus dans pour les cotisations RPN.
                       </FormDescription>
                     </div>
                     <FormControl>

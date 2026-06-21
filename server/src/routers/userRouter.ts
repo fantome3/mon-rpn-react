@@ -25,6 +25,7 @@ import { softDeleteUser } from '../services/userService'
 import {
   onFamilyMembersUpdated,
   onFamilyMemberStatusChanged,
+  onFamilyMemberRpnStatusChanged,
 } from '../services/rpnLifecycleService'
 import {
   findRegistrationConflict,
@@ -365,6 +366,7 @@ userRouter.put(
           ? user.familyMembers.map((m) => ({
               _id: (m as any)._id?.toString() ?? '',
               status: m.status,
+              rpnStatus: m.rpnStatus,
               rpnExternalReference: m.rpnExternalReference,
             }))
           : null
@@ -390,6 +392,9 @@ userRouter.put(
         if (previousFamilyMembers) {
           onFamilyMemberStatusChanged(previousFamilyMembers, updatedUser).catch((err) =>
             console.error('[userRouter] onFamilyMemberStatusChanged:', err)
+          )
+          onFamilyMemberRpnStatusChanged(previousFamilyMembers, updatedUser).catch((err) =>
+            console.error('[userRouter] onFamilyMemberRpnStatusChanged:', err)
           )
           onFamilyMembersUpdated(updatedUser).catch((err) =>
             console.error('[userRouter] onFamilyMembersUpdated:', err)

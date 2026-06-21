@@ -1,10 +1,8 @@
-import AddMemberSection from '@/components/AddMemberSection'
 import { DataTable } from '@/components/CustomTable'
 import FirstPaymentOnboardingCard from '@/components/FirstPaymentOnboardingCard'
 import Loading from '@/components/Loading'
+import ProfilLayout from '@/components/ProfilLayout'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import {
@@ -22,7 +20,7 @@ import {
 import { ColumnDef } from '@tanstack/react-table'
 import clsx from 'clsx'
 import { useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { ArrowUpDown, Pencil, Trash2, Tally1, CalendarIcon } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import CustomModal from '@/components/CustomModal'
@@ -149,7 +147,6 @@ const Dependents = () => {
   const { mutateAsync: updateUser, isPending: updateLoading } =
     useUpdateUserMutation()
 
-  const pathname = location.pathname
   const [searchParams] = useSearchParams()
   const isOnboardingQueryActive = searchParams.get('onboarding') === '1'
   const activeDependentsCount = useMemo(
@@ -285,30 +282,6 @@ const Dependents = () => {
       cell: ({ row }) => formatCanadianPhone(row.original.tel),
     },
     {
-      accessorKey: 'status',
-      header: 'Statut',
-      cell: ({ row }) => {
-        const status = row.original.status
-        if (status === 'active') {
-          return <Badge className='font-normal'>Actif</Badge>
-        }
-        if (status === 'inactive') {
-          return (
-            <Badge className='font-normal' variant='outline'>
-              Inactif
-            </Badge>
-          )
-        }
-        if (status === 'deleted') {
-          return (
-            <Badge className='font-normal' variant='destructive'>
-              Supprimé
-            </Badge>
-          )
-        }
-      },
-    },
-    {
       accessorKey: 'actions',
       header: 'Actions',
       enableHiding: false,
@@ -322,7 +295,6 @@ const Dependents = () => {
               setModalVisibility(true)
               setGetIndex(row.index)
             }}
-            disabled={row.original.status === 'deleted' ? true : false}
           />
 
           <div className='font-semibold text-[#b9bdbc] mx-4'>
@@ -337,7 +309,6 @@ const Dependents = () => {
               setDeleteModal(true)
               setGetIndex(row.index)
             }}
-            disabled={row.original.status === 'deleted' ? true : false}
           />
         </div>
       ),
@@ -347,12 +318,9 @@ const Dependents = () => {
   const deleteHandler = async () => {
     if (editingItem) {
       try {
-        const deletedMember: FamilyMember = {
-          ...editingItem,
-          status: 'deleted',
-        }
-        const updatedFamilyMembers = [...(user?.familyMembers ?? [])]
-        updatedFamilyMembers[getIndex] = deletedMember
+        const updatedFamilyMembers = (user?.familyMembers ?? []).filter(
+          (_, i) => i !== getIndex,
+        )
         const response = await updateUser({
           ...user!,
           familyMembers: updatedFamilyMembers,
@@ -436,78 +404,32 @@ const Dependents = () => {
 
   return (
     <>
-      <div className='container mb-10'>
-        <h1 className='text-center pt-10 mb-2 text-3xl font-semibold'>
-          Bienvenue {userInfo?.origines?.firstName}
-        </h1>
-        <p className='text-center text-xl font-light mb-10'>
-          Ensemble, nous sommes plus forts.
-        </p>
-
-        {shouldShowFirstPaymentOnboarding ? (
-          <FirstPaymentOnboardingCard
-            activeDependentsCount={activeDependentsCount}
+      <ProfilLayout
+        beforeAddMember={
+          shouldShowFirstPaymentOnboarding ? (
+            <FirstPaymentOnboardingCard activeDependentsCount={activeDependentsCount} />
+          ) : undefined
+        }
+      >
+        <h2 className='text-base sm:text-xl font-medium mb-4'>
+          Liste des personnes à charge
+        </h2>
+        {isPending ? (
+          <Loading />
+        ) : (
+          <DataTable
+            columns={columns}
+            data={user ? user.familyMembers.filter((m) => m.status !== 'deleted') : []}
           />
-        ) : null}
-
-        <AddMemberSection />
-        <div className='mt-10'>
-          <div className='flex justify-between'>
-            <Link
-              className={clsx('lg:text-sm text-[.80rem]', {
-                'text-primary font-semibold': pathname === '/profil',
-              })}
-              to='/profil'
-            >
-              Mon profile
-            </Link>
-            <Link
-              className={clsx('lg:text-sm text-[.80rem]', {
-                'text-primary font-semibold': pathname === '/dependents',
-              })}
-              to='/dependents'
-            >
-              Personnes à charge
-            </Link>
-            <Link
-              className={clsx('lg:text-sm text-[.80rem]', {
-                'text-primary font-semibold': pathname === '/sponsorship',
-              })}
-              to='/sponsorship'
-            >
-              Parrainage
-            </Link>
-          </div>
-          <Separator className=' mt-3 mb-1 bg-primary' />
-          <Card className='bg-[#e9f5eb] min-h-[70vh]'>
-            <CardContent className='p-8'>
-              <div className='flex items-center justify-between mb-8'>
-                <h2 className='text-xl font-medium '>
-                  Liste des personnes à charge
-                </h2>
-              </div>
-
-              {isPending ? (
-                <Loading />
-              ) : (
-                <>
-                  <DataTable
-                    columns={columns}
-                    data={user ? user?.familyMembers : []}
-                  />
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+        )}
+      </ProfilLayout>
 
       {deleteModal ? (
         <CustomModal
           setOpen={() => setDeleteModal(false)}
           open={deleteModal}
-          title='Supprimer Membre'
-          description='Voulez-vous vraiment supprimer ce membre?'
+          title='Supprimer le membre'
+          description={`Êtes-vous sûr(e) de vouloir supprimer ${editingItem?.firstName} ${editingItem?.lastName} ? Cette action est irréversible.`}
         >
           <Button
             variant='outline'
@@ -516,8 +438,8 @@ const Dependents = () => {
           >
             Annuler
           </Button>
-          <Button disabled={updateLoading} onClick={() => deleteHandler()}>
-            Ok
+          <Button variant='destructive' disabled={updateLoading} onClick={() => deleteHandler()}>
+            Supprimer définitivement
           </Button>
         </CustomModal>
       ) : (
@@ -886,10 +808,11 @@ const Dependents = () => {
                   <FormItem className='flex flex-row items-center justify-between rounded-lg border p-4'>
                     <div className='space-y-0.5'>
                       <FormLabel className='text-base'>
-                        Inscrit(e) au RPN
+                        Inclure dans le membership
                       </FormLabel>
                       <FormDescription>
-                        Desinscrit(e) = non inclus dans les cotisations.
+                        Si désactivé, ce membre ne sera pas couvert par votre membership
+                        et ne sera pas inclus dans vos cotisations.
                       </FormDescription>
                     </div>
                     <FormControl>

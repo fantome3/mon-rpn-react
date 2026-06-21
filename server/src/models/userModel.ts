@@ -157,6 +157,12 @@ export class FamilyMember {
   @prop()
   public livesInCanada?: boolean
 
+  @prop({
+    default: 'not_enrolled',
+    enum: ['not_enrolled', 'pending', 'enrolled', 'unsubscribed'],
+  })
+  public rpnStatus?: 'not_enrolled' | 'pending' | 'enrolled' | 'unsubscribed'
+
   @prop()
   public rpnExternalReference?: string // Référence sur notrerpn.org
 

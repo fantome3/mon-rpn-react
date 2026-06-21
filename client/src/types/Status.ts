@@ -72,3 +72,6 @@ export type PaymentMethod = (typeof PAYMENT_METHODS)[number]
 
 export const RESERVATION_STATUSES = ['pending', 'confirmed', 'refunded'] as const
 export type ReservationStatus = (typeof RESERVATION_STATUSES)[number]
+
+export const RPN_STATUSES = ['not_enrolled', 'pending', 'enrolled', 'unsubscribed'] as const
+export type RpnStatus = (typeof RPN_STATUSES)[number]

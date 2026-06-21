@@ -17,10 +17,10 @@ import {
   shouldResetMembershipDisplayForCurrentYear,
 } from '@/lib/billing'
 import type { RpnStatus } from '@/types'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useGetTransactionsByUserIdQuery } from '@/hooks/transactionHooks'
 import { Badge } from './ui/badge'
-import { CircleCheckBig } from 'lucide-react'
+import { ArrowRight, CircleCheckBig, ShieldCheck } from 'lucide-react'
 import { toast } from './ui/use-toast'
 
 const RPN_STATUS_CONFIG: Record<RpnStatus, { label: string; className: string }> = {
@@ -214,6 +214,16 @@ const UserAccountInfo = () => {
           ) : null}
         </CardContent>
       </Card>
+      <div className='col-span-1 sm:col-span-2 mt-2'>
+        <Link
+          to='/couverture'
+          className='group flex items-center justify-center gap-3 w-full px-6 py-4 rounded-xl bg-gradient-to-r from-emerald-600 to-green-500 text-white font-semibold text-sm shadow-lg hover:shadow-emerald-300 hover:scale-[1.02] active:scale-[0.99] transition-all duration-200'
+        >
+          <ShieldCheck className='h-5 w-5' />
+          <span>Voir ma couverture</span>
+          <ArrowRight className='h-4 w-4 group-hover:translate-x-1 transition-transform duration-200' />
+        </Link>
+      </div>
     </div>
   )
 }

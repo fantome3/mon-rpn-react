@@ -27,6 +27,7 @@ import AdminBookingList from './evenements/pageAdministrateur'
 import WeddingMenu from './evenements/WeddingMenu'
 import Billing from './billing/Billing'
 import FrequentlyAskedQuestions from './contact/FrequentlyAskedQuestions'
+import MaCouverture from './profil/MaCouverture'
 
 export {
   Login,
@@ -58,4 +59,5 @@ export {
   WeddingMenu,
   Billing,
   FrequentlyAskedQuestions,
+  MaCouverture,
 }

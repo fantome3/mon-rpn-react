@@ -62,13 +62,13 @@ async function enrollPendingFamilyMembers(
   primaryReference: string
 ): Promise<void> {
   const pending = user.familyMembers.filter(
-    (m) => m.status === 'active' && !m.rpnExternalReference
+    (m) => m.status === 'active' && !m.rpnExternalReference && m.rpnStatus !== 'unsubscribed'
   )
   if (pending.length === 0) return
 
   for (let idx = 0; idx < user.familyMembers.length; idx++) {
     const member = user.familyMembers[idx]
-    if (member.status !== 'active' || member.rpnExternalReference) continue
+    if (member.status !== 'active' || member.rpnExternalReference || member.rpnStatus === 'unsubscribed') continue
 
     const result = await enrollFamilyMemberOnExternalPlatform(user, member, primaryReference)
     if (result) {
@@ -78,6 +78,7 @@ async function enrollPendingFamilyMembers(
           $set: {
             [`familyMembers.${idx}.rpnExternalReference`]: result.reference,
             [`familyMembers.${idx}.rpnMatricule`]:         result.matricule,
+            [`familyMembers.${idx}.rpnStatus`]:            'enrolled',
           },
         }
       )
@@ -90,24 +91,32 @@ async function enrollPendingFamilyMembers(
  * qui possèdent une référence externe (déjà inscrits).
  */
 async function reactivateFamilyMembers(user: DocumentType<User>): Promise<void> {
-  const enrolled = user.familyMembers.filter(
+  const toReactivate = user.familyMembers.filter(
     (m) => m.status === 'active' && m.rpnExternalReference
   )
   await Promise.allSettled(
-    enrolled.map((m) => reactivateOnExternalPlatform(m.rpnExternalReference!))
+    toReactivate.map(async (m) => {
+      await reactivateOnExternalPlatform(m.rpnExternalReference!)
+      await UserModel.updateOne(
+        { _id: user._id, 'familyMembers._id': (m as any)._id },
+        { $set: { 'familyMembers.$.rpnStatus': 'enrolled' } }
+      )
+    })
   )
 }
 
-/**
- * Désactive sur notrerpn.org tous les membres de la famille
- * qui possèdent une référence externe.
- */
 async function deactivateFamilyMembers(user: DocumentType<User>): Promise<void> {
-  const enrolled = user.familyMembers.filter(
-    (m) => m.status === 'active' && m.rpnExternalReference
+  const toDeactivate = user.familyMembers.filter(
+    (m) => m.status === 'active' && m.rpnExternalReference && m.rpnStatus !== 'unsubscribed'
   )
   await Promise.allSettled(
-    enrolled.map((m) => deactivateOnExternalPlatform(m.rpnExternalReference!))
+    toDeactivate.map(async (m) => {
+      await deactivateOnExternalPlatform(m.rpnExternalReference!)
+      await UserModel.updateOne(
+        { _id: user._id, 'familyMembers._id': (m as any)._id },
+        { $set: { 'familyMembers.$.rpnStatus': 'unsubscribed' } }
+      )
+    })
   )
 }
 
@@ -303,6 +312,48 @@ export const unsubscribeFromRpn = async (
 
 /**
  * Appelé par le router après toute mise à jour de familyMembers.
+ * Détecte les changements explicites de rpnStatus (opt-out ou réinscription)
+ * indépendamment du changement de status membership.
+ */
+export const onFamilyMemberRpnStatusChanged = async (
+  previousMembers: MemberSnapshot[],
+  updatedUser: DocumentType<User>
+): Promise<void> => {
+  for (const updatedMember of updatedUser.familyMembers) {
+    if (updatedMember.status !== 'active') continue // géré par onFamilyMemberStatusChanged
+
+    const memberId = (updatedMember as any)._id?.toString()
+    const prev = previousMembers.find((m) => m._id === memberId)
+    if (!prev || prev.rpnStatus === updatedMember.rpnStatus) continue
+
+    const ref = updatedMember.rpnExternalReference
+
+    // Désinscription volontaire du RPN (reste dans le membership)
+    if (updatedMember.rpnStatus === 'unsubscribed' && ref) {
+      deactivateOnExternalPlatform(ref, REASON_DESINSCRIPTION_RPN_VOLONTAIRE).catch((err) =>
+        console.error('[rpnLifecycle] deactivateOnExternalPlatform (rpn opt-out):', err)
+      )
+    }
+
+    // Réinscription volontaire : membre déjà connu de notrerpn.org → réactiver
+    if (updatedMember.rpnStatus === 'pending' && ref) {
+      reactivateOnExternalPlatform(ref, REASON_REINSCRIPTION_RPN_VOLONTAIRE)
+        .then(() =>
+          UserModel.updateOne(
+            { _id: updatedUser._id, 'familyMembers._id': (updatedMember as any)._id },
+            { $set: { 'familyMembers.$.rpnStatus': 'enrolled' } }
+          )
+        )
+        .catch((err) =>
+          console.error('[rpnLifecycle] reactivateOnExternalPlatform (rpn re-enroll):', err)
+        )
+    }
+    // Si pending et sans rpnExternalReference → onFamilyMembersUpdated → enrollPendingFamilyMembers
+  }
+}
+
+/**
+ * Appelé par le router après toute mise à jour de familyMembers.
  * Si le membre principal est déjà inscrit sur notrerpn.org, inscrit
  * immédiatement les membres de la famille qui n'ont pas encore de référence.
  */
@@ -322,6 +373,7 @@ export const onFamilyMembersUpdated = async (user: DocumentType<User>): Promise<
 type MemberSnapshot = {
   _id: string
   status: string
+  rpnStatus?: string
   rpnExternalReference?: string
 }
 
@@ -329,6 +381,10 @@ const REASON_SUSPENSION_VOLONTAIRE =
   'Suspension volontaire — le membre suspend temporairement la couverture RPN de cette personne à charge'
 const REASON_REINTEGRATION_VOLONTAIRE =
   'Réintégration volontaire — couverture RPN rétablie pour cette personne à charge'
+const REASON_DESINSCRIPTION_RPN_VOLONTAIRE =
+  'Désinscription RPN volontaire — le membre retire cette personne du fonds décès'
+const REASON_REINSCRIPTION_RPN_VOLONTAIRE =
+  'Réinscription RPN volontaire — le membre réintègre cette personne au fonds décès'
 
 /**
  * Appelé par le router après toute mise à jour de familyMembers.
@@ -351,10 +407,18 @@ export const onFamilyMemberStatusChanged = async (
       deactivateOnExternalPlatform(ref, REASON_SUSPENSION_VOLONTAIRE).catch((err) =>
         console.error('[rpnLifecycle] deactivateOnExternalPlatform (status change):', err)
       )
+      UserModel.updateOne(
+        { _id: updatedUser._id, 'familyMembers._id': (updatedMember as any)._id },
+        { $set: { 'familyMembers.$.rpnStatus': 'unsubscribed' } }
+      ).catch((err) => console.error('[rpnLifecycle] rpnStatus unsubscribed (status change):', err))
     } else if (updatedMember.status === 'active') {
       reactivateOnExternalPlatform(ref, REASON_REINTEGRATION_VOLONTAIRE).catch((err) =>
         console.error('[rpnLifecycle] reactivateOnExternalPlatform (status change):', err)
       )
+      UserModel.updateOne(
+        { _id: updatedUser._id, 'familyMembers._id': (updatedMember as any)._id },
+        { $set: { 'familyMembers.$.rpnStatus': 'enrolled' } }
+      ).catch((err) => console.error('[rpnLifecycle] rpnStatus enrolled (status change):', err))
     }
   }
 }

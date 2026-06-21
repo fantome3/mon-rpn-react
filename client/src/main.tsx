@@ -39,6 +39,7 @@ import {
   AdminBookingList,
   WeddingMenu,
   Billing,
+  MaCouverture,
 } from './pages/index.ts'
 import './lib/i18n'
 import { StoreProvider } from './lib/Store.tsx'
@@ -73,6 +74,7 @@ const router = createBrowserRouter(
         <Route path='' element={<ProtectedRoute />}>
           <Route path='/profil' element={<Profil />} />
           <Route path='/summary' element={<UserHomPage />} />
+          <Route path='/couverture' element={<MaCouverture />} />
           <Route path='/dependents' element={<Dependents />} />
           <Route path='/sponsorship' element={<Sponsorship />} />
           <Route path='/payment-method' element={<PaymentMethod />} />

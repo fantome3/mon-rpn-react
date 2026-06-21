@@ -1,9 +1,12 @@
 import type {
   Occupation,
   ResidenceCountryStatus,
+  RpnStatus,
   StudentStatus,
   SubscriptionStatus,
 } from './Status'
+
+export type { RpnStatus }
 import type { FamilyMember } from './FamilyMember'
 
 export type EmergencyContact = {
@@ -41,8 +44,6 @@ export type Infos = {
   hasInsurance: boolean
   emergencyContacts?: EmergencyContact[]
 }
-
-export type RpnStatus = 'not_enrolled' | 'pending' | 'enrolled' | 'unsubscribed'
 
 export type Subscription = {
   startDate: Date
