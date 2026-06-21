@@ -89,7 +89,7 @@ export const getMemberFeeConfig = (
       member.livesInCanada !== undefined
         ? member.livesInCanada
         : isResidentByStatus(member.residenceCountryStatus)
-    return { type: 'worker', isMembershipActive: isResident }
+    return { type: 'student', isMembershipActive: isResident }
   }
 
   // Conjoint(e) et Enfant adulte

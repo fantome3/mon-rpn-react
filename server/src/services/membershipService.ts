@@ -58,7 +58,7 @@ const calculateMembershipAmount = (
           ? member.livesInCanada
           : member.residenceCountryStatus !== 'visitor'
       if (!isResident) continue
-      total += workerAmount
+      total += studentAmount
     } else {
       // Conjoint(e) et Enfant adulte
       const hasOccupationData = member.occupation !== undefined
