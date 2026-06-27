@@ -3,8 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { Account } from '@/types'
 import { toast } from '@/components/ui/use-toast'
 
-const FIRST_PAYMENT_REDIRECT_PATH = '/dependents?onboarding=1'
-const FIRST_PAYMENT_ALLOWED_PATHS = ['/dependents', '/billing', '/payment-method']
+const FIRST_PAYMENT_REDIRECT_PATH = '/profil/dependents?onboarding=1'
+const FIRST_PAYMENT_ALLOWED_PATHS = ['/profil/dependents', '/billing', '/payment-method']
 
 const hasSubmittedPaymentFlag = (pathname: string, search: string) => {
   if (pathname !== '/summary') return false

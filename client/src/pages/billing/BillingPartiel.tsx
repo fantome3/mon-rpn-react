@@ -132,7 +132,7 @@ const BillingPartiel = () => {
               <p className='text-lg font-medium'>Tous vos membres sont à jour</p>
               <p className='text-sm text-muted-foreground'>Il n'y a aucun membre en attente de couverture membership ou d'inscription RPN.</p>
               <Button asChild variant='outline'>
-                <Link to='/couverture'>Voir ma couverture</Link>
+                <Link to='/profil/couverture'>Voir ma couverture</Link>
               </Button>
             </CardContent>
           </Card>

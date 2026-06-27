@@ -8,9 +8,9 @@ import AddMemberSection from './AddMemberSection'
 
 const TABS = [
   { label: 'Mon profil',          path: '/profil' },
-  { label: 'Ma couverture',       path: '/couverture' },
-  { label: 'Personnes à charge',  path: '/dependents' },
-  { label: 'Parrainage',          path: '/sponsorship' },
+  { label: 'Ma couverture',       path: '/profil/couverture' },
+  { label: 'Personnes à charge',  path: '/profil/dependents' },
+  { label: 'Parrainage',          path: '/profil/sponsorship' },
 ] as const
 
 type Props = {

@@ -75,10 +75,10 @@ const router = createBrowserRouter(
         {/**Auth Users */}
         <Route path='' element={<ProtectedRoute />}>
           <Route path='/profil' element={<Profil />} />
+          <Route path='/profil/couverture' element={<MaCouverture />} />
+          <Route path='/profil/dependents' element={<Dependents />} />
+          <Route path='/profil/sponsorship' element={<Sponsorship />} />
           <Route path='/summary' element={<UserHomPage />} />
-          <Route path='/couverture' element={<MaCouverture />} />
-          <Route path='/dependents' element={<Dependents />} />
-          <Route path='/sponsorship' element={<Sponsorship />} />
           <Route path='/payment-method' element={<PaymentMethod />} />
           <Route path='/billing' element={<Billing />} />
           <Route path='/billing-partiel' element={<BillingPartiel />} />

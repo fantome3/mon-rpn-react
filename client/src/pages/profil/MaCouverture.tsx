@@ -143,7 +143,7 @@ const MaCouverture = () => {
           })}
 
           <div className='flex flex-col gap-2 pt-2'>
-            <Link to='/dependents' className='text-primary text-sm font-medium hover:underline'>
+            <Link to='/profil/dependents' className='text-primary text-sm font-medium hover:underline'>
               Gérer les membres →
             </Link>
             {partialBillingMembers.length > 0 && (

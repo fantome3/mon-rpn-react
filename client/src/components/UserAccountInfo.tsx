@@ -216,7 +216,7 @@ const UserAccountInfo = () => {
       </Card>
       <div className='col-span-1 sm:col-span-2 mt-2'>
         <Link
-          to='/couverture'
+          to='/profil/couverture'
           className='group flex items-center justify-center gap-3 w-full px-6 py-4 rounded-xl bg-gradient-to-r from-emerald-600 to-green-500 text-white font-semibold text-sm shadow-lg hover:shadow-emerald-300 hover:scale-[1.02] active:scale-[0.99] transition-all duration-200'
         >
           <ShieldCheck className='h-5 w-5' />

@@ -169,7 +169,7 @@ const Billing = () => {
                 Votre membership est à jour et le RPN n'est pas actif sur votre compte.
               </p>
               <Button asChild variant='outline'>
-                <Link to='/couverture'>Voir ma couverture</Link>
+                <Link to='/profil/couverture'>Voir ma couverture</Link>
               </Button>
             </CardContent>
           </Card>
@@ -181,7 +181,7 @@ const Billing = () => {
                 Choisissez les services à payer pour chaque membre selon votre budget.
                 Pour ajouter des personnes à charge :{' '}
                 <Button asChild variant='link' className='h-auto p-0 text-xs'>
-                  <Link to='/dependents'>Personnes à charge</Link>
+                  <Link to='/profil/dependents'>Personnes à charge</Link>
                 </Button>
               </CardDescription>
             </CardHeader>
