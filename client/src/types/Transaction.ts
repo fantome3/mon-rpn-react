@@ -17,4 +17,5 @@ export type Transaction = {
   refInterac?: string
   status: TransactionStatus
   createdAt?: Date
+  partialCoverage?: { memberId: string; services: ('membership' | 'rpn')[] }[]
 }

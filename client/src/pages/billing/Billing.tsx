@@ -1,189 +1,118 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useMemo, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { CheckCircle2 } from 'lucide-react'
 import { SearchEngineOptimization } from '@/components/SearchEngine/SearchEngineOptimization'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/use-toast'
+import { MemberServiceCard } from '@/components/billing/MemberServiceCard'
+import { InteracPaymentSection } from '@/components/billing/InteracPaymentSection'
+import type { InteracPaymentSectionErrors } from '@/components/billing/InteracPaymentSection'
 import {
   useGetTransactionsByUserIdQuery,
   useNewTransactionMutation,
 } from '@/hooks/transactionHooks'
+import { useFullBillingMembers } from '@/hooks/useFullBillingMembers'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { createInteracFormSchema } from '@/lib/createInteracFormSchema'
 import {
   buildTopUpReason,
-  canPrimaryMemberTopUpRpn,
-  computeTopUpAllocation,
-  getTransactionAmountByFund,
   getMembershipCurrentYearTransactions,
   getRpnCurrentYearTransactions,
-  getTargetFromQuery,
+  getTransactionAmountByFund,
   getTransactionStatusLabel,
-  isRpnTopUpTarget,
-  RPN_PAYMENT_BLOCK_MESSAGE,
   type FundAmountContext,
-  type TopUpTargetWithBoth,
 } from '@/lib/billing'
 import { getTransactionStatusBadgeClass } from '@/lib/transactionStatus'
-import {
-  computeFamilyFeesBreakdown,
-  computeFamilyFeesSummary,
-} from '@/lib/familyFees'
-import {
-  TOP_UP_TARGET_OPTIONS,
-  TARGET_DESCRIPTIONS,
-  TARGET_LABELS,
-  computeRecommendedTopUpAmounts,
-  getBreakdownRowsForTarget,
-  getRowAmountByTarget,
-} from '@/lib/paymentPlan'
 import { formatCurrency, functionReverse, toastAxiosError } from '@/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
 import type { Transaction } from '@/types'
-import { useCurrentUser } from '@/hooks/useCurrentUser'
-import { useGetSettingsQuery } from '@/hooks/settingHooks'
 
-type FormErrors = {
-  amountInterac?: string
-  refInterac?: string
-  target?: string
-}
+type MemberSelection = { membership: boolean; rpn: boolean }
 
 const Billing = () => {
-  const { user: userInfos, userId } = useCurrentUser()
+  const { userId } = useCurrentUser()
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
   const queryClient = useQueryClient()
 
   const { data: transactions = [] } = useGetTransactionsByUserIdQuery(userId)
-  const { mutateAsync: newTransaction, isPending: isCreatingTransaction } =
-    useNewTransactionMutation()
-  const { data: settings } = useGetSettingsQuery()
+  const { mutateAsync: newTransaction, isPending: isSubmitting } = useNewTransactionMutation()
 
-  const feeOverrides = {
-    workerAmount: settings?.membershipUnitAmount,
-    studentAmount: settings?.studentMembershipUnitAmount,
+  const eligibleMembers = useFullBillingMembers()
+
+  const initialSelections = useMemo(() => {
+    const map: Record<string, MemberSelection> = {}
+    for (const item of eligibleMembers) {
+      map[item.memberId] = { membership: item.needsMembership, rpn: item.needsRpn }
+    }
+    return map
+  }, [eligibleMembers])
+
+  const [selections, setSelections] = useState<Record<string, MemberSelection>>(initialSelections)
+  const [amountInterac, setAmountInterac] = useState('')
+  const [refInterac, setRefInterac] = useState('')
+  const [errors, setErrors] = useState<InteracPaymentSectionErrors>({})
+
+  const handleMembershipToggle = (memberId: string, checked: boolean) => {
+    setSelections((prev) => ({
+      ...prev,
+      [memberId]: {
+        membership: checked,
+        rpn: checked ? (prev[memberId]?.rpn ?? false) : false,
+      },
+    }))
   }
 
-  const familyFeesSummary = useMemo(
-    () => computeFamilyFeesSummary(userInfos, feeOverrides),
-    [userInfos, settings?.membershipUnitAmount, settings?.studentMembershipUnitAmount],
-  )
-  const familyFeeBreakdown = useMemo(
-    () => computeFamilyFeesBreakdown(userInfos, feeOverrides),
-    [userInfos, settings?.membershipUnitAmount, settings?.studentMembershipUnitAmount],
-  )
+  const handleRpnToggle = (memberId: string, checked: boolean) => {
+    setSelections((prev) => ({
+      ...prev,
+      [memberId]: { ...prev[memberId], rpn: checked },
+    }))
+  }
 
-  const recommendedTopUp = useMemo(
-    () =>
-      computeRecommendedTopUpAmounts({
-        occupation: userInfos?.register?.occupation,
-        studentStatus: userInfos?.register?.studentStatus,
-        membershipDueAmount: familyFeesSummary.membershipAmount,
-        rpnDueAmount: familyFeesSummary.rpnAmount,
-        workerAmount: settings?.membershipUnitAmount,
-        studentAmount: settings?.studentMembershipUnitAmount,
-      }),
-    [
-      familyFeesSummary.membershipAmount,
-      familyFeesSummary.rpnAmount,
-      userInfos?.register?.occupation,
-      userInfos?.register?.studentStatus,
-      settings?.membershipUnitAmount,
-      settings?.studentMembershipUnitAmount,
-    ],
-  )
+  const { membershipTotal, rpnTotal, total, partialCoverage } = useMemo(() => {
+    let membership = 0
+    let rpn = 0
+    // Only family members in partialCoverage — primary member covered by server automatically
+    const coverage: { memberId: string; services: ('membership' | 'rpn')[] }[] = []
 
-  const defaultMembershipAmount = recommendedTopUp.membershipAmount
-  const defaultRpnAmount = recommendedTopUp.rpnAmount
-  const defaultAmounts = recommendedTopUp.targetAmounts
+    for (const item of eligibleMembers) {
+      const sel = selections[item.memberId]
+      if (!sel) continue
 
-  const initialTarget = useMemo(
-    () => getTargetFromQuery(searchParams.get('target')),
-    [searchParams],
-  )
-  const section = searchParams.get('section')
+      if (sel.membership && item.needsMembership) membership += item.membershipFee
+      if (sel.rpn && item.needsRpn) rpn += item.rpnFee
 
-  const [selectedTarget, setSelectedTarget] =
-    useState<TopUpTargetWithBoth | null>(initialTarget ?? 'both')
-  const [amountInterac, setAmountInterac] = useState<string>(
-    String(defaultAmounts[initialTarget ?? 'both']),
-  )
-  const [refInterac, setRefInterac] = useState('')
-  const [errors, setErrors] = useState<FormErrors>({})
+      if (!item.isPrimary) {
+        const services: ('membership' | 'rpn')[] = []
+        if (sel.membership && item.needsMembership) services.push('membership')
+        if (sel.rpn && item.needsRpn) services.push('rpn')
+        if (services.length > 0) coverage.push({ memberId: item.memberId, services })
+      }
+    }
 
-  const membershipTransactions = useMemo(
-    () => getMembershipCurrentYearTransactions(transactions),
-    [transactions],
-  )
-  const rpnTransactions = useMemo(
-    () => getRpnCurrentYearTransactions(transactions),
-    [transactions],
-  )
-  const canPayRpn = useMemo(
-    () =>
-      canPrimaryMemberTopUpRpn({
-        isPrimaryMember: userInfos?.primaryMember,
-        transactions,
-        subscription: userInfos?.subscription,
-      }),
-    [transactions, userInfos?.primaryMember, userInfos?.subscription],
-  )
-  const breakdownRows = useMemo(() => {
-    if (!selectedTarget) return []
-    return getBreakdownRowsForTarget(familyFeeBreakdown, selectedTarget)
-  }, [familyFeeBreakdown, selectedTarget])
+    return { membershipTotal: membership, rpnTotal: rpn, total: membership + rpn, partialCoverage: coverage }
+  }, [eligibleMembers, selections])
 
-  useEffect(() => {
-    if (!selectedTarget) return
-    setAmountInterac(String(defaultAmounts[selectedTarget]))
-  }, [defaultAmounts, selectedTarget])
-
-  useEffect(() => {
-    if (!selectedTarget || !isRpnTopUpTarget(selectedTarget) || canPayRpn) return
-    setSelectedTarget('membership')
-    setErrors((prev) => ({ ...prev, target: RPN_PAYMENT_BLOCK_MESSAGE }))
-  }, [canPayRpn, selectedTarget])
-
-  useEffect(() => {
-    if (section !== 'payment') return
-    const paymentBlock = document.getElementById('billing-payment-section')
-    paymentBlock?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }, [section])
-
-  const isSubmitting = isCreatingTransaction
+  const membershipTransactions = useMemo(() => getMembershipCurrentYearTransactions(transactions), [transactions])
+  const rpnTransactions = useMemo(() => getRpnCurrentYearTransactions(transactions), [transactions])
+  const amountContext: FundAmountContext = { membershipDueAmount: membershipTotal, rpnDueAmount: rpnTotal }
 
   const onSubmit = async () => {
-    if (!selectedTarget) {
-      setErrors({ target: 'Veuillez selectionner un type de paiement.' })
+    if (total === 0) {
+      toast({ variant: 'destructive', title: 'Aucun service sélectionné', description: 'Veuillez cocher au moins un service.' })
       return
     }
 
-    if (isRpnTopUpTarget(selectedTarget) && !canPayRpn) {
-      setErrors({ target: RPN_PAYMENT_BLOCK_MESSAGE })
-      toast({
-        variant: 'destructive',
-        title: 'Paiement RPN bloque',
-        description: RPN_PAYMENT_BLOCK_MESSAGE,
-      })
-      return
-    }
-
-    const schema = createInteracFormSchema(defaultAmounts[selectedTarget])
+    const schema = createInteracFormSchema(total)
     const validation = schema.safeParse({ amountInterac, refInterac })
 
     if (!validation.success) {
-      const nextErrors: FormErrors = {}
+      const nextErrors: InteracPaymentSectionErrors = {}
       for (const issue of validation.error.issues) {
-        if (issue.path[0] === 'amountInterac') {
-          nextErrors.amountInterac = issue.message
-        }
-        if (issue.path[0] === 'refInterac') {
-          nextErrors.refInterac = issue.message
-        }
+        if (issue.path[0] === 'amountInterac') nextErrors.amountInterac = issue.message
+        if (issue.path[0] === 'refInterac') nextErrors.refInterac = issue.message
       }
       setErrors(nextErrors)
       return
@@ -191,36 +120,34 @@ const Billing = () => {
 
     try {
       setErrors({})
-      const validatedAmount = validation.data.amountInterac
-      const allocation = computeTopUpAllocation({
-        target: selectedTarget,
-        amountInterac: validatedAmount,
-        membershipDueAmount: defaultMembershipAmount,
-        rpnDueAmount: defaultRpnAmount,
-      })
+      const fundType = membershipTotal > 0 && rpnTotal > 0 ? 'both'
+        : membershipTotal > 0 ? 'membership' : 'rpn'
+
+      // hasFamilyMembers: at least one non-primary member was shown in the list
+      const hasFamilyMembers = eligibleMembers.some((m) => !m.isPrimary)
+      // Always send explicit partialCoverage when family members exist in the list,
+      // so the server knows exactly who to cover (empty array = cover nobody in family)
+      const coveragePayload = hasFamilyMembers ? partialCoverage : undefined
 
       await newTransaction({
         userId,
-        amount: validatedAmount,
+        amount: total,
         type: 'credit',
-        fundType: selectedTarget,
-        membershipAmount: allocation.membershipAmount,
-        rpnAmount: allocation.rpnAmount,
-        reason: buildTopUpReason(selectedTarget),
-        refInterac,
+        fundType,
+        membershipAmount: membershipTotal,
+        rpnAmount: rpnTotal,
+        reason: buildTopUpReason(fundType),
+        refInterac: validation.data.refInterac,
         status: 'pending',
-      })
+        partialCoverage: coveragePayload,
+      } as any)
 
       await queryClient.invalidateQueries({ queryKey: ['accountsByUserId', userId] })
       await queryClient.invalidateQueries({ queryKey: ['transactions', userId] })
 
       setRefInterac('')
-      toast({
-        variant: 'success',
-        title: 'Paiement enregistré',
-        description:
-          'Merci ! Votre paiement sera vérifié dans les prochains jours.',
-      })
+      setAmountInterac('')
+      toast({ variant: 'success', title: 'Paiement enregistré', description: 'Merci ! Votre paiement sera vérifié dans les prochains jours.' })
       navigate('/summary?payment=submitted', { replace: true })
     } catch (error) {
       toastAxiosError(error)
@@ -229,215 +156,83 @@ const Billing = () => {
 
   return (
     <>
-      <SearchEngineOptimization
-        title='Facturation'
-        description='Paiement et historique des transactions'
-      />
+      <SearchEngineOptimization title='Facturation' description='Paiement et historique des transactions' />
       <div className='container mb-10 pt-10'>
         <h1 className='text-3xl font-semibold'>Facturation</h1>
 
-        <Card className='mt-8' id='billing-payment-section'>
-          <CardHeader>
-            <CardTitle>Paiement</CardTitle>
-            <CardDescription>
-              Depuis votre compte bancaire, faire le virement Interac à l'adresse courriel suivante <strong>acq.quebec@gmail.com </strong>
-              et utiliser si demandé le mot de passe <strong>monrpn</strong>
-              <div className='mt-2'>
+        {eligibleMembers.length === 0 ? (
+          <Card className='mt-8'>
+            <CardContent className='pt-6 flex flex-col items-center gap-4 text-center'>
+              <CheckCircle2 className='h-10 w-10 text-green-500' />
+              <p className='text-lg font-medium'>Aucun paiement disponible</p>
+              <p className='text-sm text-muted-foreground'>
+                Votre membership est à jour et le RPN n'est pas actif sur votre compte.
+              </p>
+              <Button asChild variant='outline'>
+                <Link to='/couverture'>Voir ma couverture</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className='mt-8' id='billing-payment-section'>
+            <CardHeader>
+              <CardTitle>Sélection des services</CardTitle>
+              <CardDescription>
+                Choisissez les services à payer pour chaque membre selon votre budget.
+                Pour ajouter des personnes à charge :{' '}
                 <Button asChild variant='link' className='h-auto p-0 text-xs'>
-                  <Link to='/faq#facturation'>Voir questions fréquentes!</Link>
+                  <Link to='/dependents'>Personnes à charge</Link>
                 </Button>
-              </div>
-            </CardDescription>
-          </CardHeader>
-          <CardContent className='space-y-5'>
-            <div>
-              <p className='mb-2 font-medium'>Type de paiement</p>
-              <RadioGroup
-                value={selectedTarget ?? ''}
-                onValueChange={(value) => {
-                  const nextValue = getTargetFromQuery(value)
-                  if (nextValue && isRpnTopUpTarget(nextValue) && !canPayRpn) {
-                    setErrors((prev) => ({
-                      ...prev,
-                      target: RPN_PAYMENT_BLOCK_MESSAGE,
-                    }))
-                    return
-                  }
-                  setSelectedTarget(nextValue)
-                  setErrors((prev) => ({ ...prev, target: undefined }))
-                }}
-                className='grid sm:grid-cols-3 gap-3'
-              >
-                {TOP_UP_TARGET_OPTIONS.map((target) => {
-                  const isSelected = selectedTarget === target
-                  const isDisabled = isRpnTopUpTarget(target) && !canPayRpn
-                  return (
-                    <Label
-                      key={target}
-                      htmlFor={target}
-                      className={`flex items-start justify-between gap-3 rounded-lg border p-3 transition-colors ${isDisabled
-                        ? 'cursor-not-allowed opacity-60'
-                        : 'cursor-pointer'
-                        } ${isSelected ? 'border-primary bg-primary/5' : 'border-border'
-                        }`}
-                    >
-                      <span className='flex items-start gap-3'>
-                        <RadioGroupItem
-                          value={target}
-                          id={target}
-                          className='mt-1'
-                          disabled={isDisabled}
-                        />
-                        <span>
-                          <span className='block text-sm font-semibold'>
-                            {TARGET_LABELS[target]}
-                          </span>
-                          <span className='block text-xs text-muted-foreground'>
-                            {TARGET_DESCRIPTIONS[target]}
-                          </span>
-                        </span>
-                      </span>
-                      <span className='whitespace-nowrap text-sm font-semibold'>
-                        {formatCurrency(defaultAmounts[target])}
-                      </span>
-                    </Label>
-                  )
-                })}
-              </RadioGroup>
-              {errors.target ? (
-                <p className='mt-1 text-sm text-destructive'>{errors.target}</p>
-              ) : null}
-              {!canPayRpn ? (
-                <p className='mt-1 text-xs text-muted-foreground'>
-                  Le mode RPN seul est bloqué tant que votre membership annuel
-                  (membre principal + personnes à charge) n'est pas valide.
-                </p>
-              ) : null}
-            </div>
+              </CardDescription>
+            </CardHeader>
+            <CardContent className='space-y-4'>
+              {eligibleMembers.map((item) => {
+                const sel = selections[item.memberId] ?? { membership: false, rpn: false }
+                const rpnDisabled = item.needsMembership && !sel.membership
+                return (
+                  <MemberServiceCard
+                    key={item.memberId}
+                    memberId={item.memberId}
+                    name={item.name}
+                    relationship={item.relationship}
+                    needsMembership={item.needsMembership}
+                    needsRpn={item.needsRpn}
+                    membershipFee={item.membershipFee}
+                    rpnFee={item.rpnFee}
+                    membershipLocked={item.membershipLocked}
+                    selMembership={sel.membership}
+                    selRpn={sel.rpn}
+                    rpnDisabled={rpnDisabled}
+                    onMembershipChange={(checked) => handleMembershipToggle(item.memberId, checked)}
+                    onRpnChange={(checked) => handleRpnToggle(item.memberId, checked)}
+                  />
+                )
+              })}
+            </CardContent>
+          </Card>
+        )}
 
-            <div className='grid gap-4 sm:grid-cols-2'>
-              <div>
-                <Label htmlFor='amountInterac'>Montant interact envoyé</Label>
-                <Input
-                  id='amountInterac'
-                  type='number'
-                  min={0}
-                  value={amountInterac}
-                  onChange={(event) => setAmountInterac(event.target.value)}
-                />
-                {selectedTarget ? (
-                  <p className='mt-1 text-xs text-muted-foreground'>
-                    Montant minimal: {formatCurrency(defaultAmounts[selectedTarget])}
-                    {selectedTarget === 'both'
-                      ? ' (tout surplus sera ajoute au fonds RPN).'
-                      : '.'}
-                  </p>
-                ) : null}
-                {errors.amountInterac ? (
-                  <p className='mt-1 text-sm text-destructive'>
-                    {errors.amountInterac}
-                  </p>
-                ) : null}
-              </div>
-              <div>
-                <Label htmlFor="refInterac" className="text-xs">
-                  Numéro de référence interact fourni par la banque après virement (voir tes courriels)
-                </Label>
-                <Input
-                  id='refInterac'
-                  value={refInterac}
-                  onChange={(event) => setRefInterac(event.target.value)}
-                  placeholder='C2Km0'
-                />
-                {errors.refInterac ? (
-                  <p className='mt-1 text-sm text-destructive'>
-                    {errors.refInterac}
-                  </p>
-                ) : null}
-              </div>
-            </div>
-
-            <Button
-              onClick={onSubmit}
-              disabled={isSubmitting}
-              className='w-full sm:w-auto'
-            >
-              Valider Paiement
-            </Button>
-
-            <div className='rounded-lg border bg-slate-50 p-4'>
-              <div className='flex items-start justify-between gap-3'>
-                <div>
-                  <p className='font-medium'>Récapitulatif à payer</p>
-                  <p className='text-xs text-muted-foreground'>
-                    Montants calculés selon votre situation familiale.
-                  </p>
-                </div>
-                <Button asChild variant='link' className='h-auto p-0 text-xs'>
-                  <Link to='/dependents'>Ajouter une personne à charge</Link>
-                </Button>
-              </div>
-
-              {selectedTarget ? (
-                <div className='mt-3 space-y-2'>
-                  {breakdownRows.map((item) => (
-                    <div
-                      key={item.id}
-                      className='rounded-lg border bg-background p-3'
-                    >
-                      <div className='flex items-start justify-between gap-3'>
-                        <div>
-                          <p className='text-sm font-semibold leading-tight'>
-                            {item.fullName}
-                          </p>
-                          <p className='text-xs text-muted-foreground'>
-                            {item.relationshipLabel}
-                          </p>
-                        </div>
-                        <p className='text-sm font-semibold'>
-                          {formatCurrency(
-                            getRowAmountByTarget(item, selectedTarget),
-                          )}
-                        </p>
-                      </div>
-                      {selectedTarget === 'both' ? (
-                        <div className='mt-2 grid grid-cols-2 gap-1 text-xs text-muted-foreground'>
-                          <p>
-                            Membership: {formatCurrency(item.membershipAmount)}
-                          </p>
-                          <p>RPN Minimal: {formatCurrency(item.rpnAmount)}</p>
-                        </div>
-                      ) : null}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className='mt-3 text-sm text-muted-foreground'>
-                  Selectionnez un type de paiement pour afficher le détail.
-                </p>
-              )}
-
-              <div className='mt-3 rounded-lg bg-background p-3 text-sm'>
-                <div className='flex items-center justify-between'>
-                  <span>Total Membership</span>
-                  <strong>{formatCurrency(defaultMembershipAmount)}</strong>
-                </div>
-                <div className='mt-1 flex items-center justify-between'>
-                  <span>Total Fonds RPN</span>
-                  <strong>{formatCurrency(defaultRpnAmount)}</strong>
-                </div>
-                <div className='mt-2 flex items-center justify-between border-t pt-2 text-base'>
-                  <span className='font-semibold'>Total à payer maintenant</span>
-                  <strong>
-                    {formatCurrency(
-                      selectedTarget ? defaultAmounts[selectedTarget] : 0,
-                    )}
-                  </strong>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {eligibleMembers.length > 0 && (
+          <Card className='mt-6'>
+            <CardHeader>
+              <CardTitle>Récapitulatif & paiement</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <InteracPaymentSection
+                membershipTotal={membershipTotal}
+                rpnTotal={rpnTotal}
+                total={total}
+                amountInterac={amountInterac}
+                refInterac={refInterac}
+                errors={errors}
+                isSubmitting={isSubmitting}
+                onAmountChange={setAmountInterac}
+                onRefChange={setRefInterac}
+                onSubmit={onSubmit}
+              />
+            </CardContent>
+          </Card>
+        )}
 
         <div className='mt-10 grid gap-6 lg:grid-cols-2'>
           <Card>
@@ -448,10 +243,7 @@ const Billing = () => {
               <BillingTable
                 transactions={membershipTransactions}
                 fund='membership'
-                amountContext={{
-                  membershipDueAmount: defaultMembershipAmount,
-                  rpnDueAmount: defaultRpnAmount,
-                }}
+                amountContext={amountContext}
                 emptyMessage='Aucune transaction Membership pour cette année.'
               />
             </CardContent>
@@ -465,11 +257,8 @@ const Billing = () => {
               <BillingTable
                 transactions={rpnTransactions}
                 fund='rpn'
-                amountContext={{
-                  membershipDueAmount: defaultMembershipAmount,
-                  rpnDueAmount: defaultRpnAmount,
-                }}
-                emptyMessage='Aucune transaction RPN pour cette annee.'
+                amountContext={amountContext}
+                emptyMessage='Aucune transaction RPN pour cette année.'
               />
             </CardContent>
           </Card>
@@ -504,18 +293,14 @@ const BillingTable = ({
                 ? functionReverse(String(transaction.createdAt).substring(0, 10))
                 : '-'}
             </p>
-            <Badge
-              className={getTransactionStatusBadgeClass(transaction.status)}
-            >
+            <Badge className={getTransactionStatusBadgeClass(transaction.status)}>
               {getTransactionStatusLabel(transaction.status)}
             </Badge>
           </div>
           <p className='mt-1'>
             Montant:{' '}
             <strong>
-              {formatCurrency(
-                getTransactionAmountByFund(transaction, fund, amountContext),
-              )}
+              {formatCurrency(getTransactionAmountByFund(transaction, fund, amountContext))}
             </strong>
           </p>
           <p className='mt-1'>Motif: {transaction.reason}</p>

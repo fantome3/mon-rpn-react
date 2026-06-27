@@ -110,8 +110,19 @@ export const getTargetFromQuery = (
   return null
 }
 
-export const buildBillingPaymentUrl = (target: TopUpTargetWithBoth) =>
-  `/billing?section=payment&target=${target}`
+export const buildBillingPaymentUrl = (
+  target: TopUpTargetWithBoth,
+  context?: { memberName?: string; suggestedAmount?: number },
+) => {
+  const base = `/billing?section=payment&target=${target}`
+  if (!context) return base
+  const params = new URLSearchParams()
+  if (context.memberName) params.set('memberName', context.memberName)
+  if (context.suggestedAmount !== undefined)
+    params.set('suggestedAmount', String(context.suggestedAmount))
+  const qs = params.toString()
+  return qs ? `${base}&${qs}` : base
+}
 
 export const getTransactionDate = (transaction: Transaction) =>
   transaction.createdAt ? new Date(transaction.createdAt) : null

@@ -1,102 +1,101 @@
+import { useState, useContext } from 'react'
 import Loading from '@/components/Loading'
 import MemberCoverageCard from '@/components/MemberCoverageCard'
 import ProfilLayout from '@/components/ProfilLayout'
-import { toast } from '@/components/ui/use-toast'
-import { useGetUserDetailsQuery, useUpdateUserMutation } from '@/hooks/userHooks'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
+  useGetUserDetailsQuery,
+  useUpdateUserMutation,
+  useTogglePrimaryRpnMutation,
+} from '@/hooks/userHooks'
+import { usePartialBillingMembers } from '@/hooks/usePartialBillingMembers'
+import { resolveFamilyMemberRpnStatus } from '@/lib/familyMemberRules'
 import { Store } from '@/lib/Store'
 import { toastAxiosError } from '@/lib/utils'
-import { FamilyMember } from '@/types'
+import type { RpnStatus } from '@/types/User'
 import { useQueryClient } from '@tanstack/react-query'
-import { useContext } from 'react'
 import { Link } from 'react-router-dom'
 
+type ConfirmTarget =
+  | { type: 'primary'; name: string }
+  | { type: 'family'; realIndex: number; name: string }
+
 const MaCouverture = () => {
-  const { state, dispatch } = useContext(Store)
+  const { state } = useContext(Store)
   const { userInfo } = state
-  const queryClient = useQueryClient()
 
   const { data: user, isPending } = useGetUserDetailsQuery(userInfo?._id ?? '')
-  const { mutateAsync: updateUser, isPending: updateLoading } = useUpdateUserMutation()
+  const partialBillingMembers = usePartialBillingMembers()
+  const { mutateAsync: updateUser, isPending: isUpdatingFamily } = useUpdateUserMutation()
+  const { mutateAsync: togglePrimaryRpn, isPending: isUpdatingPrimary } = useTogglePrimaryRpnMutation(userInfo?._id ?? '')
+  const queryClient = useQueryClient()
 
-  const toggleMembership = async (member: FamilyMember, realIndex: number) => {
-    if (!user) return
-    try {
-      const updatedMember: FamilyMember = {
-        ...member,
-        status: member.status === 'active' ? 'inactive' : 'active',
-      }
-      const updatedFamilyMembers = [...user.familyMembers]
-      updatedFamilyMembers[realIndex] = updatedMember
-      const response = await updateUser({ ...user, familyMembers: updatedFamilyMembers, _id: user._id })
-      const nextUserInfo = { ...userInfo!, ...response.user }
-      dispatch({ type: 'USER_LOGIN', payload: nextUserInfo })
-      localStorage.setItem('userInfo', JSON.stringify(nextUserInfo))
-      await queryClient.invalidateQueries({ queryKey: ['user', userInfo?._id ?? ''] })
-      toast({
-        variant: 'default',
-        title: updatedMember.status === 'active' ? 'Membership activé' : 'Membership désactivé',
-        description: `${member.firstName} ${member.lastName} a été mis à jour.`,
-      })
-    } catch (error) {
-      toastAxiosError(error)
-    }
-  }
-
-  const toggleRpn = async (member: FamilyMember, realIndex: number) => {
-    if (!user) return
-    try {
-      const nextRpnStatus = member.rpnStatus === 'enrolled' ? 'unsubscribed' : 'pending'
-      const updatedMember: FamilyMember = { ...member, rpnStatus: nextRpnStatus }
-      const updatedFamilyMembers = [...user.familyMembers]
-      updatedFamilyMembers[realIndex] = updatedMember
-      const response = await updateUser({ ...user, familyMembers: updatedFamilyMembers, _id: user._id })
-      const nextUserInfo = { ...userInfo!, ...response.user }
-      dispatch({ type: 'USER_LOGIN', payload: nextUserInfo })
-      localStorage.setItem('userInfo', JSON.stringify(nextUserInfo))
-      await queryClient.invalidateQueries({ queryKey: ['user', userInfo?._id ?? ''] })
-      toast({
-        variant: 'default',
-        title: nextRpnStatus === 'unsubscribed' ? 'Désinscrit du RPN' : 'Inscription RPN en cours',
-        description:
-          nextRpnStatus === 'unsubscribed'
-            ? `${member.firstName} ${member.lastName} a été désinscrit du fonds RPN.`
-            : `${member.firstName} ${member.lastName} sera inscrit après confirmation du serveur.`,
-      })
-    } catch (error) {
-      toastAxiosError(error)
-    }
-  }
-
-  const togglePrimaryRpn = async () => {
-    if (!user) return
-    try {
-      const currentRpnStatus = user.subscription?.rpnStatus ?? 'not_enrolled'
-      const nextRpnStatus = currentRpnStatus === 'enrolled' ? 'unsubscribed' : 'pending'
-      const response = await updateUser({
-        ...user,
-        subscription: { ...user.subscription, rpnStatus: nextRpnStatus } as typeof user.subscription,
-        _id: user._id,
-      })
-      const nextUserInfo = { ...userInfo!, ...response.user }
-      dispatch({ type: 'USER_LOGIN', payload: nextUserInfo })
-      localStorage.setItem('userInfo', JSON.stringify(nextUserInfo))
-      await queryClient.invalidateQueries({ queryKey: ['user', userInfo?._id ?? ''] })
-      toast({
-        variant: 'default',
-        title: nextRpnStatus === 'unsubscribed' ? 'Désinscrit du RPN' : 'Inscription RPN en cours',
-        description:
-          nextRpnStatus === 'unsubscribed'
-            ? 'Vous avez été désinscrit du fonds RPN.'
-            : 'Votre inscription sera confirmée après traitement.',
-      })
-    } catch (error) {
-      toastAxiosError(error)
-    }
-  }
+  const [confirmTarget, setConfirmTarget] = useState<ConfirmTarget | null>(null)
+  const isUpdating = isUpdatingFamily || isUpdatingPrimary
 
   const visibleMembers = (user?.familyMembers ?? [])
     .map((m, i) => ({ member: m, realIndex: i }))
     .filter(({ member }) => member.status !== 'deleted')
+
+  const primaryName = `${user?.origines?.firstName ?? userInfo?.origines?.firstName ?? ''} ${user?.origines?.lastName ?? userInfo?.origines?.lastName ?? ''}`
+
+  const executePrimaryToggle = async (currentStatus: RpnStatus) => {
+    try {
+      const action = currentStatus === 'enrolled' ? 'unsubscribe' : 'resubscribe'
+      await togglePrimaryRpn(action)
+      await queryClient.invalidateQueries({ queryKey: ['user', userInfo?._id ?? ''] })
+    } catch (err) {
+      toastAxiosError(err)
+    }
+  }
+
+  const executeFamilyToggle = async (realIndex: number, currentStatus: RpnStatus) => {
+    if (!user) return
+    const newStatus: RpnStatus = currentStatus === 'enrolled' ? 'unsubscribed' : 'pending'
+    const updatedMembers = (user.familyMembers ?? []).map((m, i) =>
+      i === realIndex ? { ...m, rpnStatus: newStatus } : m
+    )
+    try {
+      await updateUser({ ...user, familyMembers: updatedMembers })
+      await queryClient.invalidateQueries({ queryKey: ['user', userInfo?._id ?? ''] })
+    } catch (err) {
+      toastAxiosError(err)
+    }
+  }
+
+  const handleToggleRpn = (target: ConfirmTarget, currentStatus: RpnStatus) => {
+    if (currentStatus === 'enrolled') {
+      setConfirmTarget(target)
+    } else {
+      if (target.type === 'primary') {
+        executePrimaryToggle(currentStatus)
+      } else {
+        executeFamilyToggle(target.realIndex, currentStatus)
+      }
+    }
+  }
+
+  const handleConfirmUnsubscribe = async () => {
+    if (!confirmTarget) return
+    if (confirmTarget.type === 'primary') {
+      await executePrimaryToggle('enrolled')
+    } else {
+      await executeFamilyToggle(confirmTarget.realIndex, 'enrolled')
+    }
+    setConfirmTarget(null)
+  }
+
+  const primaryRpnStatus = user?.subscription?.rpnStatus ?? 'not_enrolled'
+  const primaryCanToggle = primaryRpnStatus === 'enrolled' || primaryRpnStatus === 'unsubscribed'
 
   return (
     <ProfilLayout>
@@ -105,35 +104,83 @@ const MaCouverture = () => {
       ) : (
         <div className='space-y-4'>
           <MemberCoverageCard
-            name={`${user?.origines?.firstName ?? userInfo?.origines?.firstName ?? ''} ${user?.origines?.lastName ?? userInfo?.origines?.lastName ?? ''}`}
+            name={primaryName}
             membershipIncluded={user?.subscription?.status === 'active'}
-            rpnStatus={user?.subscription?.rpnStatus ?? 'not_enrolled'}
+            rpnStatus={primaryRpnStatus}
             rpnMatricule={user?.subscription?.rpnMatricule}
-            isLoading={updateLoading}
-            onToggleRpn={togglePrimaryRpn}
+            isLoading={isUpdating}
+            onToggleRpn={
+              primaryCanToggle
+                ? () => handleToggleRpn({ type: 'primary', name: primaryName }, primaryRpnStatus)
+                : undefined
+            }
           />
 
-          {visibleMembers.map(({ member, realIndex }) => (
-            <MemberCoverageCard
-              key={realIndex}
-              name={`${member.firstName} ${member.lastName}`}
-              relationship={member.relationship}
-              membershipIncluded={member.status === 'active'}
-              rpnStatus={member.rpnStatus ?? 'not_enrolled'}
-              rpnMatricule={member.rpnMatricule}
-              isLoading={updateLoading}
-              onToggleMembership={() => toggleMembership(member, realIndex)}
-              onToggleRpn={() => toggleRpn(member, realIndex)}
-            />
-          ))}
+          {visibleMembers.map(({ member, realIndex }) => {
+            const status: RpnStatus = resolveFamilyMemberRpnStatus(member)
+            const canToggle = status === 'enrolled' || status === 'unsubscribed'
+            const memberName = `${member.firstName} ${member.lastName}`
+            return (
+              <MemberCoverageCard
+                key={realIndex}
+                name={memberName}
+                relationship={member.relationship}
+                membershipIncluded={member.status === 'active'}
+                membershipPending={
+                  member.status === 'active' &&
+                  member.membershipCoveredThisYear === null
+                }
+                rpnStatus={status}
+                rpnMatricule={member.rpnMatricule}
+                isLoading={isUpdating}
+                onToggleRpn={
+                  canToggle
+                    ? () => handleToggleRpn({ type: 'family', realIndex, name: memberName }, status)
+                    : undefined
+                }
+              />
+            )
+          })}
 
-          <div className='pt-2'>
+          <div className='flex flex-col gap-2 pt-2'>
             <Link to='/dependents' className='text-primary text-sm font-medium hover:underline'>
               Gérer les membres →
             </Link>
+            {partialBillingMembers.length > 0 && (
+              <Link to='/billing-partiel' className='text-primary text-sm font-medium hover:underline'>
+                Régulariser la couverture ({partialBillingMembers.length} membre{partialBillingMembers.length > 1 ? 's' : ''} en attente) →
+              </Link>
+            )}
           </div>
         </div>
       )}
+
+      <AlertDialog
+        open={confirmTarget !== null}
+        onOpenChange={(open) => { if (!open) setConfirmTarget(null) }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Désinscrire du RPN ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmTarget?.name
+                ? `${confirmTarget.name} ne bénéficiera plus du fonds d'entraide en cas de décès.`
+                : "Cette personne ne bénéficiera plus du fonds d'entraide en cas de décès."}{' '}
+              Vous pourrez réinscrire à tout moment depuis cette page.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isUpdating}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              className='bg-red-600 hover:bg-red-700 text-white'
+              disabled={isUpdating}
+              onClick={handleConfirmUnsubscribe}
+            >
+              Désinscrire
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </ProfilLayout>
   )
 }

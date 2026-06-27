@@ -315,6 +315,8 @@ export const relations = [
   { name: 'Enfant' },
   { name: 'Père' },
   { name: 'Mère' },
+  { name: 'Beau-père' },
+  { name: 'Belle-mère' },
 ]
 
 export const canadianResidenceStatus: Array<{

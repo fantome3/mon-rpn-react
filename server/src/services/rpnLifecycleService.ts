@@ -61,14 +61,23 @@ async function enrollPendingFamilyMembers(
   user: DocumentType<User>,
   primaryReference: string
 ): Promise<void> {
-  const pending = user.familyMembers.filter(
-    (m) => m.status === 'active' && !m.rpnExternalReference && m.rpnStatus !== 'unsubscribed'
+  const allActive = user.familyMembers.filter((m) => m.status === 'active')
+  const pending = allActive.filter(
+    (m) => !m.rpnExternalReference && m.rpnStatus === 'pending'
   )
+
+  console.log(`[rpnLifecycle] enrollPendingFamilyMembers — ${allActive.length} membres actifs, ${pending.length} en attente d'inscription`)
+  if (allActive.length > 0) {
+    allActive.forEach((m) => {
+      console.log(`  · ${m.firstName} ${m.lastName} : rpnStatus=${m.rpnStatus ?? 'null'} rpnRef=${m.rpnExternalReference ?? 'ABSENT'}`)
+    })
+  }
+
   if (pending.length === 0) return
 
   for (let idx = 0; idx < user.familyMembers.length; idx++) {
     const member = user.familyMembers[idx]
-    if (member.status !== 'active' || member.rpnExternalReference || member.rpnStatus === 'unsubscribed') continue
+    if (member.status !== 'active' || member.rpnExternalReference || member.rpnStatus !== 'pending') continue
 
     const result = await enrollFamilyMemberOnExternalPlatform(user, member, primaryReference)
     if (result) {
@@ -138,23 +147,31 @@ export const onRpnPaymentConfirmed = async (
 
   const settings = await SettingsModel.findOne()
   const minUnit = settings?.minimumBalanceRPN ?? 5
-  const minRequired = calculateTotalPersons(user) * minUnit
+  const totalPersons = calculateTotalPersons(user)
+  const minRequired = totalPersons * minUnit
 
-  if (newRpnBalance < minRequired) return
+  console.log(`[rpnLifecycle] onRpnPaymentConfirmed — userId=${userId} solde=${newRpnBalance} minRequis=${minRequired} (${totalPersons} personnes × ${minUnit}$) rpnStatus=${user.subscription.rpnStatus} rpnRef=${user.subscription.rpnExternalReference ?? 'ABSENT'}`)
+
+  if (newRpnBalance < minRequired) {
+    console.warn(`[rpnLifecycle] Solde insuffisant (${newRpnBalance} < ${minRequired}) — aucune inscription déclenchée`)
+    return
+  }
 
   const { rpnStatus } = user.subscription
 
   if (!rpnStatus || rpnStatus === 'not_enrolled') {
+    console.log('[rpnLifecycle] → INSCRIPTION du membre principal')
     await enrollRpnMember(user)
   } else if (rpnStatus === 'unsubscribed') {
+    console.log('[rpnLifecycle] → RÉACTIVATION du membre principal')
     await reactivateRpnMember(user, newRpnBalance)
-  }
-  // rpnStatus === 'enrolled' : compte déjà actif
-  // On vérifie quand même s'il y a des membres de la famille en attente d'inscription
-  else if (rpnStatus === 'enrolled' && user.subscription.rpnExternalReference) {
+  } else if (rpnStatus === 'enrolled' && user.subscription.rpnExternalReference) {
+    console.log('[rpnLifecycle] → Membre principal déjà inscrit, vérification des membres famille en attente')
     enrollPendingFamilyMembers(user, user.subscription.rpnExternalReference).catch((err) =>
       console.error('[rpnLifecycle] enrollPendingFamilyMembers (payment):', err)
     )
+  } else if (rpnStatus === 'enrolled' && !user.subscription.rpnExternalReference) {
+    console.warn('[rpnLifecycle] Membre principal enrolled MAIS rpnExternalReference ABSENT — impossible d\'inscrire les membres famille')
   }
 }
 
@@ -176,6 +193,22 @@ const enrollRpnMember = async (user: DocumentType<User>): Promise<void> => {
   )
 
   if (dbResult.modifiedCount === 0) return
+
+  // Pré-marquer tous les membres actifs sans référence externe comme 'pending'
+  // pour qu'enrollPendingFamilyMembers les prenne en compte (filtre rpnStatus === 'pending')
+  await UserModel.updateOne(
+    { _id: user._id },
+    { $set: { 'familyMembers.$[elem].rpnStatus': 'pending' } },
+    {
+      arrayFilters: [
+        {
+          'elem.status': 'active',
+          'elem.rpnExternalReference': { $exists: false },
+          'elem.rpnStatus': { $ne: 'unsubscribed' },
+        },
+      ],
+    },
+  )
 
   enrollOnExternalPlatform(user)
     .then(async (result) => {

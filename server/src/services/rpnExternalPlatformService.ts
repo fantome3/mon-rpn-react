@@ -35,6 +35,8 @@ const RELATIONSHIP_MAP: Readonly<Record<string, string>> = {
   'Conjoint(e)': 'HUSBAND_WIFE',
   'Père':        'PARENT',
   'Mère':        'PARENT',
+  'Beau-père':   'PARENT',
+  'Belle-mère':  'PARENT',
 }
 
 // Noms de pays (français) → codes ISO 3166-1 alpha-2
@@ -86,7 +88,7 @@ const POSTAL_CITY_MAP: Readonly<Record<string, string>> = {
 
 function toGender(sex: string | undefined, fallbackRelationship?: string): 'MALE' | 'FEMALE' {
   if (sex) return GENDER_MAP[sex.toUpperCase()] ?? 'MALE'
-  if (fallbackRelationship === 'Mère') return 'FEMALE'
+  if (fallbackRelationship === 'Mère' || fallbackRelationship === 'Belle-mère') return 'FEMALE'
   return 'MALE'
 }
 

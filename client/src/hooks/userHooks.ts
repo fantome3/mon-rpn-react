@@ -129,11 +129,13 @@ export const useUpdateUserMutation = () =>
       ).data,
   })
 
-export const useGetUserDetailsQuery = (userId: string) =>
+export const useGetUserDetailsQuery = (userId: string, refetchInterval?: number | false) =>
   useQuery({
     queryKey: ['user', userId],
     queryFn: async () =>
       (await apiClient.get<User>(`api/users/${userId}`)).data,
+    enabled: !!userId,
+    ...(refetchInterval !== undefined ? { refetchInterval } : {}),
   })
 
 export const useDesactivateUserMutation = () =>
@@ -166,6 +168,17 @@ export const useReactivateUserMutation = () =>
     onError: (error) => {
       console.error('Error reactivating user:', error)
     },
+  })
+
+export const useTogglePrimaryRpnMutation = (userId: string) =>
+  useMutation({
+    mutationFn: async (action: 'unsubscribe' | 'resubscribe') =>
+      (
+        await apiClient.patch<{ message: string; rpnStatus: string }>(
+          `api/users/${userId}/rpn-primary`,
+          { action }
+        )
+      ).data,
   })
 
 export const useToggleAdminMutation = () =>

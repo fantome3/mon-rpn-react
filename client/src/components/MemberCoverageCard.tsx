@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { RpnStatus } from '@/types/User'
 import { Badge } from './ui/badge'
 import { Button } from './ui/button'
@@ -7,6 +8,8 @@ type Props = {
   name: string
   relationship?: string
   membershipIncluded: boolean
+  membershipPending?: boolean
+  billingUrl?: string
   rpnStatus: RpnStatus
   rpnMatricule?: string
   isLoading?: boolean
@@ -25,6 +28,8 @@ const MemberCoverageCard = ({
   name,
   relationship,
   membershipIncluded,
+  membershipPending,
+  billingUrl,
   rpnStatus,
   rpnMatricule,
   isLoading,
@@ -55,27 +60,39 @@ const MemberCoverageCard = ({
         </p>
         <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
           {membershipIncluded ? (
-            <Badge className='bg-green-100 text-green-800 font-normal self-start'>
-              Inclus dans le membership
-            </Badge>
+            membershipPending ? (
+              <div className='flex flex-col gap-1 self-start'>
+                <Badge className='bg-yellow-100 text-yellow-800 font-normal'>
+                  Cotisation en attente
+                </Badge>
+                {billingUrl && (
+                  <Link
+                    to={billingUrl}
+                    className='text-xs text-yellow-700 underline underline-offset-2'
+                  >
+                    Payer maintenant
+                  </Link>
+                )}
+              </div>
+            ) : (
+              <Badge className='bg-green-100 text-green-800 font-normal self-start'>
+                Inclus dans le membership
+              </Badge>
+            )
           ) : (
             <Badge variant='outline' className='border-red-400 text-red-600 font-normal self-start'>
               Exclu du membership
             </Badge>
           )}
-          {onToggleMembership && (
+          {onToggleMembership && !membershipIncluded && (
             <Button
               variant='outline'
               size='sm'
               disabled={isLoading}
               onClick={onToggleMembership}
-              className={
-                membershipIncluded
-                  ? 'border-red-400 text-red-600 hover:bg-red-50 text-xs w-full sm:w-auto'
-                  : 'border-primary text-primary hover:bg-primary/5 text-xs w-full sm:w-auto'
-              }
+              className='border-primary text-primary hover:bg-primary/5 text-xs w-full sm:w-auto'
             >
-              {membershipIncluded ? 'Exclure du membership' : 'Inclure dans le membership'}
+              Inclure dans le membership
             </Button>
           )}
         </div>
@@ -100,7 +117,7 @@ const MemberCoverageCard = ({
                   <span className='text-xs text-muted-foreground'>#{rpnMatricule}</span>
                 )}
               </div>
-              {onToggleRpn && rpnStatus !== 'pending' && (
+              {!membershipPending && onToggleRpn && rpnStatus !== 'pending' && (
                 <Button
                   variant='outline'
                   size='sm'

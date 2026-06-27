@@ -39,6 +39,7 @@ import {
   AdminBookingList,
   WeddingMenu,
   Billing,
+  BillingPartiel,
   MaCouverture,
 } from './pages/index.ts'
 import './lib/i18n'
@@ -79,6 +80,7 @@ const router = createBrowserRouter(
           <Route path='/sponsorship' element={<Sponsorship />} />
           <Route path='/payment-method' element={<PaymentMethod />} />
           <Route path='/billing' element={<Billing />} />
+          <Route path='/billing-partiel' element={<BillingPartiel />} />
           <Route path='/faq' element={<FrequentlyAskedQuestions />} />
           <Route path='/change-method' element={<UpdateMethod />} />
           <Route

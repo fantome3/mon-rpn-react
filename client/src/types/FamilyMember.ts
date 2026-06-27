@@ -1,6 +1,7 @@
 import type { FamilyMemberStatus, Occupation, ResidenceCountryStatus, RpnStatus, StudentStatus } from './Status'
 
 export type FamilyMember = {
+  _id?: string
   firstName: string
   lastName: string
   relationship: string
@@ -16,4 +17,6 @@ export type FamilyMember = {
   sex?: string
   rpnStatus?: RpnStatus
   rpnMatricule?: string
+  // null = ajoute apres paiement annuel, non encore couvert ; number = couvert ; undefined = ancien membre
+  membershipCoveredThisYear?: number | null
 }

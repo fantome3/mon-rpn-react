@@ -26,6 +26,7 @@ import BalNoelLanding from './evenements/feteNoel'
 import AdminBookingList from './evenements/pageAdministrateur'
 import WeddingMenu from './evenements/WeddingMenu'
 import Billing from './billing/Billing'
+import BillingPartiel from './billing/BillingPartiel'
 import FrequentlyAskedQuestions from './contact/FrequentlyAskedQuestions'
 import MaCouverture from './profil/MaCouverture'
 
@@ -58,6 +59,7 @@ export {
   AdminBookingList,
   WeddingMenu,
   Billing,
+  BillingPartiel,
   FrequentlyAskedQuestions,
   MaCouverture,
 }

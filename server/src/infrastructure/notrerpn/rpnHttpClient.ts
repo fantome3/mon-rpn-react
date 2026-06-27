@@ -69,15 +69,21 @@ function httpRequest<T>(
       headers['Content-Length'] = Buffer.byteLength(bodyStr).toString()
     }
 
+    console.log(`[notrerpn.org] → ${method} https://${API_HOST}${path}`)
+    const startTime = Date.now()
+
     const req = https.request(
       { hostname: API_HOST, path, method, headers },
       (res) => {
         let data = ''
         res.on('data', (chunk: string) => { data += chunk })
         res.on('end', () => {
+          const elapsed = Date.now() - startTime
           if (!res.statusCode || res.statusCode >= 400) {
+            console.error(`[notrerpn.org] ← ${res.statusCode} ${method} ${path} (${elapsed}ms) — ERREUR`)
             return reject(new Error(`HTTP ${res.statusCode} ${method} ${path} — ${data}`))
           }
+          console.log(`[notrerpn.org] ← ${res.statusCode} ${method} ${path} (${elapsed}ms)`)
           try {
             resolve(JSON.parse(data) as T)
           } catch {
@@ -86,14 +92,20 @@ function httpRequest<T>(
         })
       }
     )
-    req.on('error', reject)
+    req.on('error', (err) => {
+      console.error(`[notrerpn.org] ✗ Connexion échouée ${method} ${path} :`, err.message)
+      reject(err)
+    })
     if (bodyStr) req.write(bodyStr)
     req.end()
   })
 }
 
 async function fetchToken(): Promise<string> {
-  if (_tokenCache && Date.now() < _tokenCache.expiresAt) return _tokenCache.value
+  if (_tokenCache && Date.now() < _tokenCache.expiresAt) {
+    console.log('[notrerpn.org] Token en cache — pas de nouvelle authentification')
+    return _tokenCache.value
+  }
 
   const username = process.env.EXTERNAL_APP_EMAIL
   const password = process.env.EXTERNAL_APP_PASSWORD
@@ -101,6 +113,7 @@ async function fetchToken(): Promise<string> {
     throw new Error('Variables EXTERNAL_APP_EMAIL ou EXTERNAL_APP_PASSWORD manquantes dans .env')
   }
 
+  console.log(`[notrerpn.org] Authentification en cours (utilisateur : ${username})…`)
   const resp = await httpRequest<{ token: string }>('POST', '/users/login', {
     body: { username, password },
   })
@@ -110,6 +123,7 @@ async function fetchToken(): Promise<string> {
 
   _tokenCache = { value: resp.token, expiresAt: exp * 1000 - 60_000 }
   _adminReferenceCache = null  // invalider lors du renouvellement de session
+  console.log(`[notrerpn.org] Token obtenu, valide jusqu'au ${new Date(exp * 1000).toLocaleString('fr-CA')}`)
 
   return _tokenCache.value
 }
@@ -148,6 +162,7 @@ export async function getAdminReference(): Promise<string> {
 export async function createMember(
   payload: RpnCreateMemberPayload
 ): Promise<RpnMemberCreatedResponse> {
+  console.log(`[notrerpn.org] INSCRIPTION — ${payload.first_name} ${payload.last_name} (${payload.email})`)
   const token = await fetchToken()
   return httpRequest<RpnMemberCreatedResponse>('POST', '/members', {
     headers: { Authorization: `Bearer ${token}` },
@@ -160,6 +175,8 @@ export async function createMember(
  * Lève une erreur en cas d'échec HTTP.
  */
 export async function setMemberActivation(payload: RpnActivationPayload): Promise<void> {
+  const action = payload.activate ? 'RÉINSCRIPTION' : 'DÉSINSCRIPTION'
+  console.log(`[notrerpn.org] ${action} — référence ${payload.reference} | raison : ${payload.reason}`)
   const token = await fetchToken()
   await httpRequest('PUT', '/members/admin/activate', {
     headers: { Authorization: `Bearer ${token}` },

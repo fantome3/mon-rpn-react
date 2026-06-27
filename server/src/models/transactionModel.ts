@@ -81,6 +81,9 @@ export class Transaction {
 
   @prop({ ref: User })
   public processedBy?: Ref<User>
+
+  @prop({ type: () => [Object] })
+  public partialCoverage?: { memberId: string; services: ('membership' | 'rpn')[] }[]
 }
 
 export const TransactionModel = getModelForClass(Transaction)

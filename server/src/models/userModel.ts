@@ -168,6 +168,12 @@ export class FamilyMember {
 
   @prop()
   public rpnMatricule?: string // Matricule sur notrerpn.org (ex : SALARM51027)
+
+  // null = ajoute apres le paiement annuel, non encore couvert
+  // number (ex: 2026) = couvert pour cette annee
+  // undefined = membre anterieur a cette fonctionnalite (ignore)
+  @prop({ default: undefined })
+  public membershipCoveredThisYear?: number | null
 }
 
 export class Subscription {

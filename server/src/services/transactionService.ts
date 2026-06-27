@@ -36,6 +36,11 @@ export class TransactionDomainError extends Error {
   }
 }
 
+export type PartialCoverageEntry = {
+  memberId: string
+  services: ('membership' | 'rpn')[]
+}
+
 export type CreateTransactionInput = {
   userId: string
   amount: number
@@ -46,6 +51,7 @@ export type CreateTransactionInput = {
   reason: string
   refInterac?: string
   status?: TransactionStatusValue
+  partialCoverage?: PartialCoverageEntry[]
 }
 
 type ProcessOutcome = 'completed' | 'failed'
@@ -365,6 +371,7 @@ export class TransactionDomainService {
       status: resolvedStatus,
       balanceApplied: false,
       refundedAmount: 0,
+      partialCoverage: input.partialCoverage,
     })
 
     this.validateCreditAllocation(transaction, {
@@ -499,11 +506,16 @@ export class TransactionDomainService {
    * `fundType=both`: crédite `membershipAmount` + `rpnAmount`, vérifie la cohérence puis sauvegarde.
    */
   public async apply(transaction: TransactionDocument): Promise<void> {
+    console.log(`[apply] txId=${transaction._id} type=${transaction.type} fundType=${transaction.fundType} amount=${transaction.amount} membershipAmount=${transaction.membershipAmount} rpnAmount=${transaction.rpnAmount} balanceApplied=${transaction.balanceApplied}`)
+    console.log(`[apply] partialCoverage=`, JSON.stringify(transaction.partialCoverage))
+
     if (transaction.type !== TransactionType.CREDIT) {
+      console.log(`[apply] skip — not a credit`)
       return
     }
 
     if (transaction.balanceApplied === true) {
+      console.log(`[apply] skip — balanceApplied already true`)
       return
     }
 
@@ -513,6 +525,7 @@ export class TransactionDomainService {
     })
 
     const allocation = this.resolveCreditAllocation(transaction)
+    console.log(`[apply] allocation=`, JSON.stringify(allocation))
     const account = await this.getOrCreateAccount(String(transaction.userId))
 
     account.membership_balance =
@@ -532,10 +545,21 @@ export class TransactionDomainService {
     await account.save()
 
     if (allocation.membershipAmount > 0) {
-      await this.activateMembership(String(transaction.userId), allocation.membershipAmount)
+      const membershipMemberIds = transaction.partialCoverage
+        ?.filter((pc) => pc.services.includes('membership'))
+        .map((pc) => pc.memberId)
+      console.log(`[apply] calling activateMembership — membershipMemberIds=`, JSON.stringify(membershipMemberIds))
+      await this.activateMembership(String(transaction.userId), allocation.membershipAmount, membershipMemberIds)
+    } else {
+      console.log(`[apply] skip activateMembership — membershipAmount=0`)
     }
 
     if (allocation.rpnAmount > 0) {
+      if (transaction.partialCoverage) {
+        const rpnMembers = transaction.partialCoverage.filter((pc) => pc.services.includes('rpn'))
+        console.log(`[transactionService] Facturation partielle RPN — ${rpnMembers.length} membre(s) à inscrire :`, rpnMembers.map((pc) => pc.memberId))
+        await this.markMembersRpnPending(String(transaction.userId), transaction.partialCoverage)
+      }
       await onRpnPaymentConfirmed(String(transaction.userId), account.rpn_balance)
     }
 
@@ -833,7 +857,11 @@ export class TransactionDomainService {
    * Exemple:
    * Paiement membership validé: `subscription.status=active`, dates mises à jour, email envoyé.
    */
-  private async activateMembership(userId: string, membershipAmount: number) {
+  private async activateMembership(
+    userId: string,
+    membershipAmount: number,
+    partialMemberIds?: string[],
+  ) {
     const user = await UserModel.findById(userId)
     if (!user) {
       throw new TransactionDomainError(
@@ -854,7 +882,22 @@ export class TransactionDomainService {
     user.subscription.missedRemindersCount = 0
     user.subscription.scheduledDeactivationDate = undefined
 
+    console.log('[activateMembership] partialMemberIds:', JSON.stringify(partialMemberIds))
+    for (const [index, member] of (user.familyMembers ?? []).entries()) {
+      const memberId = (member as any)._id?.toString() ?? `index-${index}`
+      const isActive = member.status === 'active'
+      const isTargeted = !partialMemberIds || partialMemberIds.includes(memberId)
+      console.log(`[activateMembership] membre id=${memberId} status=${member.status} membershipCoveredThisYear=${(member as any).membershipCoveredThisYear} isActive=${isActive} isTargeted=${isTargeted}`)
+      if (isActive && isTargeted) {
+        (member as any).membershipCoveredThisYear = currentYear
+        console.log(`[activateMembership] → SET membershipCoveredThisYear=${currentYear}`)
+      }
+    }
+    console.log('[activateMembership] calling user.save()')
+    user.markModified('familyMembers')
+
     await user.save()
+    console.log('[activateMembership] user.save() done — membershipCoveredThisYear en DB:', user.familyMembers?.map(m => ({ id: (m as any)._id?.toString(), val: (m as any).membershipCoveredThisYear })))
 
     try {
       await sendMembershipSuccessEmail(
@@ -867,6 +910,38 @@ export class TransactionDomainService {
         'Erreur email de confirmation membership apres confirmation transaction:',
         error
       )
+    }
+  }
+
+  /**
+   * Pré-marque en 'pending' les membres de la famille sélectionnés pour le RPN
+   * dans une facturation partielle, afin que enrollPendingFamilyMembers les inscrive.
+   */
+  private async markMembersRpnPending(
+    userId: string,
+    partialCoverage: PartialCoverageEntry[],
+  ): Promise<void> {
+    const rpnMemberIds = partialCoverage
+      .filter((pc) => pc.services.includes('rpn'))
+      .map((pc) => pc.memberId)
+
+    if (rpnMemberIds.length === 0) return
+
+    const user = await UserModel.findById(userId)
+    if (!user) return
+
+    let modified = false
+    for (const [index, member] of (user.familyMembers ?? []).entries()) {
+      const memberId = (member as any)._id?.toString() ?? `index-${index}`
+      if (rpnMemberIds.includes(memberId) && member.rpnStatus !== 'enrolled' && member.rpnStatus !== 'unsubscribed') {
+        member.rpnStatus = 'pending'
+        modified = true
+      }
+    }
+
+    if (modified) {
+      user.markModified('familyMembers')
+      await user.save()
     }
   }
 

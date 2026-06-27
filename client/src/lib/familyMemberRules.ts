@@ -1,6 +1,6 @@
 import type { FamilyMember } from '@/types/FamilyMember'
 import type { FeeDetail } from './fees'
-import type { Occupation, ResidenceCountryStatus, StudentStatus } from '@/types/Status'
+import type { Occupation, ResidenceCountryStatus, RpnStatus, StudentStatus } from '@/types/Status'
 
 const ADULT_AGE = 18
 
@@ -8,7 +8,19 @@ const ADULT_AGE = 18
 export const RELATION_CONJOINT = 'Conjoint(e)'
 export const RELATION_PERE = 'Père'
 export const RELATION_MERE = 'Mère'
-export const PARENT_RELATIONS = [RELATION_PERE, RELATION_MERE] as const
+export const RELATION_BEAU_PERE = 'Beau-père'
+export const RELATION_BELLE_MERE = 'Belle-mère'
+
+// Toutes les relations traitées comme un parent (même logique de facturation)
+export const PARENT_RELATIONS = [
+  RELATION_PERE,
+  RELATION_MERE,
+  RELATION_BEAU_PERE,
+  RELATION_BELLE_MERE,
+] as const
+
+export const isParentRelation = (rel: string): boolean =>
+  (PARENT_RELATIONS as readonly string[]).includes(rel)
 
 /**
  * Calcule l'age en années à partir d'une date de naissance.
@@ -60,10 +72,27 @@ export type MemberFeeConfig = {
  *
  * Règles :
  *  - Conjoint(e) : étudiant full-time → tarif étudiant (25$), sinon travailleur (50$)
- *  - Père / Mère : facturé seulement si vit au Canada
+ *  - Père / Mère / Beau-père / Belle-mère : facturé seulement si vit au Canada
  *  - Enfant mineur (< 18 ans) : exempté du membership
  *  - Enfant adulte : même règle étudiant/travailleur
  */
+/**
+ * Dérive le statut RPN effectif d'un membre de famille.
+ * Rétrocompatibilité : les membres créés avant l'ajout du champ rpnStatus
+ * ont undefined en base mais possèdent rpnMatricule s'ils ont été inscrits.
+ * Le statut membership (active/inactive) détermine si l'inscription est active
+ * ou suspendue.
+ */
+export const resolveFamilyMemberRpnStatus = (
+  member: Pick<FamilyMember, 'rpnStatus' | 'rpnMatricule' | 'status'>,
+): RpnStatus => {
+  if (member.rpnStatus && member.rpnStatus !== 'not_enrolled') return member.rpnStatus
+  if (member.rpnMatricule) {
+    return member.status === 'active' ? 'enrolled' : 'unsubscribed'
+  }
+  return member.rpnStatus ?? 'not_enrolled'
+}
+
 export const getMemberFeeConfig = (
   member: Pick<
     FamilyMember,
@@ -83,7 +112,7 @@ export const getMemberFeeConfig = (
 
   const rel = member.relationship
 
-  if (rel === RELATION_PERE || rel === RELATION_MERE) {
+  if (isParentRelation(rel ?? '')) {
     // Rétrocompatibilité : si livesInCanada absent, déduire du statut d'immigration
     const isResident =
       member.livesInCanada !== undefined

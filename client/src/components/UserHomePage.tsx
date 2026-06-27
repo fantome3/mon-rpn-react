@@ -3,6 +3,7 @@ import { Store } from '@/lib/Store'
 import { BarChart4 } from 'lucide-react'
 import AddMemberSection from './AddMemberSection'
 import GraphSection from './GraphSection'
+import { UncoveredMembersAlert } from './UncoveredMembersAlert'
 import UserAccountInfo from './UserAccountInfo'
 import CurrentMonthStat from './CurrentMonthStat'
 import TotalDeath from './TotalDeath'
@@ -45,6 +46,7 @@ const UserHomPage = () => {
             <BarChart4 size={200} />
           </div>
         </div>
+        <UncoveredMembersAlert />
         <AddMemberSection />
         <div className='grid sm:grid-cols-4 gap-4'>
           <UserAccountInfo />

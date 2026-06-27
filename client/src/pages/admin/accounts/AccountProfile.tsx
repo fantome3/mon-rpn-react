@@ -89,7 +89,7 @@ const AccountProfile = () => {
       />
 
       <div className='grid grid-cols-1 xl:grid-cols-2 gap-4 mt-4'>
-        <AccountFamilyCard familyMembers={user.familyMembers} />
+        <AccountFamilyCard familyMembers={user.familyMembers} userId={userId} />
         <AccountTransactionsCard transactions={lastTransactions} />
       </div>
     </div>

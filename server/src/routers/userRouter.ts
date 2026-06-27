@@ -28,11 +28,47 @@ import {
   onFamilyMemberRpnStatusChanged,
 } from '../services/rpnLifecycleService'
 import {
+  enrollFamilyMemberOnExternalPlatform,
+  deactivateOnExternalPlatform,
+  reactivateOnExternalPlatform,
+} from '../services/rpnExternalPlatformService'
+import {
   findRegistrationConflict,
   mapRegistrationPersistenceErrorToConflict,
 } from '../services/registrationConflictService'
 
 export const userRouter = express.Router()
+
+const PARENT_RELATIONS = ['Père', 'Mère', 'Beau-père', 'Belle-mère']
+
+/**
+ * Determine si un membre de famille est facturé pour le membership.
+ * Miroir de la logique calculateMembershipAmount dans membershipService.ts.
+ * - Mineur (< 18 ans) : non facturé
+ * - Parent (Père / Mère / Beau-père / Belle-mère) non résident au Canada : non facturé
+ * - Tous les autres adultes actifs : facturés
+ */
+const isMemberBillable = (member: {
+  birthDate?: Date | string
+  relationship?: string
+  livesInCanada?: boolean
+  residenceCountryStatus?: string
+}): boolean => {
+  const currentYear = new Date().getFullYear()
+  const age = currentYear - new Date(member.birthDate ?? 0).getFullYear()
+  if (age < 18) return false
+
+  const rel = member.relationship ?? ''
+  if (PARENT_RELATIONS.includes(rel)) {
+    const isResident =
+      member.livesInCanada !== undefined
+        ? member.livesInCanada
+        : member.residenceCountryStatus !== 'visitor'
+    return isResident
+  }
+
+  return true
+}
 
 const trimStringsDeep = <T>(value: T, excludeKeys = new Set<string>()): T => {
   if (value === null || value === undefined) return value
@@ -381,9 +417,28 @@ userRouter.put(
                 rpnMatricule:         m.rpnMatricule,
               }])
           )
+
+          const membershipPaid = user.subscription?.membershipPaidThisYear === true
+
           user.familyMembers = req.body.familyMembers.map((incoming: any) => {
             const rpn = rpnFieldsById.get(incoming._id?.toString())
-            return rpn ? { ...incoming, ...rpn } : incoming
+            const merged = rpn ? { ...incoming, ...rpn } : incoming
+
+            // Marquer comme "non couvert" uniquement si membershipCoveredThisYear est absent (undefined = jamais
+            // traité), et seulement si le paiement annuel est déjà effectué. On ne touche PAS aux membres
+            // déjà couverts (valeur = année) ni à ceux déjà marqués "en attente de couverture" (null).
+            if (membershipPaid && merged.status === 'active' && isMemberBillable(merged) && merged.membershipCoveredThisYear === undefined) {
+              merged.membershipCoveredThisYear = null
+            }
+
+            // Guard legacy : rpnExternalReference est la preuve d'une inscription existante.
+            // Si rpnStatus est absent ou 'not_enrolled' alors que la référence externe existe,
+            // dériver le statut correct depuis le statut membership du membre.
+            if (merged.rpnExternalReference && (!merged.rpnStatus || merged.rpnStatus === 'not_enrolled')) {
+              merged.rpnStatus = merged.status === 'active' ? 'enrolled' : 'unsubscribed'
+            }
+
+            return merged
           })
           user.markModified('familyMembers')
         }
@@ -565,5 +620,149 @@ userRouter.put(
         ? labels.utilisateur.ajouterAdmin
         : labels.utilisateur.supprimerAdmin,
     })
+  })
+)
+
+userRouter.post(
+  '/admin/backfill-rpn-status',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req: Request, res: Response) => {
+    const users = await UserModel.find({
+      'familyMembers.rpnExternalReference': { $exists: true, $ne: null },
+    })
+
+    const report: Array<{ userId: string; name: string; members: Array<{ name: string; oldStatus: string; newStatus: string }> }> = []
+
+    for (const user of users) {
+      const fixedMembers: Array<{ name: string; oldStatus: string; newStatus: string }> = []
+
+      for (let i = 0; i < user.familyMembers.length; i++) {
+        const m = user.familyMembers[i]
+        if (m.rpnExternalReference && (!m.rpnStatus || m.rpnStatus === 'not_enrolled')) {
+          const newStatus = m.status === 'active' ? 'enrolled' : 'unsubscribed'
+          fixedMembers.push({
+            name: `${m.firstName} ${m.lastName}`,
+            oldStatus: m.rpnStatus ?? 'undefined',
+            newStatus,
+          })
+          user.familyMembers[i].rpnStatus = newStatus as any
+        }
+      }
+
+      if (fixedMembers.length > 0) {
+        user.markModified('familyMembers')
+        await user.save()
+        report.push({
+          userId: user._id.toString(),
+          name: `${user.origines.firstName} ${user.origines.lastName}`,
+          members: fixedMembers,
+        })
+      }
+    }
+
+    const totalFixed = report.reduce((sum, u) => sum + u.members.length, 0)
+    res.status(200).json({ fixed: totalFixed, users: report })
+  })
+)
+
+userRouter.post(
+  '/:userId/retry-rpn-family/:memberId',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req: Request, res: Response) => {
+    const { userId, memberId } = req.params
+
+    const user = await UserModel.findById(userId)
+    if (!user) {
+      res.status(404).json({ message: labels.utilisateur.introuvableFr })
+      return
+    }
+
+    const primaryRef = user.subscription?.rpnExternalReference
+    if (!primaryRef) {
+      res.status(400).json({ message: 'Le membre principal n\'est pas encore inscrit sur notrerpn.org.' })
+      return
+    }
+
+    const memberIndex = user.familyMembers.findIndex(
+      (m) => (m as any)._id?.toString() === memberId
+    )
+    if (memberIndex === -1) {
+      res.status(404).json({ message: 'Membre de famille introuvable.' })
+      return
+    }
+
+    const member = user.familyMembers[memberIndex]
+    const result = await enrollFamilyMemberOnExternalPlatform(user, member, primaryRef)
+
+    if (!result) {
+      res.status(502).json({ message: 'Échec de l\'inscription sur notrerpn.org. Vérifiez les logs.' })
+      return
+    }
+
+    await UserModel.updateOne(
+      { _id: userId },
+      {
+        $set: {
+          [`familyMembers.${memberIndex}.rpnExternalReference`]: result.reference,
+          [`familyMembers.${memberIndex}.rpnMatricule`]: result.matricule,
+          [`familyMembers.${memberIndex}.rpnStatus`]: 'enrolled',
+        },
+      }
+    )
+
+    res.status(200).json({ message: 'Inscription RPN réussie.', reference: result.reference, matricule: result.matricule })
+  })
+)
+
+userRouter.patch(
+  '/:userId/rpn-primary',
+  isAuth,
+  expressAsyncHandler(async (req: Request, res: Response) => {
+    const { userId } = req.params
+    const { action } = req.body as { action: 'unsubscribe' | 'resubscribe' }
+
+    const user = await UserModel.findById(userId)
+    if (!user) {
+      res.status(404).json({ message: labels.utilisateur.introuvable })
+      return
+    }
+
+    const { rpnStatus, rpnExternalReference } = user.subscription
+
+    if (action === 'unsubscribe' && rpnStatus === 'enrolled') {
+      user.subscription.rpnStatus = 'unsubscribed'
+      await user.save()
+      if (rpnExternalReference) {
+        deactivateOnExternalPlatform(
+          rpnExternalReference,
+          'Désinscription RPN volontaire — le membre principal retire sa propre couverture du fonds décès'
+        ).catch((err) =>
+          console.error('[userRouter] deactivateOnExternalPlatform (primary rpn opt-out):', err)
+        )
+      }
+      res.status(200).json({ message: 'Désinscrit du RPN.', rpnStatus: 'unsubscribed' })
+      return
+    }
+
+    if (action === 'resubscribe' && rpnStatus === 'unsubscribed') {
+      if (!rpnExternalReference) {
+        res.status(400).json({ message: 'Aucune référence externe trouvée pour ce compte.' })
+        return
+      }
+      user.subscription.rpnStatus = 'enrolled'
+      await user.save()
+      reactivateOnExternalPlatform(
+        rpnExternalReference,
+        'Réinscription RPN volontaire — le membre principal réintègre sa propre couverture au fonds décès'
+      ).catch((err) =>
+        console.error('[userRouter] reactivateOnExternalPlatform (primary rpn re-enroll):', err)
+      )
+      res.status(200).json({ message: 'Réinscrit au RPN.', rpnStatus: 'enrolled' })
+      return
+    }
+
+    res.status(400).json({ message: 'Action invalide ou statut incompatible.' })
   })
 )

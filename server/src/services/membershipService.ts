@@ -1,4 +1,6 @@
 import { UserModel, User } from '../models/userModel'
+
+const PARENT_RELATIONS = ['Père', 'Mère', 'Beau-père', 'Belle-mère']
 import { TransactionModel } from '../models/transactionModel'
 import { AccountModel } from '../models/accountModel'
 import { SettingsModel } from '../models/settingsModel'
@@ -50,7 +52,7 @@ const calculateMembershipAmount = (
 
     const rel = member.relationship
 
-    if (rel === 'Père' || rel === 'Mère') {
+    if (PARENT_RELATIONS.includes(rel)) {
       // Facturer seulement si résident au Canada
       // Rétrocompatibilité : si livesInCanada absent, déduire du statut d'immigration
       const isResident =
@@ -128,6 +130,14 @@ export const processAnnualMembershipPayment = async () => {
       )
       user.subscription.missedRemindersCount = 0
       user.subscription.scheduledDeactivationDate = undefined
+
+      for (const member of user.familyMembers ?? []) {
+        if (member.status === 'active') {
+          (member as any).membershipCoveredThisYear = currentYear
+        }
+      }
+      user.markModified('familyMembers')
+
       await user.save()
     } else {
       await handleFailedPrelevement({
@@ -193,6 +203,14 @@ export const processMembershipForUser = async (userId: string) => {
     )
     user.subscription.missedRemindersCount = 0
     user.subscription.scheduledDeactivationDate = undefined
+
+    for (const member of user.familyMembers ?? []) {
+      if (member.status === 'active') {
+        (member as any).membershipCoveredThisYear = currentYear
+      }
+    }
+    user.markModified('familyMembers')
+
     await user.save()
 
     await sendMembershipSuccessEmail(user.register.email, totalToDeduct, currentYear)
@@ -261,15 +279,24 @@ export const reactivateUserAccount = async (userId: string) => {
     return { status: 'NOT_FOUND', message: labels.utilisateur.introuvableFr }
   }
 
+  const reactivationYear = new Date().getFullYear()
   user.subscription.status = 'active'
   user.subscription.missedRemindersCount = 0
   user.subscription.membershipPaidThisYear = true
-  user.subscription.lastMembershipPaymentYear = new Date().getFullYear()
+  user.subscription.lastMembershipPaymentYear = reactivationYear
   user.subscription.startDate = new Date()
   user.subscription.endDate = new Date(
-    new Date().setFullYear(new Date().getFullYear() + 1)
+    new Date().setFullYear(reactivationYear + 1)
   )
   user.subscription.scheduledDeactivationDate = undefined
+
+  for (const member of user.familyMembers ?? []) {
+    if (member.status === 'active') {
+      (member as any).membershipCoveredThisYear = reactivationYear
+    }
+  }
+  user.markModified('familyMembers')
+
   await user.save()
 
   console.log(`Compte reactive pour : ${user.register.email}`)
