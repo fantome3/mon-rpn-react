@@ -57,7 +57,7 @@ export const resolveEffectiveRpnStatus = (
  * qui n'ont pas encore de référence externe.
  * Les références obtenues sont persistées immédiatement via updateOne atomique.
  */
-async function enrollPendingFamilyMembers(
+export async function enrollPendingFamilyMembers(
   user: DocumentType<User>,
   primaryReference: string
 ): Promise<void> {

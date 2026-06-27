@@ -29,6 +29,7 @@ import Billing from './billing/Billing'
 import BillingPartiel from './billing/BillingPartiel'
 import FrequentlyAskedQuestions from './contact/FrequentlyAskedQuestions'
 import MaCouverture from './profil/MaCouverture'
+import RpnSyncPage from './admin/rpn-sync/RpnSyncPage'
 
 export {
   Login,
@@ -62,4 +63,5 @@ export {
   BillingPartiel,
   FrequentlyAskedQuestions,
   MaCouverture,
+  RpnSyncPage,
 }

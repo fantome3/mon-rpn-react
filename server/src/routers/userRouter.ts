@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express'
+﻿import express, { Request, Response } from 'express'
 import expressAsyncHandler from 'express-async-handler'
 import { UserModel } from '../models/userModel'
 import bcrypt from 'bcryptjs'
@@ -26,8 +26,10 @@ import {
   onFamilyMembersUpdated,
   onFamilyMemberStatusChanged,
   onFamilyMemberRpnStatusChanged,
+  enrollPendingFamilyMembers,
 } from '../services/rpnLifecycleService'
 import {
+  enrollOnExternalPlatform,
   enrollFamilyMemberOnExternalPlatform,
   deactivateOnExternalPlatform,
   reactivateOnExternalPlatform,
@@ -764,5 +766,199 @@ userRouter.patch(
     }
 
     res.status(400).json({ message: 'Action invalide ou statut incompatible.' })
+  })
+)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Admin – Synchronisation manuelle RPN
+// ─────────────────────────────────────────────────────────────────────────────
+
+userRouter.get(
+  '/admin/rpn-pending',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (_req: Request, res: Response) => {
+    const familyStuckUsers = await UserModel.find({
+      deletedAt: { $exists: false },
+      familyMembers: {
+        $elemMatch: {
+          status: 'active',
+          rpnStatus: 'pending',
+          rpnExternalReference: { $exists: false },
+        },
+      },
+    })
+
+    const primaryCandidates = await UserModel.find({
+      deletedAt: { $exists: false },
+      'subscription.rpnStatus': { $in: [null, 'not_enrolled'] },
+      'subscription.rpnExternalReference': { $exists: false },
+    })
+
+    const candidateIds = primaryCandidates.map((u) => u._id)
+    const accounts = await AccountModel.find({
+      userId: { $in: candidateIds },
+      rpn_balance: { $gt: 0 },
+    }).select('userId rpn_balance')
+    const balanceMap = new Map(accounts.map((a) => [String(a.userId), a.rpn_balance as number]))
+
+    type StuckMember = {
+      isPrimary: boolean
+      memberId?: string
+      memberIndex: number
+      memberName: string
+      rpnStatus: string
+      rpnBalance?: number
+    }
+    type ResultEntry = { userId: string; fullName: string; stuckMembers: StuckMember[] }
+    const resultMap = new Map<string, ResultEntry>()
+
+    for (const user of familyStuckUsers) {
+      const uid = String(user._id)
+      const entry: ResultEntry = resultMap.get(uid) ?? {
+        userId: uid,
+        fullName: `${user.origines?.firstName ?? ''} ${user.origines?.lastName ?? ''}`.trim(),
+        stuckMembers: [],
+      }
+      for (let idx = 0; idx < user.familyMembers.length; idx++) {
+        const m = user.familyMembers[idx]
+        if (m.status === 'active' && m.rpnStatus === 'pending' && !m.rpnExternalReference) {
+          entry.stuckMembers.push({
+            isPrimary: false,
+            memberId: (m as any)._id?.toString(),
+            memberIndex: idx,
+            memberName: `${m.firstName ?? ''} ${m.lastName ?? ''}`.trim(),
+            rpnStatus: m.rpnStatus,
+          })
+        }
+      }
+      resultMap.set(uid, entry)
+    }
+
+    for (const user of primaryCandidates) {
+      const uid = String(user._id)
+      const rpnBalance = balanceMap.get(uid)
+      if (!rpnBalance) continue
+      const entry: ResultEntry = resultMap.get(uid) ?? {
+        userId: uid,
+        fullName: `${user.origines?.firstName ?? ''} ${user.origines?.lastName ?? ''}`.trim(),
+        stuckMembers: [],
+      }
+      entry.stuckMembers.push({
+        isPrimary: true,
+        memberIndex: -1,
+        memberName: `${user.origines?.firstName ?? ''} ${user.origines?.lastName ?? ''}`.trim(),
+        rpnStatus: user.subscription?.rpnStatus ?? 'not_enrolled',
+        rpnBalance,
+      })
+      resultMap.set(uid, entry)
+    }
+
+    res.status(200).json({ users: Array.from(resultMap.values()) })
+  })
+)
+
+userRouter.post(
+  '/admin/rpn-sync/:userId',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req: Request, res: Response) => {
+    const { userId } = req.params
+    const { memberType, memberId, memberIndex: memberIndexHint } = req.body as {
+      memberType: 'primary' | 'family'
+      memberId?: string
+      memberIndex?: number
+    }
+
+    const user = await UserModel.findById(userId)
+    if (!user) {
+      res.status(404).json({ message: labels.utilisateur.introuvable })
+      return
+    }
+
+    if (memberType === 'primary') {
+      const { rpnStatus, rpnExternalReference } = user.subscription
+      if (rpnStatus === 'enrolled' || rpnExternalReference) {
+        res.status(400).json({ message: 'Le membre principal est déjà inscrit sur notrerpn.org.' })
+        return
+      }
+
+      const result = await enrollOnExternalPlatform(user)
+      if (!result) {
+        res.status(200).json({ success: false, error: 'Échec de l\'appel à notrerpn.org — voir logs serveur.' })
+        return
+      }
+
+      await UserModel.updateOne(
+        { _id: user._id },
+        {
+          $set: {
+            'subscription.rpnExternalReference': result.reference,
+            'subscription.rpnMatricule': result.matricule,
+            'subscription.rpnStatus': 'enrolled',
+            'subscription.rpnEnrollmentDate': new Date(),
+          },
+        }
+      )
+
+      const fresh = await UserModel.findById(userId)
+      if (fresh?.subscription?.rpnExternalReference) {
+        enrollPendingFamilyMembers(fresh, result.reference).catch((err) =>
+          console.error('[rpnSync] enrollPendingFamilyMembers after primary retry:', err)
+        )
+      }
+
+      res.status(200).json({ success: true, matricule: result.matricule, reference: result.reference })
+      return
+    }
+
+    if (memberType === 'family') {
+      if (memberId === undefined && memberIndexHint === undefined) {
+        res.status(400).json({ message: 'memberId ou memberIndex requis pour un membre famille.' })
+        return
+      }
+
+      const primaryRef = user.subscription?.rpnExternalReference
+      if (!primaryRef) {
+        res.status(400).json({
+          message: 'Le membre principal n\'est pas encore inscrit sur notrerpn.org — synchronisez-le d\'abord.',
+        })
+        return
+      }
+
+      let memberIndex = memberId
+        ? user.familyMembers.findIndex((m) => (m as any)._id?.toString() === memberId)
+        : -1
+      if (memberIndex === -1 && memberIndexHint !== undefined) {
+        memberIndex = memberIndexHint
+      }
+      if (memberIndex === -1 || memberIndex >= user.familyMembers.length) {
+        res.status(404).json({ message: 'Membre famille introuvable.' })
+        return
+      }
+
+      const member = user.familyMembers[memberIndex]
+      const result = await enrollFamilyMemberOnExternalPlatform(user, member, primaryRef)
+      if (!result) {
+        res.status(200).json({ success: false, error: 'Échec de l\'appel à notrerpn.org — voir logs serveur.' })
+        return
+      }
+
+      await UserModel.updateOne(
+        { _id: user._id },
+        {
+          $set: {
+            [`familyMembers.${memberIndex}.rpnExternalReference`]: result.reference,
+            [`familyMembers.${memberIndex}.rpnMatricule`]: result.matricule,
+            [`familyMembers.${memberIndex}.rpnStatus`]: 'enrolled',
+          },
+        }
+      )
+
+      res.status(200).json({ success: true, matricule: result.matricule, reference: result.reference })
+      return
+    }
+
+    res.status(400).json({ message: 'memberType invalide.' })
   })
 )

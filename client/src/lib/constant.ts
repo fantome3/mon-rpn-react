@@ -306,8 +306,9 @@ export const menuItemsConnected = [
 
 export const adminMenuItems = [
   { name: 'Comptes', link: '/admin/accounts' },
-  { name: 'Annonces', link: '/admin/announcements' },
+  { name: 'Annonces décès', link: '/admin/announcements' },
   { name: 'Gestion Transactions', link: '/admin/transactions' },
+  { name: 'Synchroniser RPN bloqués', link: '/admin/relancer-rpn-en-echec' },
 ]
 
 export const relations = [

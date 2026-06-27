@@ -41,6 +41,7 @@ import {
   Billing,
   BillingPartiel,
   MaCouverture,
+  RpnSyncPage,
 } from './pages/index.ts'
 import './lib/i18n'
 import { StoreProvider } from './lib/Store.tsx'
@@ -96,6 +97,7 @@ const router = createBrowserRouter(
           <Route path='accounts/:userId/profile' element={<AccountProfile />} />
           <Route path='announcements' element={<Announcements />} />
           <Route path='transactions' element={<Transactions />} />
+          <Route path='relancer-rpn-en-echec' element={<RpnSyncPage />} />
         </Route>
       </Route>
       <Route path='/reserver-fete-fin-annee' element={<BalNoelLanding />} />
