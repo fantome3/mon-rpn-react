@@ -50,7 +50,10 @@
   "annonce": {
     "cree": "Annonce créée. Traitement en cours.",
     "misAJour": "Annonce mise à jour",
-    "creeSansPrelevement": "Annonce créée. Le traitement n'a pas été lancé."
+    "creeSansPrelevement": "Annonce créée. Le traitement n'a pas été lancé.",
+    "batchCree": "Annonces créées. Traitement séquentiel en cours.",
+    "batchCreeSansPrelevement": "Annonces créées. Le traitement n'a pas été lancé.",
+    "batchVide": "Le lot d'annonces ne peut pas être vide."
   },
   "rappel": {
     "envoyeSucces": "Rappels envoyés avec succès",

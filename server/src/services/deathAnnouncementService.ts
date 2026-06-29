@@ -14,8 +14,9 @@ import { TransactionModel } from '../models/transactionModel'
 import { notifyUsersForDeathAnnouncement } from '../mailer'
 import labels from '../common/libelles.json'
 import { onRpnBalanceInsufficient } from './rpnLifecycleService'
+import { calculateTotalPersons } from '../utils'
 
-type CreateDeathAnnouncementInput = {
+export type CreateDeathAnnouncementInput = {
   firstName: string
   deathPlace: string
   deathDate: Date
@@ -24,7 +25,7 @@ type CreateDeathAnnouncementInput = {
 type LeanUser = {
   _id: Types.ObjectId | string
   register?: { email?: string }
-  familyMembers?: Array<{ status?: string }>
+  familyMembers?: Array<{ status?: string; rpnStatus?: string }>
   subscription?: { rpnStatus?: string }
 }
 
@@ -42,6 +43,8 @@ type InsufficientFundsCandidate = {
   currentRpnBalance: number
 }
 
+let _processingChain: Promise<void> = Promise.resolve()
+
 const MAX_ERROR_SAMPLES = 20
 const MAX_FAILED_PRELEVEMENT_CONCURRENCY = 5
 
@@ -58,11 +61,6 @@ export class DeathAnnouncementServiceError extends Error {
 const normalizeObjectId = (value: Types.ObjectId | string): Types.ObjectId =>
   typeof value === 'string' ? new Types.ObjectId(value) : value
 
-const calculateTotalPersons = (user: LeanUser): number => {
-  const activeDependents =
-    user.familyMembers?.filter((member) => member.status === 'active').length || 0
-  return activeDependents + 1
-}
 
 const resolveAccountUserId = (value: unknown): string | null => {
   if (!value) return null
@@ -106,7 +104,7 @@ const fetchPrimaryMembersForDeathAnnouncement = async (): Promise<LeanUser[]> =>
     primaryMember: true,
     deletedAt: { $exists: false },
   })
-    .select('_id register.email familyMembers.status subscription.rpnStatus')
+    .select('_id register.email familyMembers.status familyMembers.rpnStatus subscription.rpnStatus')
     .lean()) as LeanUser[]
 
 const pushErrorSample = (
@@ -209,18 +207,10 @@ const collectProcessingCandidates = ({
     const userId = normalizeObjectId(user._id)
     const userKey = String(userId)
     try {
-      // Exclure les membres non-inscrits, ou désinscrit du fonds RPN.
-      // Les documents legacy sans rpnStatus (undefined) sont inclus : la vérification
-      // du solde plus bas les écartera s'ils n'ont jamais contribué.
-      const rpnStatus = user.subscription?.rpnStatus
-      if (
-        rpnStatus === 'not_enrolled' ||
-        rpnStatus === 'unsubscribed'
-      ) {
+      const totalPersons = calculateTotalPersons(user)
+      if (totalPersons === 0) {
         continue
       }
-
-      const totalPersons = calculateTotalPersons(user)
       const totalToDeduct = totalPersons * amountPerPerson
       const account = accountMap.get(userKey)
 
@@ -392,11 +382,36 @@ export const createDeathAnnouncement = async (
 export const queueDeathAnnouncementProcessing = (
   announcementId: Types.ObjectId | string
 ) => {
-  setImmediate(() => {
+  _processingChain = _processingChain.then(() =>
     processDeathAnnouncement(String(announcementId)).catch((error) => {
       console.error('Erreur traitement annonce décès:', error)
     })
-  })
+  )
+}
+
+export const createDeathAnnouncementBatch = async (
+  inputs: CreateDeathAnnouncementInput[]
+): Promise<{
+  announcements: DocumentType<DeathAnnouncement>[]
+  queuedCount: number
+  skippedCount: number
+}> => {
+  let queuedCount = 0
+  let skippedCount = 0
+  const results: DocumentType<DeathAnnouncement>[] = []
+
+  for (const input of inputs) {
+    const { announcement, shouldProcess } = await createDeathAnnouncement(input)
+    results.push(announcement)
+    if (shouldProcess) {
+      queueDeathAnnouncementProcessing(announcement._id)
+      queuedCount++
+    } else {
+      skippedCount++
+    }
+  }
+
+  return { announcements: results, queuedCount, skippedCount }
 }
 
 export const processDeathAnnouncement = async (announcementId: string) => {

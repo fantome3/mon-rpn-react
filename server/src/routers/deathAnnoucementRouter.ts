@@ -4,6 +4,8 @@ import { isAdmin, isAuth } from '../utils'
 import { DeathAnnouncementModel } from '../models/deathAnnouncement'
 import {
   createDeathAnnouncement,
+  createDeathAnnouncementBatch,
+  CreateDeathAnnouncementInput,
   DeathAnnouncementServiceError,
   queueDeathAnnouncementProcessing,
 } from '../services/deathAnnouncementService'
@@ -45,6 +47,42 @@ deathAnnouncementRouter.post(
         message: labels.general.erreurInattendueMin,
       })
       return
+    }
+  })
+)
+
+deathAnnouncementRouter.post(
+  '/batch',
+  isAuth,
+  isAdmin,
+  expressAsyncHandler(async (req: Request, res: Response) => {
+    const inputs: CreateDeathAnnouncementInput[] = req.body
+    if (!Array.isArray(inputs) || inputs.length === 0) {
+      res.status(400).json({ message: labels.annonce.batchVide })
+      return
+    }
+    try {
+      const { announcements, queuedCount, skippedCount } =
+        await createDeathAnnouncementBatch(inputs)
+      res.status(202).json({
+        message:
+          queuedCount === 0
+            ? labels.annonce.batchCreeSansPrelevement
+            : labels.annonce.batchCree,
+        announcements: announcements.map((a) => a.toObject()),
+        queuedCount,
+        skippedCount,
+      })
+    } catch (error: any) {
+      if (error instanceof DeathAnnouncementServiceError) {
+        res.status(error.statusCode).json({ message: error.message })
+        return
+      }
+      if (error?.name === 'ValidationError') {
+        res.status(400).json({ message: error.message })
+        return
+      }
+      res.status(500).json({ message: labels.general.erreurInattendueMin })
     }
   })
 )

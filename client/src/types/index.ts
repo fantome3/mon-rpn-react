@@ -4,6 +4,7 @@ export type {
   DeathAnnouncementProcessingError,
   DeathAnnouncementProcessingStatus,
   DeathAnnouncementProcessingSummary,
+  CreateDeathAnnouncementInput,
 } from './DeathAnnouncement'
 export type { FamilyMember } from './FamilyMember'
 export {

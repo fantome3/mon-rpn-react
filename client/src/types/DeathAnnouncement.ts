@@ -33,3 +33,9 @@ export type DeathAnnouncement = {
   processingErrors?: DeathAnnouncementProcessingError[]
   processingFailureReason?: string
 }
+
+export type CreateDeathAnnouncementInput = {
+  firstName: string
+  deathPlace: string
+  deathDate: Date
+}

@@ -25,6 +25,7 @@ import {
   useNewDeathAnnouncementMutation,
   useUpdateAnnouncementMutation,
 } from '@/hooks/deathAnnouncementHook'
+import { BatchDeathAnnouncementForm } from './BatchDeathAnnouncementForm'
 import {
   getAnnouncementStatusBadgeClass,
   getAnnouncementStatusLabel,
@@ -77,6 +78,7 @@ const Announcements = () => {
   const [editingAnnouncement, setEditingAnnouncement] =
     useState<DeathAnnouncement | null>(null)
   const [modalVisibility, setModalVisibility] = useState(false)
+  const [batchModalOpen, setBatchModalOpen] = useState(false)
 
   const currentProcessingAnnouncement =
     announcements?.find((item : any) => item._id === processingAnnouncementId) ??
@@ -300,9 +302,14 @@ const Announcements = () => {
     <>
       <div className='container mt-16 flex items-center justify-between'>
         <h1 className='text-2xl font-semibold'>Les annonces</h1>
-        <Button onClick={() => setModalVisibility(true)}>
-          Publier un décès
-        </Button>
+        <div className='flex gap-2'>
+          <Button variant='outline' onClick={() => setBatchModalOpen(true)}>
+            Publier plusieurs décès
+          </Button>
+          <Button onClick={() => setModalVisibility(true)}>
+            Publier un décès
+          </Button>
+        </div>
       </div>
 
       {currentProcessingAnnouncement && (
@@ -409,6 +416,20 @@ const Announcements = () => {
           <DataTable data={announcements} columns={columns} />
         </div>
       )}
+
+      <CustomModal
+        open={batchModalOpen}
+        setOpen={setBatchModalOpen}
+        title='Publier plusieurs décès'
+        description='Saisissez les informations de chaque défunt.'
+        size='full'
+        showCloseButton={false}
+      >
+        <BatchDeathAnnouncementForm
+          onSuccess={() => setBatchModalOpen(false)}
+          onClose={() => setBatchModalOpen(false)}
+        />
+      </CustomModal>
 
       {modalVisibility ? (
         <CustomModal

@@ -95,25 +95,6 @@ export async function enrollPendingFamilyMembers(
   }
 }
 
-/**
- * Réactive sur notrerpn.org tous les membres de la famille
- * qui possèdent une référence externe (déjà inscrits).
- */
-async function reactivateFamilyMembers(user: DocumentType<User>): Promise<void> {
-  const toReactivate = user.familyMembers.filter(
-    (m) => m.status === 'active' && m.rpnExternalReference
-  )
-  await Promise.allSettled(
-    toReactivate.map(async (m) => {
-      await reactivateOnExternalPlatform(m.rpnExternalReference!)
-      await UserModel.updateOne(
-        { _id: user._id, 'familyMembers._id': (m as any)._id },
-        { $set: { 'familyMembers.$.rpnStatus': 'enrolled' } }
-      )
-    })
-  )
-}
-
 async function deactivateFamilyMembers(user: DocumentType<User>): Promise<void> {
   const toDeactivate = user.familyMembers.filter(
     (m) => m.status === 'active' && m.rpnExternalReference && m.rpnStatus !== 'unsubscribed'
@@ -235,8 +216,9 @@ const enrollRpnMember = async (user: DocumentType<User>): Promise<void> => {
 
 /**
  * Réactivation d'un membre désabonné du fonds RPN.
- * Réactive le principal puis tous les membres de la famille déjà inscrits,
- * et inscrit ceux qui auraient été ajoutés pendant la période de désinscription.
+ * Les membres de la famille ne sont pas touchés : leur inscription RPN
+ * est indépendante et n'a pas été désactivée lors de la désinscription du principal.
+ * Seuls les membres famille encore en statut 'pending' sont inscrits sur notrerpn.org.
  */
 const reactivateRpnMember = async (
   user: DocumentType<User>,
@@ -261,9 +243,6 @@ const reactivateRpnMember = async (
   )
 
   if (primaryRef) {
-    reactivateFamilyMembers(user).catch((err) =>
-      console.error('[rpnLifecycle] reactivateFamilyMembers:', err)
-    )
     enrollPendingFamilyMembers(user, primaryRef).catch((err) =>
       console.error('[rpnLifecycle] enrollPendingFamilyMembers (réactivation):', err)
     )
@@ -304,8 +283,9 @@ export const onRpnBalanceInsufficient = async ({
     const deactivationDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
     user.subscription.scheduledDeactivationDate = deactivationDate
     await sendDeactivationWarningEmail(user.register.email, 'rpn', deactivationDate)
-    await user.save()
   }
+
+  await user.save()
 
   await sendPrelevementFailedDecesEmail(user.register.email, totalToDeduct, balance)
 
@@ -315,9 +295,9 @@ export const onRpnBalanceInsufficient = async ({
 }
 
 /**
- * Désinscrit le membre du fonds RPN : met à jour le statut, désactive
- * le principal et tous les membres de la famille sur la plateforme externe,
- * puis notifie le membre par courriel.
+ * Désinscrit le membre PRINCIPAL du fonds RPN uniquement.
+ * L'inscription RPN de chaque personne à charge est indépendante
+ * et n'est pas affectée par la désinscription du principal.
  */
 export const unsubscribeFromRpn = async (
   user: DocumentType<User>,
@@ -330,10 +310,6 @@ export const unsubscribeFromRpn = async (
 
   deactivateOnExternalPlatform(user.subscription.rpnExternalReference ?? '').catch((err) =>
     console.error('[rpnLifecycle] deactivateOnExternalPlatform:', err)
-  )
-
-  deactivateFamilyMembers(user).catch((err) =>
-    console.error('[rpnLifecycle] deactivateFamilyMembers:', err)
   )
 
   await sendRpnUnsubscriptionEmail(user.register.email, currentBalance, minimumRequired)

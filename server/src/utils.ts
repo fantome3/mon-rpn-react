@@ -161,18 +161,30 @@ export const generateUniqueReferralCode = async (
   return code
 }
 
+export type RpnCoverageInput = {
+  subscription?: { rpnStatus?: string }
+  familyMembers?: Array<{ status?: string; rpnStatus?: string }>
+}
+
 /**
- * Calcule le nombre total de personnes à prendre en compte pour la cotisation du rpn :
- * - Le membre principal
- * - Les membres de la famille actifs
+ * Calcule le nombre de personnes effectivement couvertes par le RPN dans une unité familiale.
+ * Le membre principal et chaque personne à charge sont comptés indépendamment
+ * selon leur propre rpnStatus. Les statuts 'not_enrolled' et 'unsubscribed' sont exclus.
+ * Les documents legacy (rpnStatus undefined) sont inclus pour rétrocompatibilité.
  */
-export const calculateTotalPersons = (user: User): number => {
-  const actualUser: number = 1
+export const calculateTotalPersons = (user: RpnCoverageInput): number => {
+  const primaryRpnStatus = user.subscription?.rpnStatus
+  const primaryCount =
+    primaryRpnStatus !== 'not_enrolled' && primaryRpnStatus !== 'unsubscribed' ? 1 : 0
 
-  const dependents =
-    user.familyMembers?.filter((member) => member.status === 'active') || []
+  const enrolledDependents =
+    user.familyMembers?.filter(
+      (member) =>
+        member.rpnStatus !== 'not_enrolled' &&
+        member.rpnStatus !== 'unsubscribed'
+    ).length ?? 0
 
-  return actualUser + dependents.length
+  return primaryCount + enrolledDependents
 }
 
 export const toNumber = (value: unknown, fallback = 0): number => {

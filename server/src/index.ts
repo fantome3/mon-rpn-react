@@ -18,7 +18,7 @@ initLogger()
 mongoose.set('strictQuery', true)
 
 mongoose
-  .connect(process.env.MONGODB_URI_DEV!)
+  .connect(process.env.MONGODB_URI!)
   .then(() => {
     console.log('Connected to MongoDB')
   })

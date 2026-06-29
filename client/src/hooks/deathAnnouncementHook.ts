@@ -1,10 +1,32 @@
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import apiClient from '@/apiClient'
-import { DeathAnnouncement } from '@/types'
+import { CreateDeathAnnouncementInput, DeathAnnouncement } from '@/types'
 
 export type CreateDeathAnnouncementResponse = {
   message: string
   announcement: DeathAnnouncement
+}
+
+export type CreateDeathAnnouncementBatchResponse = {
+  message: string
+  announcements: DeathAnnouncement[]
+  queuedCount: number
+  skippedCount: number
+}
+
+export const useNewDeathAnnouncementBatchMutation = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (inputs: CreateDeathAnnouncementInput[]) =>
+      (
+        await apiClient.post<CreateDeathAnnouncementBatchResponse>(
+          'api/announcements/batch',
+          inputs
+        )
+      ).data,
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ['announcements'] }),
+  })
 }
 
 export const useNewDeathAnnouncementMutation = () =>
