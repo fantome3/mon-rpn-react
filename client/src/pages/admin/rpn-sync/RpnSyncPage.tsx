@@ -19,6 +19,29 @@ const RpnSyncPage = () => {
   const [results, setResults] = useState<Map<string, RpnSyncResult>>(new Map())
   const [loadingKeys, setLoadingKeys] = useState<Set<string>>(new Set())
 
+  const [backfillLoading, setBackfillLoading] = useState(false)
+  const [backfillResult, setBackfillResult] = useState<{
+    fixed: number
+    users: Array<{ name: string; members: Array<{ name: string; oldStatus: string; newStatus: string }> }>
+  } | null>(null)
+
+  const handleBackfillRpnStatus = async () => {
+    setBackfillLoading(true)
+    setBackfillResult(null)
+    try {
+      const { data } = await apiClient.post('api/users/admin/backfill-rpn-status')
+      setBackfillResult(data)
+      toast({
+        title: `Migration terminée — ${data.fixed} membre(s) corrigé(s)`,
+        description: data.fixed === 0 ? 'Aucune donnée à corriger.' : 'Voir le détail ci-dessous.',
+      })
+    } catch {
+      toast({ variant: 'destructive', title: 'Erreur lors de la migration.' })
+    } finally {
+      setBackfillLoading(false)
+    }
+  }
+
   const rowKey = (userId: string, payload: RpnSyncPayload) =>
     payload.memberType === 'primary'
       ? `${userId}-primary`
@@ -63,6 +86,46 @@ const RpnSyncPage = () => {
             Membres en attente d'inscription sur notrerpn.org. Cliquez sur «&nbsp;Synchroniser&nbsp;» pour relancer l'inscription.
           </p>
         </div>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Correction des données legacy</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Corrige le champ <code>rpnStatus</code> des membres de famille inscrits sur notrerpn.org
+              avant l'ajout de ce champ en base. À exécuter une seule fois.
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={backfillLoading}
+              onClick={handleBackfillRpnStatus}
+              className="border-orange-400 text-orange-700 hover:bg-orange-50"
+            >
+              {backfillLoading ? 'Migration en cours…' : 'Corriger rpnStatus legacy'}
+            </Button>
+            {backfillResult !== null && (
+              <div className="rounded-md border border-orange-200 bg-orange-50 p-3 text-xs space-y-1">
+                <p className="font-semibold text-orange-800">
+                  {backfillResult.fixed === 0
+                    ? 'Aucun membre à corriger.'
+                    : `${backfillResult.fixed} membre(s) corrigé(s) :`}
+                </p>
+                {backfillResult.users.map((u) => (
+                  <div key={u.name}>
+                    <p className="font-medium text-orange-900">{u.name}</p>
+                    {u.members.map((m) => (
+                      <p key={m.name} className="text-orange-700 pl-2">
+                        · {m.name} : {m.oldStatus} → {m.newStatus}
+                      </p>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {users?.length === 0 ? (
           <Card>
