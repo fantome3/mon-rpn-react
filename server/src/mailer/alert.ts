@@ -24,7 +24,7 @@ export const sendAccountDeactivatedEmail = async (email: string) => {
   const accountDeactivationMessage = emailContents.compteDesactive.texte()
   const html = emailTemplate({ content: accountDeactivationMessage })
 
-  await sendEmail({ to: email, subject, text: accountDeactivationMessage, html })
+  // await sendEmail({ to: email, subject, text: accountDeactivationMessage, html })
 }
 
 export const sendRpnUnsubscriptionEmail = async (
@@ -36,7 +36,7 @@ export const sendRpnUnsubscriptionEmail = async (
   const text = emailContents.rpnDesinscription.texte({ current, required })
   const html = emailTemplate({ content: text })
   try {
-    await sendEmail({ to: email, subject, text, html })
+    // await sendEmail({ to: email, subject, text, html })
     console.log(`[mailer] Email de désinscription RPN envoyé à ${email}`)
   } catch (error) {
     console.error(`[mailer] Erreur envoi mail désinscription RPN`, error)
